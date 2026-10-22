@@ -156,9 +156,9 @@ final class CaptureStore {
             processedMsIds.put(msId, hash == null ? "" : hash);
             if (processedMsIds.size() > MAX_PROCESSED) {
                 // Drop the oldest half; MediaStore ids are monotonic per volume.
-                long median = 0;
-                for (long k : processedMsIds.keySet()) median += k;
-                median /= Math.max(1, processedMsIds.size());
+                long sum = 0;
+                for (long k : processedMsIds.keySet()) sum += k;
+                final long median = sum / Math.max(1, processedMsIds.size());
                 processedMsIds.keySet().removeIf(k -> k < median);
             }
         }
