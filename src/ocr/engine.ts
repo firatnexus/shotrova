@@ -1,3 +1,4 @@
+import { isNativeApp } from '../native/bridge';
 import type { OcrLanguage } from '../db/types';
 
 /**
@@ -44,7 +45,9 @@ async function createWorker(lang: OcrLanguage): Promise<TWorker> {
       workerPath: assetUrl('ocr/worker.min.js'),
       corePath: assetUrl('ocr/core/'),
       langPath: assetUrl('ocr/lang'),
-      gzip: true,
+      // Android's asset packager decompresses *.gz files and drops the
+      // extension, so the APK ships plain tur/eng.traineddata files.
+      gzip: !isNativeApp(),
       cacheMethod: 'none',
       workerBlobURL: false,
       logger: (m: { status: string; progress: number }) => progressCb?.(m),

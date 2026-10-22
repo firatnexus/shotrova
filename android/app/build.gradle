@@ -1,0 +1,88 @@
+apply plugin: 'com.android.application'
+
+// Single source of truth for the version: package.json (kept equal to BRAND.version
+// in src/config/brand.ts by a unit test). versionCode = major*10000 + minor*100 + patch.
+def pkg = new groovy.json.JsonSlurper().parse(file('../../package.json'))
+def appVersionName = pkg.version as String
+def vParts = appVersionName.tokenize('.-')
+def appVersionCode = (vParts[0] as Integer) * 10000 + (vParts[1] as Integer) * 100 + (vParts[2] as Integer)
+
+// Release signing: environment variables (CI) or android/keystore.properties (local).
+// Without them the release APK is built unsigned. Never commit the keystore.
+def ksProps = new Properties()
+def ksPropsFile = rootProject.file('keystore.properties')
+if (ksPropsFile.exists()) ksPropsFile.withInputStream { ksProps.load(it) }
+def signValue = { String env, String prop -> System.getenv(env) ?: ksProps.getProperty(prop) }
+def releaseStore = signValue('SH_KEYSTORE_FILE', 'storeFile')
+
+android {
+    namespace "io.github.firatnexus.shotrova"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "io.github.firatnexus.shotrova"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode appVersionCode
+        versionName appVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    androidResources {
+        // OCR models (.traineddata.gz) and the WASM core are already compressed.
+        noCompress += ['gz', 'wasm']
+    }
+    signingConfigs {
+        release {
+            if (releaseStore) {
+                storeFile file(releaseStore)
+                storePassword signValue('SH_KEYSTORE_PASSWORD', 'storePassword')
+                keyAlias signValue('SH_KEY_ALIAS', 'keyAlias')
+                keyPassword signValue('SH_KEY_PASSWORD', 'keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+        release {
+            if (releaseStore) signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

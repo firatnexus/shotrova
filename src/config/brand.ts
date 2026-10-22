@@ -10,11 +10,16 @@ export const BRAND = {
   /** Display name. Provisional — see docs/NAMING.md for the research behind it. */
   name: 'Shotrova',
   shortName: 'Shotrova',
-  /** Reverse-DNS style identifier used for storage keys and a future native wrapper. */
-  packageId: 'app.shotrova.pwa',
+  /**
+   * Reverse-DNS identifier, used as the Android applicationId. It lives under
+   * the GitHub namespace we control (io.github.firatnexus) instead of a domain
+   * we do not own. Changing it makes Android treat the APK as a different app.
+   */
+  packageId: 'io.github.firatnexus.shotrova',
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
-  version: '1.0.0',
+  /** Must match package.json "version"; Android versionCode is derived from it. */
+  version: '1.1.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
@@ -39,9 +44,12 @@ export type BrandConfig = typeof BRAND;
  * "nova" spark. Original artwork, generated as SVG so icons can be rendered at
  * any size from a single source.
  */
-export function logoSvg(size = 512, opts: { maskable?: boolean; monochrome?: boolean } = {}): string {
+export function logoSvg(
+  size = 512,
+  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number } = {},
+): string {
   const { ink, accent, paper } = BRAND.colors;
-  const pad = opts.maskable ? 0.2 : 0.1;
+  const pad = opts.pad ?? (opts.maskable ? 0.2 : 0.1);
   const tile = opts.maskable ? 0 : 0.22;
   const s = 512;
   const inner = s * (1 - pad * 2);
@@ -63,7 +71,7 @@ export function logoSvg(size = 512, opts: { maskable?: boolean; monochrome?: boo
   const k = R * 0.22;
   const sparkPath = `M ${cx} ${cy - R} Q ${cx + k} ${cy - k} ${cx + R} ${cy} Q ${cx + k} ${cy + k} ${cx} ${cy + R} Q ${cx - k} ${cy + k} ${cx - R} ${cy} Q ${cx - k} ${cy - k} ${cx} ${cy - R} Z`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${s} ${s}">
-  ${bg === 'none' ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" fill="${bg}"/>`}
+  ${bg === 'none' || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" fill="${bg}"/>`}
   <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="${r}" fill="none" stroke="${fg}" stroke-width="${inner * 0.055}"/>
   ${line(fy + fh * 0.36, fw * 0.62)}
   ${line(fy + fh * 0.52, fw * 0.48)}

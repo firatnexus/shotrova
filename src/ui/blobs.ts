@@ -1,3 +1,4 @@
+import { nativeSaveBlob } from '../native/bridge';
 import { useEffect, useState } from 'react';
 import { getBlobs } from '../db/db';
 
@@ -62,6 +63,17 @@ export function useOriginal(id: string): { url: string | null | undefined; blob:
     };
   }, [id]);
   return state;
+}
+
+/**
+ * Saves a file: the system "Save as" dialog in the Android app, a normal
+ * download in the browser. Resolves to false only when the user cancelled.
+ */
+export async function saveBlob(blob: Blob, name: string): Promise<boolean> {
+  const native = await nativeSaveBlob(blob, name);
+  if (native !== null) return native;
+  downloadBlob(blob, name);
+  return true;
 }
 
 export function downloadBlob(blob: Blob, name: string): void {

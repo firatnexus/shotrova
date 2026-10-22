@@ -1,3 +1,4 @@
+import { isNativeApp, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
 import { useAppState, setState } from '../lib/store';
 import { consumeShareInbox } from '../lib/actions';
@@ -87,7 +88,30 @@ export function App() {
     };
   }, []);
 
-  // Android share target: the service worker parks shared files in Cache Storage.
+  // Android app: images shared with "Share -> Shotrova" arrive through the native bridge.
+  useEffect(() => {
+    if (!ready || fatal || !isNativeApp()) return;
+    let busy = false;
+    const pull = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const r = await takeNativeSharedFiles();
+        if (!r || (!r.files.length && !r.failed.length)) return;
+        navigate('/import');
+        if (r.failed.length) toast(t('share.some_failed', { names: r.failed.join(', ') }), 'error');
+        if (r.files.length) await runImport(r.files, 'share');
+      } catch {
+        toast(t('share.failed'), 'error');
+      } finally {
+        busy = false;
+      }
+    };
+    void pull();
+    return onNativeShare(() => void pull());
+  }, [ready, fatal, t]);
+
+  // Installed PWA share target: the service worker parks shared files in Cache Storage.
   useEffect(() => {
     if (!ready || fatal) return;
     if (route.path === '/import' && route.query.has('shared')) {

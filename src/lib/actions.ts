@@ -1,3 +1,4 @@
+import { setNativeSystemBars } from '../native/bridge';
 import * as db from '../db/db';
 import { StorageError, toStorageError } from '../db/db';
 import type { Category, ImageRecord, LearnedRule, Settings } from '../db/types';
@@ -56,7 +57,9 @@ export function applyTheme(s: Settings = getState().settings): void {
   document.documentElement.dataset.theme = theme;
   document.documentElement.lang = s.lang;
   const meta = document.querySelector('meta[name="theme-color"]:not([media])') ?? document.querySelector('meta[name="theme-color"]');
-  meta?.setAttribute('content', theme === 'dark' ? BRAND.colors.themeDark : BRAND.colors.themeLight);
+  const bar = theme === 'dark' ? BRAND.colors.themeDark : BRAND.colors.themeLight;
+  meta?.setAttribute('content', bar);
+  setNativeSystemBars(theme === 'dark', bar);
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {

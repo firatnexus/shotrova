@@ -26,3 +26,29 @@ await render(logoSvg(512, { monochrome: true }), 512, 'public/icons/monochrome-5
 await render(logoSvg(180, { maskable: true }), 180, 'public/icons/apple-touch-icon.png');
 await render(logoSvg(32), 32, 'public/icons/favicon-32.png');
 await browser.close();
+
+// ---------------------------------------------------------------- Android
+// Launcher icons for the Capacitor project (only when android/ exists).
+import { existsSync, rmSync } from 'node:fs';
+if (existsSync('android/app/src/main/res')) {
+  const RES = 'android/app/src/main/res';
+  const b2 = await chromium.launch();
+  const pg = await b2.newPage({ deviceScaleFactor: 1 });
+  const draw = async (svg, size, out) => {
+    await pg.setViewportSize({ width: size, height: size });
+    await pg.setContent(`<html><body style="margin:0;background:transparent">${svg.replace(/width="\d+" height="\d+"/, `width="${size}" height="${size}"`)}</body></html>`);
+    await pg.locator('svg').screenshot({ path: out, omitBackground: true });
+  };
+  const dens = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
+  for (const [d, f] of Object.entries(dens)) {
+    mkdirSync(`${RES}/mipmap-${d}`, { recursive: true });
+    await draw(logoSvg(512), 48 * f, `${RES}/mipmap-${d}/ic_launcher.png`);
+    await draw(logoSvg(512, { maskable: true }).replace('rx="0"', 'rx="256"'), 48 * f, `${RES}/mipmap-${d}/ic_launcher_round.png`);
+    // Adaptive icon layers are 108dp; keep the mark inside the 66dp safe zone.
+    await draw(logoSvg(512, { foreground: true, pad: 0.26 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_foreground.png`);
+    await draw(logoSvg(512, { monochrome: true, pad: 0.26 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_monochrome.png`);
+    console.log('✓ android', d);
+  }
+  await b2.close();
+  for (const f of ['drawable-v24/ic_launcher_foreground.xml', 'drawable/ic_launcher_background.xml']) rmSync(`${RES}/${f}`, { force: true });
+}

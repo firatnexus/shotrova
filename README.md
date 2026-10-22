@@ -1,54 +1,81 @@
 # Shotrova
 
-Ekran görüntülerini düzenleyen, aramayı kolaylaştıran ve tamamen cihazda çalışan bir PWA. Görsellerdeki Türkçe ve İngilizce yazıyı **cihazda** okur (gerçek OCR, tesseract.js), görselleri kategorilere ayırır ve içlerindeki yazıyla bulmanızı sağlar. Android'de uygulama olarak yüklenebilir ve galeriden **Paylaş → Shotrova** ile görsel alabilir.
+Shotrova organizes your screenshots and makes them searchable, entirely on your device. It reads Turkish and English text in images with **real on-device OCR** (tesseract.js), sorts images into categories and lets you find them by the text they contain.
 
-| Mobil, açık tema | Mobil, koyu tema: arama | Masaüstü |
+It ships in two forms built from the same code:
+
+- **Android app (APK)**: a native Android app (Capacitor). It shows up in the Android share sheet as **Share → Shotrova**, OCR language files are bundled, and it works offline from the first launch.
+- **Web app (PWA)**: runs in any modern browser at **https://firatnexus.github.io/shotrova/** and can be installed to the home screen.
+
+| Mobile, light theme | Mobile, dark theme: search | Desktop |
 |---|---|---|
-| ![Ana sayfa](docs/screenshots/mobile-light-dashboard.png) | ![Arama](docs/screenshots/mobile-dark-search.png) | ![Masaüstü](docs/screenshots/desktop-light-dashboard.png) |
+| ![Dashboard](docs/screenshots/mobile-light-dashboard.png) | ![Search](docs/screenshots/mobile-dark-search.png) | ![Desktop](docs/screenshots/desktop-light-dashboard.png) |
 
-## Özellikler
+## Download
 
-- **İçe aktarma:** galeriden çoklu seçim, dosya seçici, sürükle-bırak, pano (Ctrl+V veya "Panodan yapıştır") ve Android paylaşım menüsü. JPEG, PNG ve WebP desteklenir. Dosyalar doğrulanır, kopyalar SHA-256 özetiyle tespit edilir, ilerleme ve dosya bazlı hatalar gösterilir.
-- **Cihazda OCR:** Türkçe + İngilizce. Görsel başına durum gösterilir (sırada, işleniyor, tamam, yazı yok, hata), hata olursa yeniden denenebilir. Değişmeyen görseller tekrar işlenmez. Okunan metin düzenlenebilir ve orijinal görsel hiç değiştirilmez.
-- **Kategoriler:** 11 varsayılan kategori. Kategoriler oluşturulabilir, yeniden adlandırılabilir, renklendirilebilir, sıralanabilir ve silinebilir. Otomatik kategorileme anahtar kelimelere dayanır ve güven puanı verir; emin olunmayan görseller onaya düşer. Düzeltmelerinizden **görünür ve silinebilir** kurallar öğrenilir.
-- **İsteğe bağlı AI:** OpenAI uyumlu bir sağlayıcı kendi anahtarınızla eklenebilir. Bu durumda sağlayıcıya yalnızca OCR metni gider; anahtar kaynak koduna ya da yedeğe girmez.
-- **Arama:** OCR metni, başlık, not, etiket, kategori ve dosya adında **metin tabanlı** arama (anlamsal değil). Türkçe karakter toleransı vardır; "geçen ay" gibi tarih ifadeleri ve kategori adları filtreye çevrilir; eşleşmeler vurgulanır.
-- **Ekranlar:** Ana sayfa, Görseller (filtre, sıralama, çoklu seçim, toplu işlem), Ayrıntı, Kategoriler, Ayarlar.
-- **Tasarım:** mobil öncelikli; açık/koyu tema; klavye erişimi; azaltılmış hareket desteği; iskelet yükleme, boş durumlar, bildirimler ve onay pencereleri.
-- **Gizlilik:** sunucu, hesap ve analitik yok; her şey IndexedDB'de durur. ZIP (görsellerle) veya JSON yedekleme ve doğrulamalı geri yükleme.
-- **PWA:** kurulabilir, çevrimdışı çalışır (OCR dosyaları önceden indirilebilir), Web Share Target desteği var.
-- **Dil:** Türkçe (varsayılan) ve İngilizce.
+- **Android APK:** [latest release](https://github.com/firatnexus/shotrova/releases/latest) → `shotrova-<version>.apk` (signed release build, Android 8.0+ / API 26+). Each release has a `SHA256SUMS.txt` file.
+- **Web:** [firatnexus.github.io/shotrova](https://firatnexus.github.io/shotrova/)
 
-## Hızlı başlangıç
+Installing the APK: download it on the phone, open it, and allow "Install unknown apps" for your browser or file manager when Android asks. The app is not on Google Play.
+
+## Features
+
+- **Import:** multi-select from the system photo picker, file picker, drag and drop, clipboard (Ctrl+V or "Paste from clipboard") and the Android share sheet. JPEG, PNG and WebP. Files are validated by their magic bytes, duplicates are detected with SHA-256, and progress and per-file errors are shown.
+- **On-device OCR:** Turkish + English. Each image has a status (queued, processing, done, no text, error) and failures can be retried. Unchanged images are never processed twice. The recognized text is editable; the original image is never modified.
+- **Categories:** 11 default categories. Create, rename, recolor, reorder and delete categories. Automatic categorization is keyword-based and comes with a confidence score; uncertain images go to a review queue. Corrections create **visible, deletable** rules.
+- **Optional AI:** an OpenAI-compatible provider can be added with your own key. Only the OCR text is sent; the key never enters the source code or backups.
+- **Search:** **text-based** (not semantic) search over OCR text, title, note, tags, category and file name. Tolerant of Turkish characters; phrases like "last month" and category names become filters; matches are highlighted.
+- **Screens:** Dashboard, Images (filters, sorting, multi-select, bulk actions), Detail, Categories, Settings.
+- **Design:** mobile-first, light/dark theme, keyboard accessible, reduced-motion support, skeleton loading, empty states, toasts and confirmation dialogs.
+- **Privacy:** no server, no account, no analytics. Everything stays in IndexedDB on the device. ZIP (with images) or JSON backup and validated restore.
+- **Languages:** Turkish (default) and English.
+
+### Android app specifics
+
+- Appears in **Share → Shotrova** for one or many images from the gallery, Files, or any app that shares images.
+- "Save original" and "Export backup" open the Android **Save as** dialog (Storage Access Framework), so you choose where files go.
+- "Share" opens the Android share sheet with the original file.
+- The hardware/gesture back button closes dialogs, then walks back through the app, then leaves the app.
+- Status and navigation bar colors follow the theme.
+- Permissions: **INTERNET only** (used only for the optional AI provider). No media/gallery permission is requested; the app only sees images you pick or share.
+- Android cloud backup of app data is disabled (`allowBackup="false"`); use the in-app backup.
+
+## Quick start (development)
 
 ```bash
 npm ci --legacy-peer-deps
-npm run dev                 # geliştirme
-npm run build && npm run preview   # üretim derlemesi → http://localhost:4173
-npm test                    # birim testleri
-npm run test:e2e            # Playwright uçtan uca testleri (önce build)
+npm run dev                         # development server
+npm run build && npm run preview    # production build → http://localhost:4173
+npm test                            # unit tests
+npm run test:e2e                    # Playwright end-to-end tests (build first)
 ```
 
-Yayınlama ve Android kurulumu: [docs/DEPLOY.md](docs/DEPLOY.md)
+Building the APK (JDK 21 and Android SDK 35 required):
 
-## Belgeler
+```bash
+npm run apk:debug                   # build + cap sync + gradlew assembleDebug
+```
 
-- [Mimari](docs/ARCHITECTURE.md)
-- [Test sonuçları](docs/TESTING.md): birim 43/43, E2E 34/34 (kök dizin) ve 34/34 (alt dizin); hepsi gerçekten çalıştırıldı
-- [Ad araştırması](docs/NAMING.md)
-- [Derleme ve yayınlama](docs/DEPLOY.md)
+Details, signing and CI: [docs/DEPLOY.md](docs/DEPLOY.md)
 
-## Sınırlamalar
+## Documentation
 
-- **Galeri otomatik izlenmez.** Bir web uygulaması, telefonun galerisini veya başka uygulamaların kaydettiği ekran görüntülerini arka planda göremez. Görselleri sizin seçmeniz ya da paylaşmanız gerekir.
-- **Tarayıcı depolaması kalıcı değildir.** Tarayıcı verilerini temizlerseniz veya cihazda yer azalırsa veriler silinebilir. Düzenli yedek alın.
-- **OCR doğruluğu** görselin netliğine bağlıdır; el yazısı, çok küçük veya süslü yazılar hatalı okunabilir. İlk OCR için yaklaşık 17 MB dosya indirilir.
-- **Görsel içerik anlaşılmaz.** Kategorileme yalnızca okunan yazıya dayanır. Yazısız bir fotoğrafın içeriği tahmin edilmez; böyle görseller "Kategorisiz" olarak onaya düşer.
-- **Arama metin tabanlıdır,** anlamsal değildir. Küçük bir TR↔EN eş anlamlı tablosu dışında eş anlamlıları bilmez.
-- **Paylaşım hedefi** yalnızca uygulama yüklendikten sonra ve yalnızca Chromium tabanlı Android tarayıcılarında çalışır. iOS Safari bunu desteklemez.
-- **Gerçek cihaz testi yapılmadı.** Testler Chromium'da Pixel 7 emülasyonuyla çalıştırıldı; ayrıntılar [TESTING.md](docs/TESTING.md) dosyasında.
-- **Ad için hukuki garanti yok.** Bkz. [NAMING.md](docs/NAMING.md).
+- [Architecture](docs/ARCHITECTURE.md)
+- [Test results](docs/TESTING.md): unit 47/47, web E2E 34/34 (root) and 34/34 (subpath), APK web-shell E2E 8/8 on both the debug and the signed release APK. All of them were actually executed.
+- [Name research](docs/NAMING.md)
+- [Build and deployment](docs/DEPLOY.md)
 
-## Lisans
+## Limitations
 
-MIT, bkz. [LICENSE](LICENSE). Üçüncü taraf bileşenler: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract dil modelleri `@tesseract.js-data/tur` ve `eng` (Apache-2.0 / MIT), [Satoshi yazı tipi](https://www.fontshare.com/fonts/satoshi) (ITF Free Font License), React (MIT), idb (ISC), fflate (MIT).
+- **Not tested on a physical Android device or emulator.** The build environment has no KVM/emulator. The APK was built, signed and inspected (`aapt2`, `apksigner`), and its bundled web files were tested in Chromium with a simulated Android bridge, but the Java side (share intents, Save as dialog, share sheet, clipboard, back button) only runs on a real device. See [TESTING.md](docs/TESTING.md) for manual test steps.
+- **The gallery is not monitored.** Neither the app nor the web version watches your gallery or sees screenshots saved by other apps in the background. You pick or share the images.
+- **Storage is not guaranteed to be permanent.** Uninstalling the app or clearing its data (or browser data for the web version) deletes everything. Make regular backups.
+- **OCR accuracy** depends on image quality; handwriting and very small or decorative text may be misread. The web version downloads about 17 MB of OCR files on first use; the APK bundles them.
+- **No visual understanding.** Categorization relies only on recognized text. Photos without text are not guessed; they go to "Uncategorized" for review.
+- **Search is text-based,** not semantic. Apart from a small TR↔EN synonym table it does not know synonyms.
+- **APK is Android only.** There is no iOS build. On the web, the share target works only after installing the PWA in a Chromium-based Android browser; iOS Safari does not support it.
+- **No legal guarantee for the name.** See [NAMING.md](docs/NAMING.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [Satoshi font](https://www.fontshare.com/fonts/satoshi) (ITF Free Font License), React (MIT), idb (ISC), fflate (MIT).

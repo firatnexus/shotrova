@@ -4,6 +4,12 @@ import { App } from './ui/App';
 import { applyTheme, init } from './lib/actions';
 import { getState, subscribe } from './lib/store';
 import './ui/styles.css';
+import { installNativeBackHandler, isNativeApp } from './native/bridge';
+
+if (isNativeApp()) {
+  document.documentElement.classList.add('native-app');
+  installNativeBackHandler();
+}
 
 void init();
 
@@ -20,7 +26,8 @@ subscribe(() => {
   }
 });
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// The Android app ships every file inside the APK, so it needs no service worker.
+if ('serviceWorker' in navigator && import.meta.env.PROD && !isNativeApp()) {
   const hadController = Boolean(navigator.serviceWorker.controller);
   let reloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {

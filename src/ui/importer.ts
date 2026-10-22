@@ -1,3 +1,4 @@
+import { nativeClipboardImages } from '../native/bridge';
 import { useSyncExternalStore } from 'react';
 import { importFiles, type ImportProgress, type ImportSummary } from '../lib/actions';
 import { toast } from '../lib/toast';
@@ -92,6 +93,9 @@ export function filesFromClipboard(e: ClipboardEvent): File[] {
 
 /** Reads images via the async Clipboard API (button-triggered paste). */
 export async function readClipboardImages(): Promise<File[] | null> {
+  // The Android WebView does not expose clipboard images to JavaScript.
+  const native = await nativeClipboardImages();
+  if (native !== null) return native;
   const nav = navigator as Navigator & { clipboard?: { read?: () => Promise<ClipboardItem[]> } };
   if (!nav.clipboard?.read) return null;
   const items = await nav.clipboard.read();

@@ -9,7 +9,8 @@ import { LANGS, categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { toast } from '../../lib/toast';
 import { useRoute } from '../router';
 import { Sheet, confirmDialog } from '../components';
-import { downloadBlob } from '../blobs';
+import { saveBlob } from '../blobs';
+import { isNativeApp } from '../../native/bridge';
 import { IconAlert, IconDownload, IconInfo, IconShield, IconTrash, IconUpload } from '../icons';
 import type { Lang, OcrLanguage, ThemePref } from '../../db/types';
 
@@ -36,6 +37,7 @@ function Toggle({ label, desc, checked, onChange, testId }: { label: string; des
 
 export function SettingsScreen() {
   const t = useT();
+  const native = isNativeApp();
   const route = useRoute();
   const s = useAppState((x) => x.settings);
   const images = useAppState((x) => x.images);
@@ -104,7 +106,7 @@ export function SettingsScreen() {
     setBusy(kind);
     try {
       const r = kind === 'zip' ? await exportZip() : await exportJson();
-      downloadBlob(r.blob, r.fileName);
+      if (!(await saveBlob(r.blob, r.fileName))) return;
       await updateSettings({ lastBackupAt: Date.now() });
       toast(t('set.exported', { n: r.imageCount }), 'success');
     } catch (e) {
@@ -192,6 +194,9 @@ export function SettingsScreen() {
             <option value="eng">{t('set.ocr_eng')}</option>
           </select>
         </div>
+        {native ? (
+          <p className="small">{t('set.ocr_bundled')}</p>
+        ) : (
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <span className="small">
             {ocrCached === 1 ? t('set.ocr_ready_offline') : ocrCached === null ? t('set.ocr_cache_unknown') : t('set.ocr_not_cached')}
@@ -200,6 +205,7 @@ export function SettingsScreen() {
             <IconDownload /> {preparing ? t('set.ocr_preparing') : t('set.ocr_prepare')}
           </button>
         </div>
+        )}
         <p className="faint xs">{t('set.ocr_note')}</p>
       </Section>
 
@@ -297,7 +303,7 @@ export function SettingsScreen() {
         </div>
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <span className="small">{est?.persisted ? t('set.persisted') : t('set.not_persisted')}</span>
-          {!est?.persisted && navigator.storage?.persist && (
+          {!native && !est?.persisted && navigator.storage?.persist && (
             <button
               type="button"
               className="btn sm"
@@ -311,7 +317,7 @@ export function SettingsScreen() {
             </button>
           )}
         </div>
-        <p className="faint xs">{t('set.storage_note')}</p>
+        <p className="faint xs">{native ? t('set.storage_note_app') : t('set.storage_note')}</p>
       </Section>
 
       <Section id="backup" title={t('set.backup')}>
@@ -358,6 +364,10 @@ export function SettingsScreen() {
       </Section>
 
       <Section id="install" title={t('set.install')}>
+        {native ? (
+          <p className="small">{t('set.install_app')}</p>
+        ) : (
+        <>
         <ol className="small" style={{ margin: 0, paddingLeft: 18 }}>
           <li>{t('set.install_1')}</li>
           <li>{t('set.install_2')}</li>
@@ -365,6 +375,14 @@ export function SettingsScreen() {
           <li>{t('set.install_4')}</li>
         </ol>
         <p className="faint xs">{t('set.install_note')}</p>
+        <p className="faint xs">
+          {t('set.install_apk')}{' '}
+          <a href={`${BRAND.repoUrl}/releases/latest`} target="_blank" rel="noopener noreferrer">
+            {t('set.install_apk_link')}
+          </a>
+        </p>
+        </>
+        )}
       </Section>
 
       <Section id="about" title={t('set.about')}>

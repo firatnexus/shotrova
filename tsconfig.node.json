@@ -18,7 +18,9 @@
   "include": [
     "vite.config.ts",
     "playwright.config.ts",
+    "playwright.android.config.ts",
     "tests/e2e",
+    "tests/e2e-android",
     "src/config/brand.ts"
   ]
 }

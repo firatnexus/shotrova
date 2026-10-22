@@ -7,7 +7,8 @@ import { safeFileName } from '../../import/validate';
 import { toast } from '../../lib/toast';
 import { href, navigate } from '../router';
 import { CategoryPicker, Empty, OcrBadge, Skeleton, confirmDialog } from '../components';
-import { downloadBlob, forgetThumb, useOriginal } from '../blobs';
+import { forgetThumb, saveBlob, useOriginal } from '../blobs';
+import { nativeShareBlob } from '../../native/bridge';
 import { IconBack, IconCheck, IconCopy, IconDownload, IconEdit, IconFolder, IconImage, IconRefresh, IconShare, IconTrash, IconX } from '../icons';
 
 export function DetailScreen({ id }: { id: string }) {
@@ -71,14 +72,21 @@ export function DetailScreen({ id }: { id: string }) {
     const file = new File([blob], fileName, { type: r.mimeType });
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
     try {
+      if (await nativeShareBlob(blob, fileName, { title: displayTitle(r) })) return;
       if (nav.share && nav.canShare?.({ files: [file] })) await nav.share({ files: [file], title: displayTitle(r) });
       else if (nav.share && r.ocrText) await nav.share({ title: displayTitle(r), text: r.ocrText });
       else {
-        downloadBlob(blob, fileName);
-        toast(t('detail.share_unsupported'), 'info');
+        if (await saveBlob(blob, fileName)) toast(t('detail.share_unsupported'), 'info');
       }
     } catch (e) {
       if ((e as Error).name !== 'AbortError') toast(t('detail.share_failed'), 'error');
+    }
+  };
+  const download = async (b: Blob) => {
+    try {
+      if (await saveBlob(b, fileName)) toast(t('detail.saved'), 'success');
+    } catch {
+      toast(t('detail.save_failed'), 'error');
     }
   };
   const remove = async () => {
@@ -106,7 +114,7 @@ export function DetailScreen({ id }: { id: string }) {
           <button type="button" className="btn icon" onClick={() => void share()} aria-label={t('detail.share')} title={t('detail.share')} disabled={!blob}>
             <IconShare />
           </button>
-          <button type="button" className="btn icon" onClick={() => blob && downloadBlob(blob, fileName)} aria-label={t('detail.download')} title={t('detail.download')} disabled={!blob}>
+          <button type="button" className="btn icon" onClick={() => blob && void download(blob)} aria-label={t('detail.download')} title={t('detail.download')} disabled={!blob}>
             <IconDownload />
           </button>
           <button type="button" className="btn icon danger" onClick={() => void remove()} aria-label={t('common.delete')} title={t('common.delete')}>

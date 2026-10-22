@@ -122,11 +122,16 @@ export function ImagesScreen() {
   };
   useEffect(() => {
     if (!selecting) return;
+    // Lets the Android back button leave selection mode first.
+    document.documentElement.dataset.selecting = 'true';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') exitSelect();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      delete document.documentElement.dataset.selecting;
+      window.removeEventListener('keydown', onKey);
+    };
   }, [selecting]);
 
   const bulkDelete = async () => {
