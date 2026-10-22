@@ -147,7 +147,7 @@ export const DEFAULT_SETTINGS: Settings = {
     providers: {
       openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-6-luna', apiKey: '' },
       anthropic: { baseUrl: 'https://api.anthropic.com', model: 'claude-haiku-5-5', apiKey: '' },
-      google: { baseUrl: 'https://generativelanguage.googleapis.com', model: 'gemini-3.8-flash', apiKey: '' },
+      google: { baseUrl: 'https://generativelanguage.googleapis.com', model: 'gemini-3.6-flash', apiKey: '' },
       openrouter: { baseUrl: 'https://openrouter.ai/api/v1', model: 'openrouter/auto', apiKey: '' },
       custom: { baseUrl: '', model: '', apiKey: '' },
     },

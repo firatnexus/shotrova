@@ -86,7 +86,7 @@ describe('provider contracts', () => {
     const out = await providerChat(cfgFor('google'), { system: 's', user: 'u', imageDataUrl: 'data:image/png;base64,zz', json: true });
     expect(out).toBe('cevap');
     const [url, init] = lastCall(fn);
-    expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent');
+    expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent');
     expect((init.headers as Record<string, string>)['x-goog-api-key']).toBe('k');
     const body = JSON.parse(String(init.body));
     expect(body.systemInstruction.parts[0].text).toBe('s');
@@ -143,7 +143,7 @@ describe('activeProviderConfig', () => {
     cfg.providers.google.baseUrl = '   ';
     const c = activeProviderConfig(cfg);
     expect(c.baseUrl).toBe('https://generativelanguage.googleapis.com');
-    expect(c.model).toBe('gemini-3.8-flash');
+    expect(c.model).toBe('gemini-3.6-flash');
     expect(c.apiKey).toBe('k');
   });
 });
@@ -180,7 +180,7 @@ describe('settings migration', () => {
   it('backfills missing provider slots in an already-migrated object', () => {
     const migrated = migrateAiSettings({ enabled: true, provider: 'google', providers: { google: { apiKey: 'g', baseUrl: '', model: '' } } });
     expect(migrated.providers.google.baseUrl).toBe('https://generativelanguage.googleapis.com');
-    expect(migrated.providers.google.model).toBe('gemini-3.8-flash');
+    expect(migrated.providers.google.model).toBe('gemini-3.6-flash');
     expect(migrated.providers.openai.apiKey).toBe('');
   });
 });
