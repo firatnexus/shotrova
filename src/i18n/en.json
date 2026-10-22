@@ -425,7 +425,7 @@
   "cap.background.s2": "In Recents, long-press the Shotrova card and tap the lock icon.",
   "cap.background.s3": "Security → Autostart: enable Shotrova (or search \"Autostart\").",
   "cap.background.s4": "Settings → Notifications → Shotrova: keep the \"Screenshot saved\" channel on.",
-  "cap.background.limits": "Honest limits: after \"Force stop\" and under aggressive battery restrictions, detection can be delayed. New screenshots are usually caught immediately by the content trigger; the periodic backstop scan runs at most every 15 minutes (an Android limit) and anything missed is picked up when you open the app. A force-stopped app cannot scan anything until you open it — that is an Android rule.",
+  "cap.background.limits": "Honest limits: after \"Force stop\" and under aggressive battery restrictions, detection can be delayed. The periodic backstop scan is scheduled at a 15-minute interval and may run later due to Android and battery restrictions. Content-change triggers are evaluated separately and immediate detection is not guaranteed. Missed screenshots are re-scanned when you open the app. A force-stopped app cannot scan anything until you open it — that is an Android rule.",
   "cap.background.open_battery": "Open battery settings",
   "cap.background.open_perms": "Open app settings",
   "cap.background.open_notifs": "Open notification settings",

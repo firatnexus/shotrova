@@ -425,7 +425,7 @@
   "cap.background.s2": "Son kullanılanlar ekranında Shotrova simgesini basılı tutup \"Kilitle\" (kilit simgesi) ile sabitleyin.",
   "cap.background.s3": "Güvenlik → Otomatik başlatma: Shotrova'yı etkinleştirin (yoksa \"Otomatik başlatma\" araması yapın).",
   "cap.background.s4": "Ayarlar → Bildirimler → Shotrova: \"Ekran görüntüsü kaydedildi\" kanalını etkin bırakın.",
-  "cap.background.limits": "Dürüst uyarı: \"Zorla durdur\" sonrası ve agresif pil kısıtlarında algılama gecikebilir. Yeni ekran görüntüleri genelde anında tetikle yakalanır; periyodik yedek tarama Android sınırı gereği en fazla 15 dakikada bir çalışır ve uygulama açıldığında kaçırılanlar otomatik alınır. Zorla durdurulan uygulama, siz açana kadar hiçbir şey taramaz — bu bir Android kuralıdır.",
+  "cap.background.limits": "Dürüst uyarı: \"Zorla durdur\" sonrası ve agresif pil kısıtlarında algılama gecikebilir. Periyodik yedek tarama 15 dakikalık aralıkla planlanır; Android ve pil kısıtları nedeniyle daha geç çalışabilir. İçerik değişikliği tetikleri ayrı değerlendirilir ve anında algılama garanti edilmez. Uygulama açıldığında kaçırılan görüntüler için yeniden tarama yapılır. Zorla durdurulan uygulama, siz açana kadar hiçbir şey taramaz — bu bir Android kuralıdır.",
   "cap.background.open_battery": "Pil ayarlarını aç",
   "cap.background.open_perms": "Uygulama ayarlarını aç",
   "cap.background.open_notifs": "Bildirim ayarlarını aç",
