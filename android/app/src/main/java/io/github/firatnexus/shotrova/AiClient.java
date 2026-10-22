@@ -86,7 +86,11 @@ final class AiClient {
         c.setConnectTimeout(15000);
         c.setReadTimeout(60000);
         c.setDoOutput(true);
-        for (String k : headers.keySet()) c.setRequestProperty(k, headers.optString(k));
+        java.util.Iterator<String> hk = headers.keys();
+        while (hk.hasNext()) {
+            String k = hk.next();
+            c.setRequestProperty(k, headers.optString(k));
+        }
         c.setRequestProperty("Content-Type", "application/json");
         try (OutputStream os = c.getOutputStream()) {
             os.write(body.getBytes(StandardCharsets.UTF_8));

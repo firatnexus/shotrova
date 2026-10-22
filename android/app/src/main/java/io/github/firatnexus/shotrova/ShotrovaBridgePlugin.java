@@ -650,7 +650,7 @@ public class ShotrovaBridgePlugin extends Plugin {
         }
         android.content.IntentSender sender = null;
         try {
-            android.content.PendingIntent pi = android.provider.MediaStore.createDeleteRequest(
+            android.app.PendingIntent pi = android.provider.MediaStore.createDeleteRequest(
                 getContext().getContentResolver(), uris);
             sender = pi.getIntentSender();
         } catch (Exception e) {

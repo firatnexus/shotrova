@@ -351,9 +351,9 @@ final class CaptureScanner {
     }
 
     private static String analysisPrompt(String lang, String categories) {
-        String tr = "tr".equals(lang);
+        boolean tr = "tr".equals(lang);
         return (tr
-            ? "Telefon ekran görüntülerini sınıflandıran bir asistansın. Kullanıcının kategorilerinden TAM OLARK BİRİNİ seç. "
+            ? "Telefon ekran görüntülerini sınıflandıran bir asistansın. Kullanıcının kategorilerinden TAM OLARAK BİRİNİ seç. "
               + "Kısa bir Türkçe başlık (en fazla 6 kelime), kategori adı ve 2-4 etiket üret. "
               + "Yalnızca JSON döndür: {\"title\": \"...\", \"category\": \"...\", \"tags\": [\"...\"]}. "
               + "Uymayan yoksa kategori olarak \"Diğer\" yaz. Banka/şifre gibi hassas verileri başlıkta kullanma."
@@ -480,7 +480,7 @@ final class CaptureScanner {
             .setContentIntent(openApp(ctx, lastId));
         if (lastThumb != null) {
             Bitmap bmp = BitmapFactory.decodeFile(lastThumb);
-            if (bmp != null) b.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bmp).bigLargeIcon(null));
+            if (bmp != null) b.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bmp).bigLargeIcon((android.graphics.Bitmap) null));
         }
         // Actions: both open the app; "Kategoriyi değiştir" targets the item so the
         // web layer can jump straight to its category editor after import.
