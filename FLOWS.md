@@ -35,3 +35,12 @@ Checked after every edit. Names are user-visible text.
 - Splash: launch shows branded splash (background + icon) then app.
 - No pinch zoom in APK; viewer zoom still works.
 - Share from gallery → Shotrova; back button; system bars match theme.
+
+## Automatic screenshot capture (v1.4.0, Android, opt-in)
+- First run: consent sheet explains each permission and what the AI receives; nothing runs before the user opts in. Existing screenshot history is never imported — only new screenshots.
+- Detection: MediaStore + WorkManager content-URI trigger (fast path, re-armed after each run) + 15-min periodic catch-up + BOOT_COMPLETED re-arm + catch-up on launch. No foreground service, no persistent notification.
+- Copy: staged into app-private storage (original or compressed per setting) — survives gallery deletion. Dedupe by MediaStore id + SHA-256.
+- AI (optional): with consent, background analysis with the user's own key (key encrypted with Android Keystore). Vision consent on → downscaled image; off → on-device ML Kit OCR text only. Failures (no key/quota/network) are queued as "Analiz bekliyor" and retried.
+- Notification per capture: title/category/thumbnail, tap opens the image. Home status card: Açık / Kapalı / İzin eksik / Pil kısıtı var with one-tap fixes; partial media access (Android 14+) handled with "Tümüne izin ver" guidance.
+- Detail: "Otomatik alındı" badge, "Analiz bekliyor" state, per-item "Yapay zekaya gönderme" exclusion, "Telefondan da sil" (system delete request, Android 11+, with confirmation).
+- Xiaomi/HyperOS: "Arka plan çalışma ayarları" screen with step-by-step guidance; no reliability promises after force-stop/reboot — 15-min floor is an OS limit.

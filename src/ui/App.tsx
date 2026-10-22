@@ -1,6 +1,7 @@
-import { isNativeApp, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
+import { isNativeApp, onNativeShare, takeNativeSharedFiles, getNativeLaunchCapture, onNativeCapture } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
-import { useAppState, setState } from '../lib/store';
+import { useAppState, setState, getState } from '../lib/store';
+import { syncCaptures } from '../auto/capture';
 import { consumeShareInbox } from '../lib/actions';
 import { toast } from '../lib/toast';
 import { useT } from '../i18n';
@@ -16,6 +17,7 @@ import { DetailScreen } from './screens/Detail';
 import { CategoriesScreen } from './screens/Categories';
 import { SettingsScreen } from './screens/Settings';
 import { ImportScreen } from './screens/Import';
+import { BackgroundScreen } from './screens/Background';
 
 export function Logo({ size = 30 }: { size?: number }) {
   return <span aria-hidden="true" style={{ width: size, height: size, display: 'inline-block' }} dangerouslySetInnerHTML={{ __html: logoSvg(size) }} />;
@@ -111,6 +113,30 @@ export function App() {
     return onNativeShare(() => void pull());
   }, [ready, fatal, t]);
 
+  // Android app: notification tap delivers a capture id; jump to that image.
+  useEffect(() => {
+    if (!ready || fatal || !isNativeApp()) return;
+    let alive = true;
+    const consumeLaunch = async () => {
+      try {
+        const launch = await getNativeLaunchCapture();
+        if (!alive || !launch) return;
+        const prefix = launch.captureId.replace(/^cap_/, '');
+        const img = getState().images.find((x) => x.hash.startsWith(prefix));
+        if (img) navigate(`/image/${img.id}`, true);
+        else if (launch.focusCategory) navigate('/categories', true);
+      } catch {
+        /* launch info is best-effort */
+      }
+    };
+    void consumeLaunch();
+    const off = onNativeCapture(() => void syncCaptures());
+    return () => {
+      alive = false;
+      off();
+    };
+  }, [ready, fatal]);
+
   // Installed PWA share target: the service worker parks shared files in Cache Storage.
   useEffect(() => {
     if (!ready || fatal) return;
@@ -148,6 +174,7 @@ export function App() {
   else if (tab === 'categories') screen = <CategoriesScreen />;
   else if (tab === 'settings') screen = <SettingsScreen />;
   else if (tab === 'import') screen = <ImportScreen />;
+  else if (tab === 'background') screen = <BackgroundScreen />;
   else screen = <NotFound />;
 
   return (
@@ -175,7 +202,7 @@ export function App() {
               <IconOffline width={14} height={14} /> {t('net.offline')}
             </span>
           )}
-          <button type="button" className="btn primary sm" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
+          <button type="button" className="btn sm" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
             <IconScan /> {t('import.cta')}
           </button>
         </header>

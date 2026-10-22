@@ -22,6 +22,7 @@ Installing the APK: download it on the phone, open it, and allow "Install unknow
 
 ## Features
 
+- **Automatic screenshot capture (Android, opt-in):** when enabled, the app detects new screenshots by itself (MediaStore + WorkManager background work, no persistent notification), copies them into its own storage so they survive gallery deletion, and — with your explicit consent — analyses them with your own AI key to produce a title and category. You get a notification like "Ekran görüntüsü 'Fatura Özeti' başlığıyla Alışveriş kategorisine kaydedildi". The home screen shows an honest status card (Otomatik algılama: Açık / Kapalı / İzin eksik / Pil kısıtı var) with one-tap fixes, and a Xiaomi/HyperOS guidance screen explains the background-work settings. Screenshot detection needs the media permission (partial access is supported); the app never imports your existing screenshot history on first enable — only new screenshots are captured. The copy stays in the app even if you delete the original from the gallery; deleting inside the app removes only the app's copy unless you confirm "Telefondan da sil".
 - **Import:** multi-select from the system photo picker, file picker, drag and drop, clipboard (Ctrl+V or "Paste from clipboard") and the Android share sheet. JPEG, PNG and WebP. Files are validated by their magic bytes, duplicates are detected with SHA-256, and progress and per-file errors are shown.
 - **On-device OCR:** Turkish + English. Each image has a status (queued, processing, done, no text, error) and failures can be retried. Unchanged images are never processed twice. The recognized text is editable; the original image is never modified.
 - **Categories:** 11 default categories. Create, rename, recolor, reorder and delete categories. Automatic categorization is keyword-based and comes with a confidence score; uncertain images go to a review queue. Corrections create **visible, deletable** rules.
@@ -37,12 +38,13 @@ Installing the APK: download it on the phone, open it, and allow "Install unknow
 
 ### Android app specifics
 
+- **Automatic capture:** opt-in via the first-run consent screen (or Settings → Otomatik Algılama). MediaStore + WorkManager content triggers catch new screenshots within seconds while the system allows it, plus a periodic catch-up scan (minimum 15 minutes — an OS floor, not a promise of real-time), and a catch-up on every launch for anything missed. A notification is posted for each saved screenshot (tap it to open the image); failures are queued honestly as "Analiz bekliyor" and retried. Force-stop/reboot can still delay detection on aggressive OEMs (Xiaomi/HyperOS) — the in-app "Arka plan çalışma ayarları" screen walks you through the battery-saver exceptions. Each capture can be excluded from AI ("Yapay zekaya gönderme").
 - Appears in **Share → Shotrova** for one or many images from the gallery, Files, or any app that shares images.
 - "Save original" and "Export backup" open the Android **Save as** dialog (Storage Access Framework), so you choose where files go.
 - "Share" opens the Android share sheet with the original file.
 - The hardware/gesture back button closes dialogs, then walks back through the app, then leaves the app.
 - Status and navigation bar colors follow the theme.
-- Permissions: **INTERNET only** (used only for the optional AI provider). No media/gallery permission is requested; the app only sees images you pick or share.
+- Permissions: **INTERNET**, plus — only if you enable automatic capture — **media access** (READ_MEDIA_IMAGES with partial-access support on Android 14+, READ_EXTERNAL_STORAGE on Android 8–12) and **POST_NOTIFICATIONS**. Without automatic capture the app only sees images you pick or share. **RECEIVE_BOOT_COMPLETED** re-arms the capture worker after a reboot. No location, camera, microphone or contacts permissions, ever.
 - Android cloud backup of app data is disabled (`allowBackup="false"`); use the in-app backup.
 
 ## Quick start (development)

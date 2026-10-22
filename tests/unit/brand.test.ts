@@ -22,11 +22,19 @@ describe('brand config is the single source of truth', () => {
     expect(strings).toContain(`<string name="app_name">${BRAND.name}</string>`);
     expect(strings).toContain(`<string name="package_name">${BRAND.packageId}</string>`);
   });
-  it('Android only receives user-shared images and asks for no media permissions', () => {
+  it('Android asks for the minimal media permission set required by automatic capture', () => {
     const m = read('android/app/src/main/AndroidManifest.xml');
     expect(m).toContain('android.intent.action.SEND_MULTIPLE');
     expect(m).toContain('android:mimeType="image/*"');
-    expect(m).not.toMatch(/READ_EXTERNAL_STORAGE|READ_MEDIA_IMAGES|MANAGE_EXTERNAL_STORAGE/);
+    // Media access for screenshot detection, partial access supported on 14+.
+    expect(m).toContain('android.permission.READ_MEDIA_IMAGES');
+    expect(m).toContain('android.permission.READ_MEDIA_VISUAL_USER_SELECTED');
+    // Legacy fallback, only up to Android 12.
+    expect(m).toMatch(/READ_EXTERNAL_STORAGE[^>]*android:maxSdkVersion="32"/);
+    expect(m).toContain('android.permission.POST_NOTIFICATIONS');
+    expect(m).toContain('android.permission.RECEIVE_BOOT_COMPLETED');
+    // No broad storage or write access.
+    expect(m).not.toMatch(/MANAGE_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE/);
     expect(m).toContain('android:allowBackup="false"');
   });
 });

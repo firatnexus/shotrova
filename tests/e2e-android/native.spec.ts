@@ -5,87 +5,9 @@
  * half (ShotrovaBridgePlugin) is compiled by Gradle but only runs on a device.
  */
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import type { Page } from '@playwright/test';
-import { FX, dbImages, expect, importFixtures, test, waitForOcr } from '../e2e/helpers';
-
-interface NativeLog {
-  calls: Array<[string, Record<string, unknown>]>;
-  docs: Record<string, string>;
-  outbox: Record<string, string>;
-}
-
-/** A stand-in for Capacitor's native-bridge.js + ShotrovaBridgePlugin. */
-function installFakeBridge(preShared: Array<Record<string, unknown>> = []) {
-  const w = window as unknown as Record<string, unknown>;
-  const state = {
-    calls: [] as Array<[string, Record<string, unknown>]>,
-    docs: {} as Record<string, string>,
-    outbox: {} as Record<string, string>,
-    shared: [...preShared] as Array<Record<string, unknown>>,
-    clipboard: [] as Array<Record<string, unknown>>,
-    listeners: {} as Record<string, Array<(d: unknown) => void>>,
-    nextDoc: 1,
-  };
-  w.__native = state;
-  w.Capacitor = {
-    isNativePlatform: () => true,
-    getPlatform: () => 'android',
-    convertFileSrc: (p: string) => `${location.origin}/_capacitor_file_${p}`,
-    addListener: (_plugin: string, ev: string, cb: (d: unknown) => void) => {
-      (state.listeners[ev] ||= []).push(cb);
-      return { remove: () => undefined };
-    },
-    nativePromise: async (plugin: string, method: string, o: Record<string, unknown> = {}) => {
-      if (plugin !== 'ShotrovaBridge') throw new Error(`unexpected plugin ${plugin}`);
-      state.calls.push([method, o.data ? { ...o, data: `<${String(o.data).length} b64>` } : o]);
-      switch (method) {
-        case 'takeSharedFiles': {
-          const files = state.shared;
-          state.shared = [];
-          return { files };
-        }
-        case 'readClipboardImage':
-          return { files: state.clipboard };
-        case 'createDocument':
-          return { uri: `content://fake/doc/${state.nextDoc++}` };
-        case 'writeDocumentChunk': {
-          const u = String(o.uri);
-          state.docs[u] = (o.append ? state.docs[u] ?? '' : '') + atob(String(o.data));
-          return undefined;
-        }
-        case 'writeOutboxChunk': {
-          const n = String(o.name);
-          state.outbox[n] = (o.append ? state.outbox[n] ?? '' : '') + atob(String(o.data));
-          return undefined;
-        }
-        case 'releaseFiles':
-        case 'shareOutboxFile':
-        case 'shareText':
-        case 'setSystemBars':
-          return undefined;
-        default:
-          throw new Error(`unknown method ${method}`);
-      }
-    },
-  };
-}
-
-async function openNative(page: Page, hash = '/', preShared: Array<Record<string, unknown>> = []) {
-  await page.addInitScript(installFakeBridge, preShared);
-  // Files staged by the native side are served from /_capacitor_file_/<path>.
-  await page.route('**/_capacitor_file_/**', (route) => {
-    const name = decodeURIComponent(new URL(route.request().url()).pathname.split('/').pop() ?? '');
-    route.fulfill({ status: 200, body: readFileSync(FX(name.replace(/^\d+-/, ''))), contentType: 'application/octet-stream' });
-  });
-  await page.goto(`./#${hash}`);
-  await expect(page.locator('main')).toBeVisible();
-  await page.waitForFunction(() => !document.querySelector('main [aria-busy="true"]'));
-}
-
-const log = (page: Page) => page.evaluate(() => (window as unknown as { __native: NativeLog }).__native);
-const sha = (b: Buffer | string) => createHash('sha256').update(typeof b === 'string' ? Buffer.from(b, 'latin1') : b).digest('hex');
-
+import { FX, dbImages, expect, importFixtures, sha256, test, waitForOcr } from '../e2e/helpers';
+import { installFakeBridge, log, openNative, sha, stagedCap } from './fake-native';
 test('A1 APK assets: no service worker, real OCR from the bundled (decompressed) language files', async ({ page }) => {
   const ocrRequests: string[] = [];
   page.on('request', (r) => r.url().includes('/ocr/') && ocrRequests.push(new URL(r.url()).pathname));
@@ -209,4 +131,44 @@ test('A8 System bars follow the theme', async ({ page }) => {
   await page.getByTestId('theme-light').click();
   const bars = (await log(page)).calls.filter(([m]) => m === 'setSystemBars').map(([, o]) => o);
   expect(bars).toEqual(expect.arrayContaining([{ dark: true, color: '#0B111B' }, { dark: false, color: '#EDF1F6' }])); // v1.2.0 graphite/teal palette
+});
+
+test('A9 Automatic capture: a staged screenshot syncs in with its native analysis', async ({ page }) => {
+  await openNative(page);
+  // The autocapture listener is wired by installCaptureSync once the app is ready.
+  await page.waitForFunction(() => ((window as unknown as { __native?: { listeners?: Record<string, unknown[]> } }).__native?.listeners?.autocapture?.length ?? 0) > 0);
+  const hash = sha256(FX('recipe_tr.png'));
+  // Simulate the native worker: screenshot detected, copied and analysed in the background.
+  await page.evaluate((cap) => (window as unknown as { __stageCapture: (c: Record<string, unknown>) => void }).__stageCapture(cap), stagedCap(hash, 42, 'recipe_tr.png', { title: 'Fatura Özeti', category: 'Alışveriş', tags: ['fatura'] }));
+  await expect.poll(async () => (await dbImages(page)).length).toBe(1);
+  const [img] = await dbImages(page);
+  expect(img.source).toBe('auto');
+  expect(img.msId).toBe(42);
+  expect(img.title).toBe('Fatura Özeti');
+  expect(img.categoryId).toBe('shopping');
+  // The native analysis counts as done: the web vision queue must not re-send it.
+  expect(img.aiStatus).toBe('done');
+  // The web layer frees the staging copy after importing.
+  expect((await log(page)).calls.map(([m]) => m)).toContain('markCapturedImported');
+  // And the same capture never imports twice (content-hash dedupe).
+  await page.evaluate((cap) => (window as unknown as { __stageCapture: (c: Record<string, unknown>) => void }).__stageCapture(cap), stagedCap(hash, 42, 'recipe_tr.png'));
+  await page.waitForTimeout(500);
+  expect((await dbImages(page)).length).toBe(1);
+});
+
+test('A10 Notification tap opens the captured screenshot', async ({ page }) => {
+  await openNative(page);
+  await page.waitForFunction(() => ((window as unknown as { __native?: { listeners?: Record<string, unknown[]> } }).__native?.listeners?.autocapture?.length ?? 0) > 0);
+  const hash = sha256(FX('settings_en.png'));
+  await page.evaluate((cap) => (window as unknown as { __stageCapture: (c: Record<string, unknown>) => void }).__stageCapture(cap), stagedCap(hash, 7, 'settings_en.png'));
+  await expect.poll(async () => (await dbImages(page)).length).toBe(1);
+  // Cold start as if launched by tapping the notification for that capture.
+  await page.evaluate((l) => sessionStorage.setItem('__fakeLaunch', JSON.stringify(l)), { captureId: `cap_${hash.slice(0, 16)}`, focusCategory: false });
+  await page.reload();
+  await expect(page).toHaveURL(/#\/image\//);
+  await expect(page.getByTestId('autocapture-badge')).toHaveText(/Otomatik alındı/);
+  // The per-item AI exclusion toggle is available and persists.
+  // (click + poll: the OCR progress bar shifts layout while check() settles)
+  await page.getByTestId('no-ai-toggle').click();
+  await expect.poll(async () => ((await dbImages(page))[0] ?? {}).noAi).toBe(true);
 });

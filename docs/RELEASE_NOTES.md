@@ -1,5 +1,15 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.4.0
+
+- **Otomatik ekran görüntüsü algılama (kullanıcı onayına bağlı):** uygulama açıkken de kapalıyken de yeni ekran görüntülerini kendisi algılar (MediaStore + WorkManager arka plan işi; sürekli bildirim yok), görüntüyü kendi deposuna kopyalar — böylece galeriden silsen bile uygulamadaki kopya kalır — ve açık izinle yapay zekâ başlık + kategori önerir. Kaydedilen her görüntü için "Ekran görüntüsü 'Fatura Özeti' başlığıyla Alışveriş kategorisine kaydedildi" gibi bildirim alırsın; bildirime dokununca görüntü açılır.
+- **İlk kurulum onay ekranı:** otomatik algılama ilk açılışta onay istemeden hiçbir şey yapmaz. Her izin tek tek açıklanır; yapay zekâya ne gönderileceği (yalnız metin / küçültülmüş görsel) seçilir. İlk açılışta mevcut ekran görüntü geçmişi içe aktarılmaz — yalnızca yeni alınanlar yakalanır.
+- **Dürüst durum kartı:** ana ekranda "Otomatik algılama: Açık / Kapalı / İzin eksik / Pil kısıtı var" gösterilir; her sorun için tek dokunuşla çözüm düğmesi vardır. Kısmi medya erişimi (Android 14+ "Tümüne izin ver" akışı) desteklenir.
+- **Yapay zekâ gizliliği:** anahtar Android Keystore ile şifrelenmiş olarak cihazda saklanır; her görüntü için "Yapay zekaya gönderme" dışlama anahtarı vardır; anahtar/kota/ağ hatasında görüntü dürüstçe "Analiz bekliyor" kuyruğuna alınır ve yeniden denenir.
+- **Telefondan da sil:** görüntü detayında, onayladığında orijinal galeri dosyasını da silen sistem silme akışı (Android 11+).
+- **Xiaomi/HyperOS rehberi:** "Arka plan çalışma ayarları" ekranı pil kısıtlamaları için adım adım Türkçe yönlendirme verir. Zorla durdurma/yeniden başlatma sonrası gecikme olabilir; açılışta ve 15 dakikalık WorkManager taramasıyla kaçan görüntüler yakalanır — bu işletim sistemi sınırıdır, gerçek zamanlı taahhüt değildir.
+- Yeni uçtan uca testler: yakalanan görüntünün analizle birlikte eş zamanlı senkronizasyonu, içerik karmasıyla tekilleştirme, bildirim dokunuşuyla açılış ve yapay zekâ dışlama anahtarı.
+
 ## What's new in 1.3.1
 
 - **Görsel soru-cevap düzeltmesi:** görsel artık her soruyla birlikte gönderiliyor (sağlayıcı API'leri durum bilgisiz olduğundan takip soruları için gerekli). Görsel değiştiğinde sohbet sıfırlanır; görsel yoksa soru gönderilemez.

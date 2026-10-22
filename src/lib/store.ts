@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { Category, ImageRecord, LearnedRule, Settings } from '../db/types';
 import { DEFAULT_SETTINGS } from '../db/types';
+import type { CaptureStatus } from '../native/bridge';
 
 export interface OcrProgress {
   status: string;
@@ -21,6 +22,10 @@ export interface AppState {
   /** AI vision analysis: per-image busy flag and pending queue length. */
   visionBusy: Record<string, boolean>;
   visionQueueLength: number;
+  /** Automatic capture state from the native layer (null in the browser build). */
+  captureStatus: CaptureStatus | null;
+  /** First-run consent sheet for automatic capture. */
+  captureSetupOpen: boolean;
 }
 
 let state: AppState = {
@@ -36,6 +41,8 @@ let state: AppState = {
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
   visionBusy: {},
   visionQueueLength: 0,
+  captureStatus: null,
+  captureSetupOpen: false,
 };
 
 const listeners = new Set<() => void>();

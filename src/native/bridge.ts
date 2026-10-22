@@ -18,6 +18,37 @@ export interface StagedFile {
   error?: string;
 }
 
+/** Automatic-capture state reported by the native side. */
+export interface CaptureStatus {
+  supported: boolean;
+  androidVersion: number;
+  mediaAccess: 'full' | 'partial' | 'none';
+  notifications: boolean;
+  enabled: boolean;
+  storageMode: 'original' | 'compressed';
+  pendingCount: number;
+  stagedBytes: number;
+  lastScanAt: number;
+  batteryUnrestricted: boolean;
+  armed: boolean;
+}
+
+/** One screenshot staged by the native capture pipeline. */
+export interface NativeCapture {
+  id: string;
+  msId: number;
+  hash: string;
+  path: string;
+  thumbPath: string;
+  name: string;
+  dateTaken: number;
+  mimeType: string;
+  size: number;
+  state: 'captured' | 'analyzed' | 'pending' | 'failed' | 'imported';
+  analysisError?: string;
+  analysis?: { title: string; category: string; tags: string[] };
+}
+
 interface PluginListenerHandle {
   remove: () => Promise<void> | void;
 }
@@ -32,7 +63,32 @@ export interface ShotrovaBridgePlugin {
   shareText(o: { text: string; title?: string }): Promise<void>;
   readClipboardImage(): Promise<{ files: StagedFile[] }>;
   setSystemBars(o: { dark: boolean; color?: string }): Promise<void>;
+  getCaptureState(): Promise<CaptureStatus>;
+  requestCapturePermissions(): Promise<CaptureStatus>;
+  requestNotificationPermission(): Promise<CaptureStatus>;
+  setAutoCapture(o: { enabled: boolean; storageMode?: string }): Promise<CaptureStatus>;
+  syncAiSettings(o: {
+    enabled: boolean;
+    provider: string;
+    baseUrl: string;
+    model: string;
+    apiKey: string;
+    vision: boolean;
+    autoAnalyze: boolean;
+    categories: string;
+    lang: string;
+  }): Promise<void>;
+  takeCaptured(): Promise<{ captures: NativeCapture[]; pendingCount: number }>;
+  markCapturedImported(o: { ids: string[] }): Promise<void>;
+  runCatchupScan(): Promise<CaptureStatus & { staged: number }>;
+  getLaunchCapture(): Promise<{ captureId: string; focusCategory: boolean }>;
+  purgeCapturedStaging(): Promise<CaptureStatus & { purged: number }>;
+  deleteFromPhone(o: { msIds: number[] }): Promise<{ deleted: boolean; unsupported?: boolean }>;
+  openPermissionSettings(): Promise<void>;
+  openNotificationSettings(): Promise<void>;
+  openBatterySettings(): Promise<void>;
   addListener(event: 'share', cb: (e: { count: number }) => void): Promise<PluginListenerHandle> | PluginListenerHandle;
+  addListener(event: 'autocapture', cb: (e: { count: number }) => void): Promise<PluginListenerHandle> | PluginListenerHandle;
 }
 
 /** The subset of Capacitor's injected native bridge (native-bridge.js) we use. */
@@ -74,7 +130,21 @@ function bridge(): ShotrovaBridgePlugin | null {
     shareText: call('shareText'),
     readClipboardImage: call('readClipboardImage'),
     setSystemBars: call('setSystemBars'),
-    addListener: (event, cb) => (c.addListener as NonNullable<CapacitorGlobal['addListener']>)(PLUGIN, event, cb as (d: unknown) => void),
+    getCaptureState: call<CaptureStatus>('getCaptureState'),
+    requestCapturePermissions: call<CaptureStatus>('requestCapturePermissions'),
+    requestNotificationPermission: call<CaptureStatus>('requestNotificationPermission'),
+    setAutoCapture: call<CaptureStatus>('setAutoCapture'),
+    syncAiSettings: call('syncAiSettings'),
+    takeCaptured: call<{ captures: NativeCapture[]; pendingCount: number }>('takeCaptured'),
+    markCapturedImported: call('markCapturedImported'),
+    runCatchupScan: call<CaptureStatus & { staged: number }>('runCatchupScan'),
+    getLaunchCapture: call<{ captureId: string; focusCategory: boolean }>('getLaunchCapture'),
+    purgeCapturedStaging: call<CaptureStatus & { purged: number }>('purgeCapturedStaging'),
+    deleteFromPhone: call<{ deleted: boolean; unsupported?: boolean }>('deleteFromPhone'),
+    openPermissionSettings: call('openPermissionSettings'),
+    openNotificationSettings: call('openNotificationSettings'),
+    openBatterySettings: call('openBatterySettings'),
+    addListener: (event: 'share' | 'autocapture', cb: (e: { count: number }) => void) => (c.addListener as NonNullable<CapacitorGlobal['addListener']>)(PLUGIN, event, cb as (data: unknown) => void),
   };
   return cached;
 }
@@ -187,6 +257,139 @@ export async function nativeClipboardImages(): Promise<File[] | null> {
 export function setNativeSystemBars(dark: boolean, color: string): void {
   const p = bridge();
   if (p) void Promise.resolve(p.setSystemBars({ dark, color })).catch(() => undefined);
+}
+
+// ------------------------------------------------------------ automatic capture
+
+/** Native capture state, or null in the browser build. */
+export async function getCaptureStatus(): Promise<CaptureStatus | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return await p.getCaptureState(); } catch { return null; }
+}
+
+/** Asks for media + notification permissions (state returned reflects the outcome). */
+export async function requestCapturePermissions(): Promise<CaptureStatus | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return await p.requestCapturePermissions(); } catch { return null; }
+}
+
+export async function requestNotificationPermission(): Promise<CaptureStatus | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return await p.requestNotificationPermission(); } catch { return null; }
+}
+
+/** Turns automatic capture on/off natively (re-arms the background workers). */
+export async function setNativeAutoCapture(enabled: boolean, storageMode?: 'original' | 'compressed'): Promise<CaptureStatus | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return await p.setAutoCapture({ enabled, storageMode }); } catch { return null; }
+}
+
+/** Staged screenshots awaiting import, or null in the browser build. */
+export async function takeNativeCaptured(): Promise<NativeCapture[] | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return (await p.takeCaptured()).captures ?? []; } catch { return null; }
+}
+
+/** Frees staged copies after the web layer imported them. */
+export async function markCapturedImported(ids: string[]): Promise<void> {
+  const p = bridge();
+  if (!p || !ids.length) return;
+  await p.markCapturedImported({ ids });
+}
+
+/** One immediate catch-up scan for screenshots missed while the app was off. */
+export async function runNativeCatchupScan(): Promise<{ staged: number } | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { const r = await p.runCatchupScan(); return { staged: r.staged }; } catch { return null; }
+}
+
+/** The capture id tapped in a notification, consumed once. */
+export async function getNativeLaunchCapture(): Promise<{ captureId: string; focusCategory: boolean } | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return await p.getLaunchCapture(); } catch { return null; }
+}
+
+/** Deletes staged copies that were already imported (storage management). */
+export async function purgeNativeStaging(): Promise<number | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return (await p.purgeCapturedStaging()).purged; } catch { return null; }
+}
+
+/** "Telefondan da sil": system delete request for the ORIGINAL gallery files. */
+export async function nativeDeleteFromPhone(msIds: number[]): Promise<boolean | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return (await p.deleteFromPhone({ msIds })).deleted; } catch { return null; }
+}
+
+export async function openPermissionSettings(): Promise<void> {
+  const p = bridge();
+  if (p) await p.openPermissionSettings().catch(() => undefined);
+}
+
+export async function openNotificationSettings(): Promise<void> {
+  const p = bridge();
+  if (p) await p.openNotificationSettings().catch(() => undefined);
+}
+
+export async function openBatterySettings(): Promise<void> {
+  const p = bridge();
+  if (p) await p.openBatterySettings().catch(() => undefined);
+}
+
+/** Mirrors AI settings + category list to the native store for background analysis. */
+export async function syncNativeAiSettings(cfg: {
+  enabled: boolean;
+  provider: string;
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+  vision: boolean;
+  autoAnalyze: boolean;
+  categories: string;
+  lang: string;
+}): Promise<void> {
+  const p = bridge();
+  if (!p) return;
+  await p.syncAiSettings(cfg).catch(() => undefined);
+}
+
+/** Called when the native side stages new captures while the app is open. */
+export function onNativeCapture(cb: () => void): () => void {
+  const p = bridge();
+  if (!p) return () => undefined;
+  let handle: PluginListenerHandle | null = null;
+  let removed = false;
+  void Promise.resolve(p.addListener('autocapture', () => cb())).then((h) => {
+    if (removed) void h.remove();
+    else handle = h;
+  });
+  return () => {
+    removed = true;
+    if (handle) void handle.remove();
+  };
+}
+
+/** Reads a staged capture's bytes as a File (app-private path, in-WebView fetch). */
+export async function readNativeCaptureFile(capture: NativeCapture): Promise<File | null> {
+  const c = cap();
+  const toUrl = c?.convertFileSrc ?? ((x: string) => x);
+  try {
+    const res = await fetch(toUrl(capture.path));
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new File([blob], capture.name, { type: capture.mimeType || blob.type, lastModified: capture.dateTaken });
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -49,6 +49,10 @@ export interface DbImage {
   aiTitle?: string;
   aiEdited?: boolean;
   aiConfidence?: number;
+  // v1.4.0 automatic capture fields
+  source?: 'auto' | 'manual';
+  msId?: number;
+  noAi?: boolean;
 }
 
 export async function dbImages(page: Page): Promise<DbImage[]> {

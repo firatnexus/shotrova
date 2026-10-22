@@ -69,6 +69,14 @@ export interface ImageRecord {
   updatedAt: number;
   /** Folded tokens of title, notes, tags, OCR text and filename (multiEntry index). */
   searchTokens: string[];
+
+  // ---- automatic capture (v1.4) ----
+  /** How the image entered the app. */
+  source?: 'auto' | 'manual';
+  /** Original MediaStore row id (for "delete from phone too"). */
+  msId?: number;
+  /** Per-item opt-out: never send this screenshot to the AI provider. */
+  noAi?: boolean;
 }
 
 export interface BlobRecord {
@@ -116,6 +124,18 @@ export interface AiProviderSettings {
   vision: boolean;
 }
 
+/** Automatic screenshot capture preferences (mirrored into the native store). */
+export interface CaptureSettings {
+  /** Master switch for background detection (native side owns the truth). */
+  enabled: boolean;
+  /** Keep original bytes or re-encode (JPEG, max 1600px) to save storage. */
+  storageMode: 'original' | 'compressed';
+  /** First-run AI consent: the user read what is sent and opted in. */
+  aiConsent: boolean;
+  /** Automatic AI analysis on/off; off = screenshots saved without AI. */
+  autoAnalyze: boolean;
+}
+
 export interface Settings {
   theme: ThemePref;
   lang: Lang;
@@ -127,6 +147,7 @@ export interface Settings {
   reviewThreshold: number;
   categorizer: 'keywords' | 'ai';
   ai: AiProviderSettings;
+  capture?: Partial<CaptureSettings>;
   lastBackupAt?: number;
   onboardingDismissed?: boolean;
 }
@@ -140,6 +161,7 @@ export const DEFAULT_SETTINGS: Settings = {
   learnFromCorrections: true,
   reviewThreshold: 0.55,
   categorizer: 'keywords',
+  capture: { enabled: false, storageMode: 'original', aiConsent: false, autoAnalyze: true },
   ai: {
     enabled: false,
     provider: 'openai',

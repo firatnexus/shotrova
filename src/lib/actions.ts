@@ -1,4 +1,4 @@
-import { setNativeSystemBars } from '../native/bridge';
+import { setNativeSystemBars, isNativeApp, syncNativeAiSettings } from '../native/bridge';
 import * as db from '../db/db';
 import { StorageError, toStorageError } from '../db/db';
 import type { Category, ImageRecord, LearnedRule, Settings } from '../db/types';
@@ -33,6 +33,12 @@ export async function init(): Promise<void> {
     images.sort((a, b) => b.createdAt - a.createdAt);
     setState({ settings, categories, images, rules, ready: true });
     applyTheme(settings);
+    // Native build: mirror AI settings for background analysis and pull
+    // captures missed while the app was closed (see src/auto/capture.ts).
+    if (isNativeApp()) {
+      void mirrorAiToNative();
+      void import('../auto/capture').then((m) => m.installCaptureSync());
+    }
     // Resume OCR that was interrupted (e.g. the tab was closed mid-scan).
     const resume = images.filter((i) => i.ocrStatus === 'pending' || i.ocrStatus === 'processing').map((i) => i.id);
     if (resume.length && settings.ocrEnabled) enqueueOcr(resume);
@@ -81,6 +87,33 @@ export async function updateSettings(patch: Partial<Settings>): Promise<void> {
   setState({ settings: next });
   applyTheme(next);
   await db.saveSettings(next);
+  void mirrorAiToNative();
+}
+
+/**
+ * Mirrors the AI settings + category names to the native store so background
+ * analysis uses exactly what the user configured in the app. The API key is
+ * re-encrypted by the native Keystore; nothing is logged.
+ */
+export async function mirrorAiToNative(): Promise<void> {
+  if (!isNativeApp()) return;
+  const { settings, categories } = getState();
+  const conf = activeProviderConfig(settings.ai);
+  const catList = categories
+    .map((c) => `${categoryName(c, settings.lang)}`)
+    .filter(Boolean)
+    .join('\n');
+  await syncNativeAiSettings({
+    enabled: settings.ai.enabled,
+    provider: settings.ai.provider,
+    baseUrl: conf.baseUrl,
+    model: conf.model,
+    apiKey: conf.apiKey,
+    vision: settings.ai.vision,
+    autoAnalyze: settings.capture?.autoAnalyze ?? true,
+    categories: catList,
+    lang: settings.lang,
+  });
 }
 
 // ------------------------------------------------------------------ import
@@ -187,6 +220,98 @@ export async function importFiles(files: File[], onProgress?: (p: ImportProgress
   return summary;
 }
 
+/**
+ * Imports ONE automatically captured screenshot (native pipeline).
+ *
+ * Same validation/dedupe/thumbnail path as importFiles, plus:
+ * - marks the record as source 'auto' with its MediaStore id (for
+ *   "delete from phone too");
+ * - applies the native background AI analysis when present (title, category,
+ *   tags) and marks it done so the web vision queue does not re-send the image;
+ * - screenshots with NO analysis take the normal path: on-device OCR, keyword
+ *   categorisation, and the AI vision queue ONLY when enabled + consented.
+ * Returns { ok: false, reason: 'duplicate' } when the hash is already stored.
+ */
+export async function importCapturedFile(
+  file: File,
+  hash: string,
+  msId: number,
+  analysis?: Partial<ImageRecord>,
+): Promise<{ ok: boolean; reason?: 'duplicate' | 'invalid' | 'storage' }> {
+  const settings = getState().settings;
+  const fallback = fallbackCategoryId();
+  let buf: ArrayBuffer;
+  try {
+    buf = await file.arrayBuffer();
+  } catch {
+    return { ok: false, reason: 'invalid' };
+  }
+  const v = validateBytes(new Uint8Array(buf, 0, Math.min(buf.byteLength, 16)), buf.byteLength);
+  if (!v.ok) return { ok: false, reason: 'invalid' };
+  const dup = await db.findByHash(hash);
+  if (dup) return { ok: false, reason: 'duplicate' };
+  const original = new Blob([buf], { type: v.type });
+  let decoded;
+  try {
+    decoded = await decodeAndThumb(original);
+  } catch {
+    return { ok: false, reason: 'invalid' };
+  }
+  const now = Date.now();
+  const record: ImageRecord = {
+    id: uid('img'),
+    hash,
+    fileName: file.name || `screenshot.${v.type.split('/')[1]}`,
+    mimeType: v.type,
+    size: buf.byteLength,
+    width: decoded.width,
+    height: decoded.height,
+    title: '',
+    notes: '',
+    tags: [],
+    categoryId: fallback,
+    categoryConfidence: 0,
+    categorySource: 'none',
+    categoryReasons: [],
+    needsReview: !settings.ocrEnabled,
+    ocrStatus: settings.ocrEnabled ? 'pending' : 'skipped',
+    ocrText: '',
+    ocrEdited: false,
+    ocrConfidence: 0,
+    ocrLanguage: '',
+    ocrSourceHash: '',
+    ...(file.lastModified ? { fileLastModified: file.lastModified } : {}),
+    createdAt: now,
+    updatedAt: now,
+    searchTokens: [],
+    source: 'auto',
+    msId,
+  };
+  if (analysis) {
+    // Native background analysis already produced a result: apply it and mark
+    // the AI part done so the web vision queue never re-sends this image.
+    Object.assign(record, analysis);
+    record.aiStatus = 'done';
+    record.aiAt = now;
+    record.aiSourceHash = hash;
+    record.needsReview = false;
+    if (!record.title && record.aiTitle) record.title = record.aiTitle;
+  }
+  record.searchTokens = buildSearchTokens(record);
+  try {
+    await db.addImage(record, { id: record.id, original, thumb: decoded.thumb });
+  } catch (e) {
+    if ((e as { name?: string })?.name === 'ConstraintError') return { ok: false, reason: 'duplicate' };
+    return { ok: false, reason: 'storage' };
+  }
+  upsertImageInState(record);
+  // OCR first (search text); the OCR completion hands over to the vision
+  // queue, which skips records that already carry a native analysis.
+  if (settings.ocrEnabled) enqueueOcr([record.id]);
+  else if (!analysis) enqueueVisionIfEnabled([record.id]);
+  return { ok: true };
+}
+
 /** Reads files that the service worker stored from an Android share. */
 export async function consumeShareInbox(): Promise<File[]> {
   if (typeof caches === 'undefined') return [];
@@ -284,6 +409,8 @@ async function processVision(id: string, force: boolean): Promise<void> {
   if (!visionEnabled(settings.ai)) return;
   let rec = await db.getImage(id);
   if (!rec) return;
+  // Per-item opt-out: this screenshot must never be sent to the AI provider.
+  if (rec.noAi) return;
   // Skip images already analysed (unless forced) — like the OCR queue.
   if (!force && rec.aiStatus === 'done' && rec.aiSourceHash === rec.hash) return;
   const blobs = await db.getBlobs(id);
@@ -421,7 +548,8 @@ async function processOcr(id: string, force: boolean): Promise<void> {
 
 async function withAutoCategory(r: ImageRecord): Promise<ImageRecord> {
   const { settings, categories, rules } = getState();
-  if (r.categorySource === 'manual' || !settings.autoCategorize) return { ...r, needsReview: r.categorySource !== 'manual' && r.needsReview };
+  // Manual AND AI categories are sticky: an OCR re-run must not discard them.
+  if (r.categorySource === 'manual' || r.categorySource === 'ai' || !settings.autoCategorize) return { ...r, needsReview: r.categorySource !== 'manual' && r.needsReview };
   const kw = categorize({ text: r.ocrText, title: r.title, fileName: r.fileName, categories, rules, reviewThreshold: settings.reviewThreshold });
   let result = { categoryId: kw.categoryId, confidence: kw.confidence, needsReview: kw.needsReview, reasons: kw.reasons, source: (kw.reasons.some((x) => x.startsWith('✓')) ? 'rule' : 'auto') as ImageRecord['categorySource'] };
   if (kw.insufficientText || kw.confidence === 0) result.source = 'none';
@@ -529,7 +657,7 @@ export async function deleteRules(ids: string[]): Promise<void> {
 
 // ------------------------------------------------------------------ edits
 
-export async function updateImage(id: string, patch: Partial<Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'aiText'>>): Promise<ImageRecord | undefined> {
+export async function updateImage(id: string, patch: Partial<Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'aiText' | 'noAi' | 'needsReview'>>): Promise<ImageRecord | undefined> {
   const r = getState().images.find((x) => x.id === id);
   if (!r) return undefined;
   let next: ImageRecord = { ...r, ...patch, updatedAt: Date.now() };

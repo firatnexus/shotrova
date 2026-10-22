@@ -11,7 +11,7 @@ import { toast } from '../../lib/toast';
 import { href, navigate } from '../router';
 import { CategoryPicker, Empty, OcrBadge, Skeleton, confirmDialog } from '../components';
 import { forgetThumb, saveBlob, useOriginal } from '../blobs';
-import { nativeShareBlob } from '../../native/bridge';
+import { nativeShareBlob, isNativeApp, nativeDeleteFromPhone } from '../../native/bridge';
 import { IconBack, IconCalendar, IconCheck, IconCopy, IconDownload, IconEdit, IconFolder, IconImage, IconLink, IconMail, IconOpen, IconPhone, IconRefresh, IconShare, IconSpark, IconTrash, IconUndo, IconX } from '../icons';
 
 export function DetailScreen({ id }: { id: string }) {
@@ -23,6 +23,7 @@ export function DetailScreen({ id }: { id: string }) {
   const prog = useAppState((s) => s.ocr[id]);
   const aiBusy = useAppState((s) => s.visionBusy[id]);
   const aiCfg = useAppState((s) => s.settings.ai);
+  const androidVersion = useAppState((s) => s.captureStatus)?.androidVersion ?? 0;
   const { url, blob } = useOriginal(id);
   const [zoom, setZoom] = useState(false);
   const [title, setTitle] = useState('');
@@ -185,6 +186,22 @@ export function DetailScreen({ id }: { id: string }) {
           <IconBack /> {t('common.back')}
         </button>
         <div className="row">
+          {isNativeApp() && r.source === 'auto' && r.msId && androidVersion >= 30 && (
+            <button
+              type="button"
+              className="btn ghost sm"
+              onClick={async () => {
+                const ok = await confirmDialog({ title: t('cap.detail.delete_phone_title'), body: t('cap.detail.delete_phone_body'), confirmLabel: t('cap.detail.delete_phone'), danger: true });
+                if (!ok) return;
+                const res = await nativeDeleteFromPhone([r.msId!]);
+                if (res === null) toast(t('common.error'), 'error');
+                else toast(res ? t('cap.detail.phone_deleted') : t('cap.detail.phone_kept'), res ? 'success' : 'info');
+              }}
+              data-testid="delete-from-phone"
+            >
+              <IconTrash /> {t('cap.detail.delete_phone')}
+            </button>
+          )}
           <button type="button" className="btn icon" onClick={() => void share()} aria-label={t('detail.share')} title={t('detail.share')} disabled={!blob}>
             <IconShare />
           </button>
@@ -224,7 +241,10 @@ export function DetailScreen({ id }: { id: string }) {
           <div className={`card stack ${r.needsReview && !busy ? 'review' : ''}`} style={{ gap: 10 }}>
             <div className="row" style={{ justifyContent: 'space-between' }}>
               <span className="label">{t('detail.category')}</span>
-              <span className="badge">{srcLabel[r.categorySource]}</span>
+              <span className="row" style={{ gap: 6 }}>
+                {r.source === 'auto' && <span className="badge accent" data-testid="autocapture-badge">{t('cap.detail.autocapture')}</span>}
+                <span className="badge">{srcLabel[r.categorySource]}</span>
+              </span>
             </div>
             <button type="button" className="btn" style={{ justifyContent: 'flex-start' }} onClick={() => setPicker(true)} data-testid="category-button">
               <span className="swatch-btn" style={{ background: cat?.color, width: 18, height: 18, borderRadius: 5 }} aria-hidden="true" />
@@ -416,6 +436,25 @@ export function DetailScreen({ id }: { id: string }) {
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+            {isNativeApp() && (
+              <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                <label className="row" style={{ gap: 6 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!r.noAi}
+                    onChange={(e) => {
+                      const noAi = e.target.checked;
+                      void save({ noAi }, t(noAi ? 'cap.detail.excluded' : 'cap.detail.included'));
+                    }}
+                    data-testid="no-ai-toggle"
+                  />
+                  <span className="muted small">{t('cap.detail.exclude_ai')}</span>
+                </label>
+                {r.source === 'auto' && r.aiStatus === 'pending' && (
+                  <span className="badge warn">{t('cap.detail.pending')}</span>
+                )}
               </div>
             )}
             {aiOn && !editingText && !aiBusy && (

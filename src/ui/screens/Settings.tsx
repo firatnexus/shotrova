@@ -7,10 +7,11 @@ import { ocrAssetUrls } from '../../ocr/engine';
 import { BRAND } from '../../config/brand';
 import { LANGS, categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { toast } from '../../lib/toast';
-import { useRoute } from '../router';
+import { href, useRoute } from '../router';
 import { Sheet, confirmDialog } from '../components';
 import { saveBlob } from '../blobs';
-import { isNativeApp } from '../../native/bridge';
+import { isNativeApp, purgeNativeStaging, setNativeAutoCapture } from '../../native/bridge';
+import type { CaptureSettings } from '../../db/types';
 import { IconAlert, IconDownload, IconInfo, IconShield, IconTrash, IconUpload } from '../icons';
 import { activeProviderConfig, providerDef, PROVIDERS } from '../../ai/providers';
 import type { Lang, OcrLanguage, ThemePref } from '../../db/types';
@@ -36,6 +37,8 @@ function Toggle({ label, desc, checked, onChange, testId }: { label: string; des
   );
 }
 
+const DEFAULT_CAPTURE: CaptureSettings = { enabled: false, aiConsent: false, autoAnalyze: true, storageMode: 'compressed' };
+
 export function SettingsScreen() {
   const t = useT();
   const native = isNativeApp();
@@ -51,6 +54,18 @@ export function SettingsScreen() {
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const restoreRef = useRef<HTMLInputElement>(null);
   const [ai, setAi] = useState(s.ai);
+
+  const purgeStaged = async () => {
+    setBusy('purge');
+    try {
+      const n = await purgeNativeStaging();
+      toast(t('set.capture.purged', { n: n ?? 0 }), 'success');
+    } catch {
+      toast(t('common.error'), 'error');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const refreshStorage = async () => {
     try {
@@ -184,6 +199,47 @@ export function SettingsScreen() {
           </div>
         </div>
       </Section>
+
+      {native && (
+        <Section id="capture" title={t('set.capture.title')}>
+          <Toggle
+            label={t('set.capture.enabled')}
+            desc={t('set.capture.enabled_d')}
+            checked={!!s.capture?.enabled}
+            testId="capture-enabled"
+            onChange={async (v) => {
+              await updateSettings({ capture: { ...DEFAULT_CAPTURE, ...s.capture, enabled: v } });
+              await setNativeAutoCapture(v, s.capture?.storageMode ?? 'compressed');
+            }}
+          />
+          <Toggle
+            label={t('set.capture.auto_analyze')}
+            desc={t('set.capture.auto_analyze_d')}
+            checked={!!s.capture?.autoAnalyze}
+            testId="capture-auto-analyze"
+            onChange={(v) => void updateSettings({ capture: { ...DEFAULT_CAPTURE, ...s.capture, autoAnalyze: v } })}
+          />
+          <div className="field">
+            <label htmlFor="cap-storage">{t('set.capture.storage')}</label>
+            <select
+              id="cap-storage"
+              className="input"
+              value={s.capture?.storageMode ?? 'compressed'}
+              onChange={(e) => void updateSettings({ capture: { ...DEFAULT_CAPTURE, ...s.capture, storageMode: e.target.value as 'original' | 'compressed' } })}
+            >
+              <option value="compressed">{t('set.capture.storage_compressed')}</option>
+              <option value="original">{t('set.capture.storage_original')}</option>
+            </select>
+            <span className="faint xs">{t('set.capture.storage_d')}</span>
+          </div>
+          <div className="row wrap" style={{ gap: 8 }}>
+            <button type="button" className="btn" disabled={busy === 'purge'} onClick={() => void purgeStaged()} data-testid="purge-staged">
+              {t('set.capture.purge')}
+            </button>
+            <a className="btn ghost" href={href('/background')}>{t('cap.background.title')}</a>
+          </div>
+        </Section>
+      )}
 
       <Section id="ocr" title={t('set.ocr')}>
         <Toggle label={t('set.ocr_enabled')} desc={t('set.ocr_enabled_d')} checked={s.ocrEnabled} onChange={(v) => void updateSettings({ ocrEnabled: v })} />

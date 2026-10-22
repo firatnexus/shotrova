@@ -5,3 +5,20 @@
     <string name="package_name">io.github.firatnexus.shotrova</string>
     <string name="custom_url_scheme">io.github.firatnexus.shotrova</string>
 </resources>
+    <string name="capture_notif_channel">Ekran görüntüsü kaydedildi</string>
+    <string name="capture_notif_channel_desc">Yeni ekran görüntüleri uygulama kopyası alındığında bildirilir</string>
+    <string name="errors_notif_channel">Hatalar</string>
+    <string name="errors_notif_channel_desc">Otomatik kayıt ve analiz sorunları</string>
+    <string name="capture_notif_saved_title">Ekran görüntüsü kaydedildi</string>
+    <string name="capture_notif_saved">\'%1$s\' başlığıyla %2$s kategorisine kaydedildi</string>
+    <string name="capture_notif_saved_nocat">\'%1$s\' başlığıyla kaydedildi</string>
+    <string name="capture_notif_pending_title">Ekran görüntüsü kaydedildi</string>
+    <string name="capture_notif_pending_text">Kopya alındı — başlık/kategori için analiz bekliyor</string>
+    <string name="capture_notif_failed_title">Analiz tamamlanamadı</string>
+    <string name="capture_notif_failed_text">Ekran görüntüsü kaydedildi; başlık/kategori analizi başarısız oldu. Uygulamayı açtığında tekrar denenecek.</string>
+    <string name="capture_notif_mixed_title">Ekran görüntüleri kaydedildi</string>
+    <string name="capture_notif_mixed_text">%1$d analiz edildi, %2$d bekliyor, %3$d başarısız</string>
+    <string name="capture_notif_summary_title">Shotrova</string>
+    <string name="capture_notif_summary_text">%1$d yeni ekran görüntüsü kaydedildi</string>
+    <string name="capture_notif_change_cat">Kategoriyi değiştir</string>
+    <string name="capture_notif_open">Aç</string>

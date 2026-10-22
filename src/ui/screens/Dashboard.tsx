@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useAppState } from '../../lib/store';
 import { updateSettings } from '../../lib/actions';
 import { categoryName, useT } from '../../i18n';
@@ -8,6 +8,9 @@ import { Tile } from '../Tile';
 import { Dot } from '../components';
 import { openPicker, readClipboardImages, runImport } from '../importer';
 import { IconClipboard, IconPhone, IconSearch, IconShield, IconUpload, IconX } from '../icons';
+import { isNativeApp } from '../../native/bridge';
+import { CaptureSetupSheet, CaptureStatusCard, openSetup } from '../CaptureCard';
+import { refreshCaptureStatus } from '../../auto/capture';
 
 const EXAMPLES = ['ex.q1', 'ex.q2', 'ex.q3', 'ex.q4', 'ex.q5', 'ex.q6'];
 
@@ -17,6 +20,7 @@ export function Dashboard() {
   const categories = useAppState((s) => s.categories);
   const lang = useAppState((s) => s.settings.lang);
   const onboardingDismissed = useAppState((s) => s.settings.onboardingDismissed);
+  const captureConsentSeen = useAppState((s) => s.settings.capture?.aiConsent);
   const queue = useAppState((s) => s.ocrQueueLength);
   const visionQueue = useAppState((s) => s.visionQueueLength);
   const engine = useAppState((s) => s.ocrEngine);
@@ -30,6 +34,19 @@ export function Dashboard() {
   const review = useMemo(() => images.filter((i) => i.needsReview && i.ocrStatus !== 'pending' && i.ocrStatus !== 'processing'), [images]);
   const withText = useMemo(() => images.filter((i) => i.ocrStatus === 'done').length, [images]);
   const empty = images.length === 0;
+
+  // First run on the native app: open the consent sheet once (opt-in only).
+  useEffect(() => {
+    if (isNativeApp() && !onboardingDismissed && captureConsentSeen === undefined) {
+      openSetup();
+    }
+  }, [onboardingDismissed, captureConsentSeen]);
+
+  // Keep the status card fresh while the dashboard is visible.
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    void refreshCaptureStatus();
+  }, []);
 
   const submit = (v: string) => {
     if (!v.trim()) return navigate('/images');
@@ -92,8 +109,9 @@ export function Dashboard() {
         )}
       </section>
 
+      {empty && isNativeApp() && <CaptureStatusCard />}
       {empty && !onboardingDismissed && <Onboarding />}
-      {empty && onboardingDismissed && <ImportCard />}
+      {empty && onboardingDismissed && <ImportCard compact={isNativeApp()} />}
 
       {!empty && (
         <section className="section" aria-labelledby="recent-h">
@@ -142,9 +160,11 @@ export function Dashboard() {
 
       {!empty && (
         <section className="section">
+          {isNativeApp() ? <CaptureStatusCard /> : null}
           <ImportCard compact />
         </section>
       )}
+      <CaptureSetupSheet />
     </div>
   );
 }

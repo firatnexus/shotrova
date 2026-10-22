@@ -18,6 +18,10 @@ import android.view.Window;
 import android.webkit.MimeTypeMap;
 
 import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -29,6 +33,8 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,13 +69,22 @@ public class ShotrovaBridgePlugin extends Plugin {
     private static ShotrovaBridgePlugin instance;
 
     @Override
-    public void load() {
-        instance = this;
-    }
-
-    @Override
     protected void handleOnDestroy() {
         if (instance == this) instance = null;
+    }
+
+    /**
+     * Fires the 'autocapture' web event after a scan staged new screenshots,
+     * so a foregrounded web layer can pull them in immediately. Safe to call
+     * from any thread/process: no-op when the plugin (web view) is not loaded.
+     */
+    static void emitCaptureEvent(int count) {
+        if (count <= 0) return;
+        ShotrovaBridgePlugin p = instance;
+        if (p == null) return;
+        JSObject ev = new JSObject();
+        ev.put("count", count);
+        p.notifyListeners("autocapture", ev, true);
     }
 
     // ------------------------------------------------------------- share in
@@ -383,5 +398,334 @@ public class ShotrovaBridgePlugin extends Plugin {
             decor.setBackgroundColor(bg);
         });
         call.resolve();
+    }
+
+    // ===================================================== automatic capture
+
+    /** Last capture id the user tapped in a notification (consumed by the web layer). */
+    private static volatile String pendingLaunchCaptureId;
+    private static volatile boolean pendingLaunchFocusCategory;
+
+    /** Launcher for the system "delete from gallery" confirmation dialog. */
+    private ActivityResultLauncher<IntentSenderRequest> deleteLauncher;
+    private PluginCall deleteCall;
+
+    @Override
+    public void load() {
+        instance = this;
+        try {
+            deleteLauncher = getBridge().registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    PluginCall c = deleteCall;
+                    deleteCall = null;
+                    if (c == null) return;
+                    JSObject r = new JSObject();
+                    r.put("deleted", result.getResultCode() == Activity.RESULT_OK);
+                    c.resolve(r);
+                });
+        } catch (Exception e) {
+            deleteLauncher = null; // older setups: the option is hidden in the web layer
+        }
+    }
+
+    /** Called by MainActivity when the app opens from a notification. */
+    static void handleLaunchIntent(Intent intent) {
+        if (intent == null) return;
+        String id = intent.getStringExtra("shotrovaCaptureId");
+        if (id == null) return;
+        pendingLaunchCaptureId = id;
+        pendingLaunchFocusCategory = intent.getBooleanExtra("shotrovaFocusCategory", false);
+        intent.removeExtra("shotrovaCaptureId");
+        intent.removeExtra("shotrovaFocusCategory");
+    }
+
+    private static boolean notificationsGranted(Context ctx) {
+        if (Build.VERSION.SDK_INT < 33) return true;
+        return ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.POST_NOTIFICATIONS)
+            == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    private static boolean batteryUnrestricted(Context ctx) {
+        try {
+            android.os.PowerManager pm = (android.os.PowerManager) ctx.getSystemService(Context.POWER_SERVICE);
+            return pm != null && pm.isIgnoringBatteryOptimizations(ctx.getPackageName());
+        } catch (Exception e) {
+            return true; // unknown -> do not claim a restriction
+        }
+    }
+
+    /** Full capture status for the web layer's status card. */
+    private JSObject captureState(Context ctx) {
+        CaptureStore store = new CaptureStore(ctx);
+        JSObject r = new JSObject();
+        r.put("supported", Build.VERSION.SDK_INT >= 26);
+        r.put("androidVersion", Build.VERSION.SDK_INT);
+        r.put("mediaAccess", CaptureScanner.mediaAccessState(ctx));
+        r.put("notifications", notificationsGranted(ctx));
+        r.put("enabled", store.isEnabled());
+        r.put("storageMode", store.storageMode());
+        r.put("pendingCount", store.pendingCount());
+        r.put("stagedBytes", store.stagedBytes());
+        r.put("lastScanAt", store.lastScanAt());
+        r.put("batteryUnrestricted", batteryUnrestricted(ctx));
+        boolean armed = false;
+        try {
+            armed = CaptureWorker.isArmed(ctx);
+        } catch (Throwable ignored) { /* WorkManager unavailable on some devices */ }
+        r.put("armed", armed);
+        return r;
+    }
+
+    @PluginMethod
+    public void getCaptureState(PluginCall call) {
+        Context ctx = getContext();
+        IO.execute(() -> call.resolve(captureState(ctx)));
+    }
+
+    /** Asks for media + notification permissions with the UI's own explanations shown first. */
+    @PluginMethod
+    public void requestCapturePermissions(PluginCall call) {
+        requestPermissionForAliases(new String[] { "media", "notifications" }, call, "onCapturePermissionsResult");
+    }
+
+    @PermissionCallback
+    private void onCapturePermissionsResult(PluginCall call) {
+        Context ctx = getContext();
+        IO.execute(() -> call.resolve(captureState(ctx)));
+    }
+
+    @PluginMethod
+    public void requestNotificationPermission(PluginCall call) {
+        requestPermissionForAliases(new String[] { "notifications" }, call, "onCapturePermissionsResult");
+    }
+
+    /** Turns automatic capture on/off; (re)arms the background workers. */
+    @PluginMethod
+    public void setAutoCapture(PluginCall call) {
+        Boolean enabled = call.getBoolean("enabled");
+        if (enabled == null) {
+            call.reject("enabled required");
+            return;
+        }
+        Context ctx = getContext();
+        String mode = call.getString("storageMode");
+        IO.execute(() -> {
+            CaptureStore store = new CaptureStore(ctx);
+            store.setEnabled(enabled);
+            if (mode != null) store.setStorageMode(mode);
+            store.save(ctx);
+            // Arms when enabled, disarms (cancels) when disabled.
+            CaptureWorker.armTrigger(ctx);
+            call.resolve(captureState(ctx));
+        });
+    }
+
+    /** Mirrors the user's AI settings into the native store (key encrypted via Keystore). */
+    @PluginMethod
+    public void syncAiSettings(PluginCall call) {
+        final String provider = call.getString("provider", "");
+        final String baseUrl = call.getString("baseUrl", "");
+        final String model = call.getString("model", "");
+        final String apiKey = call.getString("apiKey", "");
+        final boolean enabled = Boolean.TRUE.equals(call.getBoolean("enabled", false));
+        final boolean vision = Boolean.TRUE.equals(call.getBoolean("vision", false));
+        final boolean autoAnalyze = Boolean.TRUE.equals(call.getBoolean("autoAnalyze", true));
+        final String categories = call.getString("categories", "");
+        final String lang = call.getString("lang", "tr");
+        final Context ctx = getContext();
+        IO.execute(() -> {
+            CaptureStore store = new CaptureStore(ctx);
+            org.json.JSONObject ai = new org.json.JSONObject();
+            try {
+                ai.put("enabled", enabled);
+                ai.put("provider", provider);
+                ai.put("baseUrl", baseUrl);
+                ai.put("model", model);
+                ai.put("vision", vision);
+                ai.put("autoAnalyze", autoAnalyze);
+                ai.put("categories", categories);
+                ai.put("lang", lang);
+            } catch (Exception ignored) { /* skip */ }
+            store.setAi(ctx, ai);
+            store.setAiApiKey(apiKey);
+            store.save(ctx);
+            if (store.isEnabled() && enabled && autoAnalyze) {
+                CaptureWorker.queueAnalysisRetry(ctx);
+            }
+            call.resolve();
+        });
+    }
+
+    /** Returns staged screenshots for the web layer to import into IndexedDB. */
+    @PluginMethod
+    public void takeCaptured(PluginCall call) {
+        Context ctx = getContext();
+        IO.execute(() -> {
+            CaptureStore store = new CaptureStore(ctx);
+            JSObject r = new JSObject();
+            r.put("captures", store.queueSnapshot());
+            r.put("pendingCount", store.pendingCount());
+            call.resolve(r);
+        });
+    }
+
+    /** Frees staged copies once the web layer imported them into IndexedDB. */
+    @PluginMethod
+    public void markCapturedImported(PluginCall call) {
+        JSArray ids = call.getArray("ids", new JSArray());
+        final Context ctx = getContext();
+        IO.execute(() -> {
+            CaptureStore store = new CaptureStore(ctx);
+            store.removeQueued(ctx, ids);
+            call.resolve();
+        });
+    }
+
+    /** One immediate catch-up scan (app start / manual retry). */
+    @PluginMethod
+    public void runCatchupScan(PluginCall call) {
+        final Context ctx = getContext();
+        IO.execute(() -> {
+            int staged = 0;
+            try {
+                staged = CaptureScanner.get().scan(ctx);
+            } catch (Throwable ignored) { /* report zero honestly */ }
+            CaptureStore store = new CaptureStore(ctx);
+            JSObject r = captureState(ctx);
+            r.put("staged", staged);
+            call.resolve(r);
+        });
+    }
+
+    /** The capture id the user tapped in a notification, if any (consumed once). */
+    @PluginMethod
+    public void getLaunchCapture(PluginCall call) {
+        JSObject r = new JSObject();
+        String id = pendingLaunchCaptureId;
+        r.put("captureId", id == null ? "" : id);
+        r.put("focusCategory", pendingLaunchFocusCategory);
+        pendingLaunchCaptureId = null;
+        pendingLaunchFocusCategory = false;
+        call.resolve(r);
+    }
+
+    /** Deletes staged copies that were already imported (storage management). */
+    @PluginMethod
+    public void purgeCapturedStaging(PluginCall call) {
+        final Context ctx = getContext();
+        IO.execute(() -> {
+            CaptureStore store = new CaptureStore(ctx);
+            int purged = store.purgeImported(ctx);
+            JSObject r = captureState(ctx);
+            r.put("purged", purged);
+            call.resolve(r);
+        });
+    }
+
+    /**
+     * "Telefondan da sil": asks the system to delete the ORIGINAL gallery file via
+     * MediaStore.createDeleteRequest (API 30+); the app copy is kept either way.
+     */
+    @PluginMethod
+    public void deleteFromPhone(PluginCall call) {
+        if (Build.VERSION.SDK_INT < 30 || deleteLauncher == null) {
+            JSObject r = new JSObject();
+            r.put("deleted", false);
+            r.put("unsupported", true);
+            call.resolve(r);
+            return;
+        }
+        JSArray msIds = call.getArray("msIds", new JSArray());
+        java.util.ArrayList<Uri> uris = new java.util.ArrayList<>();
+        for (int i = 0; i < msIds.length(); i++) {
+            try {
+                uris.add(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    .buildUpon().appendPath(String.valueOf(msIds.getLong(i))).build());
+            } catch (Exception ignored) { /* skip */ }
+        }
+        if (uris.isEmpty()) {
+            call.reject("no_ids");
+            return;
+        }
+        android.content.IntentSender sender = null;
+        try {
+            android.content.PendingIntent pi = android.provider.MediaStore.createDeleteRequest(
+                getContext().getContentResolver(), uris);
+            sender = pi.getIntentSender();
+        } catch (Exception e) {
+            call.reject("delete_request_failed", e);
+            return;
+        }
+        saveCall(call);
+        deleteCall = call;
+        try {
+            deleteLauncher.launch(new IntentSenderRequest.Builder(sender).build());
+        } catch (Exception e) {
+            deleteCall = null;
+            call.reject("launch_failed", e);
+        }
+    }
+
+    // ------------------------------------------------------------ settings screens
+
+    @PluginMethod
+    public void openPermissionSettings(PluginCall call) {
+        openSystem(call, new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            android.net.Uri.fromParts("package", getContext().getPackageName(), null)));
+    }
+
+    @PluginMethod
+    public void openNotificationSettings(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            Intent i = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            i.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+            openSystem(call, i);
+        } else {
+            openPermissionSettings(call);
+        }
+    }
+
+    /** Xiaomi-aware battery settings; falls back to the standard Android screens. */
+    @PluginMethod
+    public void openBatterySettings(PluginCall call) {
+        // Xiaomi/HyperOS: the app's own PowerKeeper battery settings.
+        try {
+            Intent miui = new Intent();
+            miui.setComponent(new android.content.ComponentName(
+                "com.miui.powerkeeper", "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"));
+            miui.putExtra("package_name", getContext().getPackageName());
+            miui.putExtra("package_label", getContext().getString(R.string.app_name));
+            miui.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (miui.resolveActivityInfo(getContext().getPackageManager(), 0) != null) {
+                getActivity().startActivity(miui);
+                call.resolve(new JSObject());
+                return;
+            }
+        } catch (Exception ignored) { /* not a Xiaomi device */ }
+        // Standard Android 15 battery screen for this app, then the general list.
+        try {
+            Intent i = new Intent(android.provider.Settings.ACTION_APPLICATION_SETTINGS);
+            i.setData(android.net.Uri.fromParts("package", getContext().getPackageName(), null));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getActivity().startActivity(i);
+            call.resolve(new JSObject());
+            return;
+        } catch (Exception ignored) { /* fall through */ }
+        try {
+            openSystem(call, new Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+            return;
+        } catch (Exception ignored) { /* fall through */ }
+        openPermissionSettings(call);
+    }
+
+    private void openSystem(PluginCall call, Intent i) {
+        try {
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getActivity().startActivity(i);
+            call.resolve(new JSObject());
+        } catch (Exception e) {
+            call.reject("open_failed", e);
+        }
     }
 }

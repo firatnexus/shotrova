@@ -19,6 +19,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ShotrovaBridgePlugin.class);
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());
+        ShotrovaBridgePlugin.handleLaunchIntent(getIntent());
 
         // Back button: let the web app close dialogs and walk its own history
         // first (window.__shotrovaBack, see src/native/bridge.ts).
@@ -48,5 +49,6 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         ShotrovaBridgePlugin.handleIntent(this, intent);
+        ShotrovaBridgePlugin.handleLaunchIntent(intent);
     }
 }
