@@ -208,5 +208,5 @@ test('A8 System bars follow the theme', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await page.getByTestId('theme-light').click();
   const bars = (await log(page)).calls.filter(([m]) => m === 'setSystemBars').map(([, o]) => o);
-  expect(bars).toEqual(expect.arrayContaining([{ dark: true, color: '#14161C' }, { dark: false, color: '#F6F4EF' }]));
+  expect(bars).toEqual(expect.arrayContaining([{ dark: true, color: '#0B111B' }, { dark: false, color: '#EDF1F6' }])); // v1.2.0 graphite/teal palette
 });

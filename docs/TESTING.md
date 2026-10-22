@@ -6,11 +6,11 @@ Only tests that were **actually executed** are listed as passing. Run date: 22 O
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit tests (9 files) | `npm test` | **57 / 57 passed** (includes `vision.test.ts` and `entities.test.ts` added in v1.2.0) |
+| Unit tests (9 files) | `npm test` | **60 / 60 passed** (includes `vision.test.ts` (AI + `mergeVisionResult` manual-edit protection) and `entities.test.ts` added in v1.2.0) |
 | Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **36 / 36 passed** (18 scenarios × 2 device profiles) ([JSON](test-results/e2e-root.json), [log](test-results/e2e-root.log)) |
 | Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **36 / 36 passed** ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
-| APK web-shell E2E, debug APK | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
-| APK web-shell E2E, signed release APK | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
+| APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
+| APK web-shell E2E, signed release APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
 | APK build and inspection | `./gradlew assembleDebug` / `assembleRelease`, `aapt2 dump badging`, `apksigner verify` | **Built and verified** (see below) |
 
 Device profiles for web E2E:
@@ -46,7 +46,9 @@ OCR tests never use fake data. Test images (`scripts/make-fixtures.mjs`) are PNG
 
 ## Android APK
 
-### What was verified on the built APK
+> The APK-specific rows below (gradle builds, `aapt2` inspection, APK web-shell E2E logs) are **v1.1.0 evidence** kept for reference. The v1.2.0 APK is built by the same workflow in CI; its web-shell E2E (A1–A8) runs there on every build. Native splash screen and gesture/zoom behavior could not be verified on a real device or emulator (no KVM) — see the honest note in the release.
+
+### What was verified on the built APK (v1.1.0 evidence)
 
 - `./gradlew assembleDebug` and `./gradlew assembleRelease`: **BUILD SUCCESSFUL**.
 - `aapt2 dump badging` on the release APK: package `io.github.firatnexus.shotrova`, versionName `1.1.0`, versionCode `10100`, compileSdk/targetSdk 35, minSdk 26, launchable activity `io.github.firatnexus.shotrova.MainActivity`, label `Shotrova`.

@@ -648,4 +648,21 @@ test('13 AI vision: consent gates the image upload, AI text merges, editor + ent
   const editorBody = bodies.find((b) => JSON.stringify(b.messages ?? []).includes('garbl'));
   expect(editorBody).toBeTruthy();
   expect(JSON.stringify(editorBody?.messages ?? '')).not.toContain('image_url');
+
+  // --- Phase D: import with vision already ON — analysis is enqueued automatically, and a manual title survives it.
+  await importFixtures(page, ['invoice_tr.png']);
+  const imgs2 = await waitForOcr(page, 2);
+  const rec2 = imgs2.find((i) => i.fileName === 'invoice_tr.png');
+  expect(rec2).toBeTruthy();
+  // The user sets a title by hand; the vision job runs in the background.
+  await openApp(page, `/image/${rec2!.id}`);
+  await page.fill('#d-title', 'Elle yazılmış başlık');
+  await page.press('#d-title', 'Enter');
+  await expect
+    .poll(async () => (await dbImages(page)).find((i) => i.id === rec2!.id)?.aiStatus)
+    .toBe('done');
+  const rec2after = (await dbImages(page)).find((i) => i.id === rec2!.id);
+  // Vision text was stored, but the manual title is kept (never overwritten by the AI title).
+  expect(rec2after?.title).toBe('Elle yazılmış başlık');
+  expect(rec2after?.aiText).toContain('Fatura No: 12345');
 });

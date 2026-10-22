@@ -312,7 +312,7 @@ async function processVision(id: string, force: boolean): Promise<void> {
   });
 }
 
-function mergeVisionResult(r: ImageRecord, a: { text: string; title: string; categoryId: string | null; confidence: number }, reviewThreshold: number): ImageRecord {
+export function mergeVisionResult(r: ImageRecord, a: { text: string; title: string; categoryId: string | null; confidence: number }, reviewThreshold: number): ImageRecord {
   const next: ImageRecord = {
     ...r,
     aiTitle: a.title,
