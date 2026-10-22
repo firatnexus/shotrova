@@ -1,0 +1,10 @@
+node_modules
+dist
+public/ocr
+test-results
+playwright-report
+*.log
+.env*
+.tmp/
+test-reports
+pages-dist
