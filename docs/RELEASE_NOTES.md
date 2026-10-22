@@ -1,5 +1,10 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.2.1
+
+- Scrolled-to content (e.g. jumping to the extracted text) now lands clear of the top bar instead of sliding under it.
+- Documentation: AI vision wording clarified — transcription quality depends on your provider and model.
+
 ## What's new in 1.2.0
 
 - **AI vision (opt-in):** when enabled in Settings, images are sent to your own OpenAI-compatible provider and the model extracts a **clean title, category and the full text** of the image — replacing the garbled on-device OCR as the primary text. The raw device OCR remains available behind a "raw OCR" disclosure. With vision off (default), only text is ever sent — images never leave the device.

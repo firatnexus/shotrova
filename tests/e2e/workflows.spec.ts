@@ -549,12 +549,15 @@ test('13 AI vision: consent gates the image upload, AI text merges, editor + ent
   // Mock OpenAI-compatible endpoint. Distinguishes request types by payload:
   // vision (contains image_url) vs text categorisation vs text editor.
   const bodies: Array<Record<string, unknown>> = [];
+  // Phase D gate: vision responses can be held back to test the race with manual edits.
+  const gate = { open: true, release: () => {} };
   await page.route('**/chat/completions', async (route) => {
     const body = JSON.parse(route.request().postData() ?? '{}');
-    bodies.push(body);
     const raw = JSON.stringify(body.messages ?? []);
     const isVision = raw.includes('image_url');
     const isEditor = raw.includes('garbl'); // both editor prompts mention OCR garbling
+    if (isVision && !gate.open) await new Promise<void>((resolve) => { gate.release = resolve; });
+    bodies.push(body);
     const content = isVision
       ? JSON.stringify({
           text: 'Fatura No: 12345\nTarih: 12.03.2025\nE-posta: siparis@deneme.com.tr\nTel: +90 532 000 00 00\nhttps://example.com/tarif',
@@ -649,20 +652,37 @@ test('13 AI vision: consent gates the image upload, AI text merges, editor + ent
   expect(editorBody).toBeTruthy();
   expect(JSON.stringify(editorBody?.messages ?? '')).not.toContain('image_url');
 
-  // --- Phase D: import with vision already ON — analysis is enqueued automatically, and a manual title survives it.
+  // --- Phase D: import with vision already ON — analysis is enqueued automatically, and manual edits win the race.
+  // The vision response is HELD until the user has finished editing, so the merge happens after the edits.
+  gate.open = false;
   await importFixtures(page, ['invoice_tr.png']);
   const imgs2 = await waitForOcr(page, 2);
   const rec2 = imgs2.find((i) => i.fileName === 'invoice_tr.png');
   expect(rec2).toBeTruthy();
-  // The user sets a title by hand; the vision job runs in the background.
-  await openApp(page, `/image/${rec2!.id}`);
+  // While the vision job hangs, the user edits the title and the text manually.
+  await expect
+    .poll(async () => (await dbImages(page)).find((i) => i.id === rec2!.id)?.aiStatus)
+    .toBe('pending');
+  // Hash navigation only — a full page load would abort the held vision request.
+  await page.evaluate((id) => { window.location.hash = `#/image/${id}`; }, rec2!.id);
+  await page.waitForSelector('#d-title');
   await page.fill('#d-title', 'Elle yazılmış başlık');
   await page.press('#d-title', 'Enter');
+  await page.getByRole('button', { name: 'Düzenle' }).click();
+  await page.getByTestId('ocr-edit').fill('Elle düzenlenmiş fatura metni');
+  await page.getByRole('button', { name: 'Kaydet', exact: true }).click();
+  await expect
+    .poll(async () => (await dbImages(page)).find((i) => i.id === rec2!.id)?.ocrText)
+    .toContain('Elle düzenlenmiş');
+  // Now release the vision response and wait for the merge.
+  gate.open = true;
+  gate.release();
   await expect
     .poll(async () => (await dbImages(page)).find((i) => i.id === rec2!.id)?.aiStatus)
     .toBe('done');
   const rec2after = (await dbImages(page)).find((i) => i.id === rec2!.id);
-  // Vision text was stored, but the manual title is kept (never overwritten by the AI title).
+  // The manual title and the manual raw-text edit are both kept; the AI text lands in its own field.
   expect(rec2after?.title).toBe('Elle yazılmış başlık');
+  expect(rec2after?.ocrText).toContain('Elle düzenlenmiş fatura metni');
   expect(rec2after?.aiText).toContain('Fatura No: 12345');
 });

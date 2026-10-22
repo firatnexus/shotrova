@@ -110,6 +110,8 @@ p { margin: 0; }
 .skip-link:focus { top: var(--s2); }
 
 /* ---------- Layout ---------- */
+/* Keep scrolled-to content clear of the sticky top bar (in-app jumps, focus, JS scrolling). */
+html { scroll-padding-top: 84px; }
 .app { min-height: 100dvh; display: flex; flex-direction: column; }
 .topbar {
   position: sticky; top: 0; z-index: 20;
