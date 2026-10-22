@@ -371,9 +371,10 @@
   "set.ai_url_d": "OpenAI uyumlu uç nokta adresi (…/v1 ile bitmeli).",
   "detail.ask_title": "Görsel hakkında soru sor",
   "detail.ask_open": "Soru sor",
-  "detail.ask_hint": "Görsel, yalnızca ilk soruyla birlikte seçtiğiniz yapay zekâ sağlayıcısına gönderilir; sonraki sorular metin olarak devam eder.",
+  "detail.ask_hint": "Görsel, her soruda birlikte seçtiğiniz yapay zekâ sağlayıcısına gönderilir; önceki sorularınız da bağlam olarak iletilir.",
   "detail.ask_placeholder": "Görselde ne var? Nerede çekilmiş?…",
   "detail.ask_send": "Sor",
   "detail.ask_busy": "Yanıt bekleniyor…",
-  "detail.web_search": "Metni web'de ara"
+  "detail.web_search": "Metni web'de ara",
+  "detail.web_search_placeholder": "Web'de aranacak metin…"
 }

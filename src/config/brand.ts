@@ -19,7 +19,7 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.3.0',
+  version: '1.3.1',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',

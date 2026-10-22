@@ -1,5 +1,13 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.3.1
+
+- **Görsel soru-cevap düzeltmesi:** görsel artık her soruyla birlikte gönderiliyor (sağlayıcı API'leri durum bilgisiz olduğundan takip soruları için gerekli). Görsel değiştiğinde sohbet sıfırlanır; görsel yoksa soru gönderilemez.
+- **Metni web'de ara:** artık düzenlenebilir bir arama kutusu — okunabilir metni olmayan fotoğraflar da başlık/nesne adıyla aranabilir.
+- **Metni kopyala** artık ekranda görünen metni (yapay zekâ sonucu veya elle düzeltilmiş metni) kopyalar, ham cihaz OCR'ını değil.
+- **Anahtarı unut** yalnızca ekrada seçili sağlayıcının anahtarını siler; diğer sağlayıcıların anahtarlarına dokunmaz (arayüz ve eylem artık aynı sağlayıcıya bakıyor).
+- Yeni uçtan uca test: iki sağlayıcıya farklı anahtarlar girilip aralarında geçiş yapıldığında anahtarların karışmadığı, yeniden yükleme sonrası korunduğu ve "unut" işleminin yalnızca birini sildiği doğrulanır.
+
 ## What's new in 1.3.0
 
 - **Multi-provider AI:** pick your provider in Settings — OpenAI, Anthropic (Claude), Google Gemini, OpenRouter or your own OpenAI-compatible endpoint. Each provider keeps its own API key, model and (for custom) base URL; switching providers never mixes credentials. Your saved v1.2.x key and endpoint carry over automatically to the matching provider.

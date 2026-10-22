@@ -371,9 +371,10 @@
   "set.ai_url_d": "OpenAI-compatible endpoint URL (should end with /v1).",
   "detail.ask_title": "Ask about this image",
   "detail.ask_open": "Ask",
-  "detail.ask_hint": "The image is sent to your chosen AI provider with the first question only; follow-ups continue as text.",
+  "detail.ask_hint": "The image is sent to your chosen AI provider with every question; your previous questions are passed along as context.",
   "detail.ask_placeholder": "What is in this? Where was it taken?…",
   "detail.ask_send": "Ask",
   "detail.ask_busy": "Thinking…",
-  "detail.web_search": "Search this text on the web"
+  "detail.web_search": "Search this text on the web",
+  "detail.web_search_placeholder": "Text to search on the web…"
 }

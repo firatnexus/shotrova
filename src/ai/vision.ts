@@ -123,8 +123,9 @@ export async function aiEditText(
 
 /**
  * Ask a free-form question about an image ("what is in this picture?",
- * "where was this taken?", follow-ups...). The image is sent with the first
- * question; previous turns give the model conversation context.
+ * "where was this taken?", follow-ups...). The image is sent with EVERY
+ * question — the provider APIs are stateless, so follow-ups need it too —
+ * and previous turns give the model conversation context.
  */
 export async function aiAskAboutImage(
   imageDataUrl: string | null,

@@ -358,10 +358,11 @@ export function SettingsScreen() {
           >
             {t('common.save')}
           </button>
-          {s.ai.providers[s.ai.provider]?.apiKey && (
+          {ai.providers[ai.provider]?.apiKey && (
             <button
               type="button"
               className="btn danger"
+              data-testid="ai-forget"
               onClick={() => {
                 const cleared = { ...ai, providers: { ...ai.providers, [ai.provider]: { ...ai.providers[ai.provider], apiKey: '' } } };
                 setAi({ ...cleared, enabled: false });

@@ -690,3 +690,50 @@ test('13 AI vision: consent gates the image upload, AI text merges, editor + ent
   // The user's manual correction stays the PRIMARY text on screen — the AI text does not take over.
   await expect(page.getByTestId('ocr-text')).toContainText('Elle düzenlenmiş fatura metni');
 });
+
+test('16 AI providers: keys stay isolated per provider, switching never mixes them, forget clears only one', async ({ page }) => {
+  await openApp(page, '/settings');
+  // Configure two providers with different keys.
+  await page.getByTestId('ai-provider-openai').click();
+  await page.fill('#ai-key', 'sk-openai-1');
+  await page.fill('#ai-model', 'gpt-6-luna');
+  await page.getByTestId('ai-save').click();
+  await page.getByTestId('ai-provider-anthropic').click();
+  await page.fill('#ai-key', 'sk-ant-2');
+  await page.fill('#ai-model', 'claude-haiku-5-5');
+  await page.getByTestId('ai-save').click();
+  // Anthropic's fields are still shown right after switching providers.
+  await expect(page.locator('#ai-key')).toHaveValue('sk-ant-2');
+  await expect(page.locator('#ai-model')).toHaveValue('claude-haiku-5-5');
+
+  // Switching back to OpenAI keeps its own key and model — no mixing.
+  await page.getByTestId('ai-provider-openai').click();
+  await expect(page.locator('#ai-key')).toHaveValue('sk-openai-1');
+  await expect(page.locator('#ai-model')).toHaveValue('gpt-6-luna');
+
+  // Persistence: reload and verify both providers survived the round-trip.
+  await page.reload();
+  await openApp(page, '/settings');
+  await page.getByTestId('ai-provider-anthropic').click();
+  await expect(page.locator('#ai-key')).toHaveValue('sk-ant-2');
+  await page.getByTestId('ai-provider-openai').click();
+  await expect(page.locator('#ai-key')).toHaveValue('sk-openai-1');
+
+  // Forget clears ONLY the selected provider's key; the other stays intact.
+  await page.getByTestId('ai-forget').click();
+  await expect(page.locator('#ai-key')).toHaveValue('');
+  await page.getByTestId('ai-provider-anthropic').click();
+  await expect(page.locator('#ai-key')).toHaveValue('sk-ant-2');
+
+  // Custom provider: the base URL field appears; a key saved for it stays with it.
+  await page.getByTestId('ai-provider-custom').click();
+  await expect(page.locator('#ai-url')).toBeVisible();
+  await page.fill('#ai-url', 'https://proxy.example/v1');
+  await page.fill('#ai-key', 'sk-custom-3');
+  await page.getByTestId('ai-save').click();
+  await page.getByTestId('ai-provider-openai').click();
+  await expect(page.locator('#ai-key')).toHaveValue('');
+  await page.getByTestId('ai-provider-custom').click();
+  await expect(page.locator('#ai-key')).toHaveValue('sk-custom-3');
+  await expect(page.locator('#ai-url')).toHaveValue('https://proxy.example/v1');
+});

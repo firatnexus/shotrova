@@ -209,18 +209,20 @@ describe('image Q&A', () => {
   const orig = globalThis.fetch;
   afterEach(() => { globalThis.fetch = orig; });
 
-  it('sends the image with the first question and history with follow-ups', async () => {
+  it('sends the image with the first question and resends it on follow-ups', async () => {
     const fn = mockFetch({ choices: [{ message: { content: 'It is a mouse pad.' } }] });
     const out = await aiAskAboutImage('data:image/png;base64,q', 'What is this?', [], cfgFor('openai'), 'en');
     expect(out).toBe('It is a mouse pad.');
     let body = JSON.parse(String(lastCall(fn)[1].body));
     expect(body.messages.some((m: { content: unknown }) => JSON.stringify(m.content).includes('data:image/png;base64,q'))).toBe(true);
 
+    // Provider APIs are stateless: the image must be resent with follow-ups.
     const fn2 = mockFetch({ choices: [{ message: { content: 'It is RGB.' } }] });
-    await aiAskAboutImage(null, 'What color?', [{ role: 'user', text: 'What is this?' }, { role: 'assistant', text: 'A mouse pad.' }], cfgFor('openai'), 'en');
+    await aiAskAboutImage('data:image/png;base64,q', 'What color?', [{ role: 'user', text: 'What is this?' }, { role: 'assistant', text: 'A mouse pad.' }], cfgFor('openai'), 'en');
     body = JSON.parse(String(lastCall(fn2)[1].body));
     const user = JSON.stringify(body);
-    expect(user.includes('data:image/png')).toBe(false);
+    expect(user.includes('data:image/png;base64,q')).toBe(true);
+    // History is passed along as text-only turns.
     expect(body.messages.filter((m: { role: string }) => m.role === 'user').length).toBe(2);
   });
 });

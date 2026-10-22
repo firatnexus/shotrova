@@ -38,6 +38,7 @@ export function DetailScreen({ id }: { id: string }) {
   const [askInput, setAskInput] = useState('');
   const [askBusy, setAskBusy] = useState(false);
   const [askTurns, setAskTurns] = useState<ChatTurn[]>([]);
+  const [webQuery, setWebQuery] = useState('');
 
   const aiOn = aiCfg.enabled && !!activeProviderConfig(aiCfg).apiKey && !!activeProviderConfig(aiCfg).model;
   const hasAi = r ? r.aiStatus === 'done' || !!(r.aiText ?? '') : false;
@@ -72,8 +73,9 @@ export function DetailScreen({ id }: { id: string }) {
     setAskInput('');
     setAskBusy(true);
     try {
-      // First question carries the image; follow-ups keep the turn history.
-      const imageDataUrl = askTurns.length === 0 ? (url && url.startsWith('data:') ? url : await blobToDataUrl(blob)) : null;
+      // Provider APIs are stateless: the image goes with every question.
+      const imageDataUrl = await blobToDataUrl(blob);
+      if (!imageDataUrl) throw new Error('image unavailable');
       const answer = await aiAskAboutImage(imageDataUrl, q, askTurns, aiCfg, lang);
       setAskTurns([...askTurns, { role: 'user', text: q }, { role: 'assistant', text: answer }]);
     } catch (e) {
@@ -87,6 +89,11 @@ export function DetailScreen({ id }: { id: string }) {
     if (!r) return;
     setTitle(r.title);
     setNotes(r.notes);
+    // Q&A conversation belongs to one image; reset it when the image changes.
+    setAskTurns([]);
+    setAskOpen(false);
+    // Seed the web-search box with the best text we have (AI/manual text, else title).
+    setWebQuery((primaryText(r) || r.title || '').replace(/\s*\n\s*/g, ' ').trim().slice(0, 300));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [r?.id]);
   useEffect(() => {
@@ -116,7 +123,8 @@ export function DetailScreen({ id }: { id: string }) {
   };
   const copyText = async () => {
     try {
-      await navigator.clipboard.writeText(r.ocrText);
+      // Copy what is actually displayed (AI text or manual correction), not the raw OCR.
+      await navigator.clipboard.writeText(display);
       toast(t('detail.copied'), 'success');
     } catch {
       toast(t('detail.copy_failed'), 'error');
@@ -140,7 +148,7 @@ export function DetailScreen({ id }: { id: string }) {
     try {
       if (await nativeShareBlob(blob, fileName, { title: displayTitle(r) })) return;
       if (nav.share && nav.canShare?.({ files: [file] })) await nav.share({ files: [file], title: displayTitle(r) });
-      else if (nav.share && r.ocrText) await nav.share({ title: displayTitle(r), text: r.ocrText });
+      else if (nav.share && display) await nav.share({ title: displayTitle(r), text: display });
       else {
         if (await saveBlob(blob, fileName)) toast(t('detail.share_unsupported'), 'info');
       }
@@ -248,7 +256,7 @@ export function DetailScreen({ id }: { id: string }) {
                 <OcrBadge r={r} />
                 {!editingText && (
                   <>
-                    <button type="button" className="btn ghost sm" onClick={() => void copyText()} disabled={!r.ocrText}>
+                    <button type="button" className="btn ghost sm" onClick={() => void copyText()} disabled={!display}>
                       <IconCopy /> {t('detail.copy')}
                     </button>
                     <button type="button" className="btn ghost sm" onClick={() => setEditingText(true)}>
@@ -356,10 +364,10 @@ export function DetailScreen({ id }: { id: string }) {
                         value={askInput}
                         onChange={(e) => setAskInput(e.target.value)}
                         placeholder={t('detail.ask_placeholder')}
-                        disabled={askBusy}
+                        disabled={askBusy || !blob}
                         data-testid="ask-input"
                       />
-                      <button type="submit" className="btn primary" disabled={!askInput.trim() || askBusy} data-testid="ask-send">
+                      <button type="submit" className="btn primary" disabled={!askInput.trim() || askBusy || !blob} data-testid="ask-send">
                         {t('detail.ask_send')}
                       </button>
                     </form>
@@ -367,19 +375,31 @@ export function DetailScreen({ id }: { id: string }) {
                 )}
               </div>
             )}
-            {display && !editingText && (
-              <div className="row">
-                <a
-                  className="btn ghost sm"
-                  href={`https://www.google.com/search?q=${encodeURIComponent(display.slice(0, 300))}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid="web-search"
-                >
-                  <IconOpen /> {t('detail.web_search')}
-                </a>
-              </div>
-            )}
+            <form
+              className="row"
+              data-testid="web-search"
+              onSubmit={(e) => {
+                // Text-based information search — the query is editable so
+                // photos without readable text can be searched by their title/object.
+                e.preventDefault();
+                const q = webQuery.trim();
+                if (q) window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank', 'noopener,noreferrer');
+              }}
+            >
+              <label className="sr-only" htmlFor="d-websearch">{t('detail.web_search')}</label>
+              <input
+                id="d-websearch"
+                className="input"
+                style={{ flex: 1 }}
+                value={webQuery}
+                onChange={(e) => setWebQuery(e.target.value)}
+                placeholder={t('detail.web_search_placeholder')}
+                data-testid="web-search-input"
+              />
+              <button type="submit" className="btn ghost sm" disabled={!webQuery.trim()}>
+                <IconOpen /> {t('detail.web_search')}
+              </button>
+            </form>
             {(r.ocrEdited || (hasAi && r.aiEdited)) && <p className="faint xs">{t('detail.edited_note')}</p>}
             {entities.length > 0 && !editingText && (
               <div className="field">
