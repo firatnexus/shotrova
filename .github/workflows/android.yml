@@ -71,6 +71,24 @@ jobs:
           (cd dist-apk && sha256sum *.apk > SHA256SUMS.txt)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Verify signing certificate matches the last published release
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          APK=$(ls dist-apk/*.apk)
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          NEW_FP=$($APKSIGNER verify --print-certs "$APK" | sed -n 's/.*Signer #1 certificate SHA-256 digest: //p')
+          echo "New APK signer certificate SHA-256: $NEW_FP"
+          PREV_URL=$(gh api repos/${{ github.repository }}/releases/latest --jq '.assets[] | select(.name | endswith(".apk")) | .browser_download_url' | head -1)
+          if [ -z "$PREV_URL" ]; then echo "No previous release APK found; skipping comparison."; exit 0; fi
+          curl -fsSL -o /tmp/prev.apk "$PREV_URL"
+          PREV_FP=$($APKSIGNER verify --print-certs /tmp/prev.apk | sed -n 's/.*Signer #1 certificate SHA-256 digest: //p')
+          echo "Previous release signer certificate SHA-256: $PREV_FP"
+          if [ "$NEW_FP" != "$PREV_FP" ]; then echo "::error::Signer certificate changed - the new APK will NOT install over the old one"; exit 1; fi
+          echo "OK: same signing certificate as the previous release."
+
       - name: APK shell E2E (web files extracted from the built APK)
         run: |
           npx playwright install --with-deps chromium
