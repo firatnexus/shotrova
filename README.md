@@ -7,9 +7,11 @@ It ships in two forms built from the same code:
 - **Android app (APK)**: a native Android app (Capacitor). It shows up in the Android share sheet as **Share → Shotrova**, OCR language files are bundled, and it works offline from the first launch.
 - **Web app (PWA)**: runs in any modern browser at **https://firatnexus.github.io/shotrova/** and can be installed to the home screen.
 
-| Mobile, light theme | Mobile, dark theme: search | Desktop |
-|---|---|---|
-| ![Dashboard](docs/screenshots/mobile-light-dashboard.png) | ![Search](docs/screenshots/mobile-dark-search.png) | ![Desktop](docs/screenshots/desktop-light-dashboard.png) |
+| Mobile, light: dashboard | Mobile, dark: search | Mobile, light: AI settings | Desktop |
+|---|---|---|---|
+| ![Dashboard](docs/screenshots/mobile-light-dashboard.png) | ![Search](docs/screenshots/mobile-dark-search.png) | ![AI settings](docs/screenshots/mobile-light-settings-ai.png) | ![Desktop](docs/screenshots/desktop-light-dashboard.png) |
+| Mobile, light: image detail | Mobile, dark: categories | Desktop, dark: image detail | |
+| ![Detail](docs/screenshots/mobile-light-detail.png) | ![Categories](docs/screenshots/mobile-dark-categories.png) | ![Detail](docs/screenshots/desktop-dark-detail.png) | |
 
 ## Download
 
@@ -64,7 +66,7 @@ Details, signing and CI: [docs/DEPLOY.md](docs/DEPLOY.md)
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
-- [Test results](docs/TESTING.md): unit 47/47, web E2E 34/34 (root) and 34/34 (subpath), APK web-shell E2E 8/8 on both the debug and the signed release APK. All of them were actually executed.
+- [Test results](docs/TESTING.md): unit 83/83, web E2E 38/38 (root) and 38/38 (subpath), APK web-shell E2E 8/8 on both the debug and the signed release APK, plus a live end-to-end run against the real Google Gemini API. All of them were actually executed.
 - [Name research](docs/NAMING.md)
 - [Build and deployment](docs/DEPLOY.md)
 
@@ -74,7 +76,7 @@ Details, signing and CI: [docs/DEPLOY.md](docs/DEPLOY.md)
 - **The gallery is not monitored.** Neither the app nor the web version watches your gallery or sees screenshots saved by other apps in the background. You pick or share the images.
 - **Storage is not guaranteed to be permanent.** Uninstalling the app or clearing its data (or browser data for the web version) deletes everything. Make regular backups.
 - **OCR accuracy** depends on image quality; handwriting and very small or decorative text may be misread. The web version downloads about 17 MB of OCR files on first use; the APK bundles them.
-- **No visual understanding.** Categorization relies only on recognized text. Photos without text are not guessed; they go to "Uncategorized" for review.
+- **Visual understanding is optional and off by default.** Without AI, categorization relies only on recognized text — photos without text go to "Uncategorized" for review. With AI vision enabled (explicit opt-in), the provider reads the image itself: clean title, category, full transcription and free-form questions about the photo.
 - **Search is text-based,** not semantic. Apart from a small TR↔EN synonym table it does not know synonyms.
 - **APK is Android only.** There is no iOS build. On the web, the share target works only after installing the PWA in a Chromium-based Android browser; iOS Safari does not support it.
 - **No legal guarantee for the name.** See [NAMING.md](docs/NAMING.md).
