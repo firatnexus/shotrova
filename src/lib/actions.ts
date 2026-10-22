@@ -4,10 +4,11 @@ import { StorageError, toStorageError } from '../db/db';
 import type { Category, ImageRecord, LearnedRule, Settings } from '../db/types';
 import { categorize, correctionTokens } from '../categorize/categorizer';
 import { aiCategorize } from '../categorize/ai';
+import { aiVisionAnalyze, aiEditText, visionEnabled, type AiEditMode } from '../ai/vision';
 import { FALLBACK_CATEGORY_ID } from '../categorize/defaults';
 import { validateBytes, sha256Hex } from '../import/validate';
-import { decodeAndThumb } from '../import/image';
-import { buildSearchTokens } from '../search/search';
+import { decodeAndThumb, toVisionDataUrl } from '../import/image';
+import { buildSearchTokens, primaryText } from '../search/search';
 import { recognize, isEffectivelyEmpty, scheduleIdleTerminate } from '../ocr/engine';
 import { categoryName } from '../i18n';
 import { BRAND } from '../config/brand';
@@ -34,6 +35,9 @@ export async function init(): Promise<void> {
     // Resume OCR that was interrupted (e.g. the tab was closed mid-scan).
     const resume = images.filter((i) => i.ocrStatus === 'pending' || i.ocrStatus === 'processing').map((i) => i.id);
     if (resume.length && settings.ocrEnabled) enqueueOcr(resume);
+    // Resume interrupted AI vision analysis (aiStatus 'pending' means it never finished).
+    const resumeVision = images.filter((i) => i.aiStatus === 'pending').map((i) => i.id);
+    if (resumeVision.length && visionEnabled(settings.ai)) enqueueVisionIfEnabled(resumeVision);
   } catch (e) {
     const err = toStorageError(e);
     setState({ ready: true, fatal: err.kind === 'unavailable' ? 'storage.unavailable' : 'storage.open_failed' });
@@ -169,6 +173,7 @@ export async function importFiles(files: File[], onProgress?: (p: ImportProgress
   }
   onProgress?.({ done: files.length, total: files.length, current: '' });
   if (settings.ocrEnabled && summary.added.length) enqueueOcr(summary.added.map((r) => r.id));
+  else if (summary.added.length) enqueueVisionIfEnabled(summary.added.map((r) => r.id));
   return summary;
 }
 
@@ -222,6 +227,132 @@ async function runQueue(): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------- AI vision queue
+
+/**
+ * Asynchronous AI vision analysis. Runs independently of the local OCR queue:
+ * it also starts when OCR is disabled, empty or failed — the model reads the
+ * image itself. Results are merged into the LATEST record so intervening user
+ * edits (manual category, edited text/title) are never overwritten.
+ */
+const visionQueue: string[] = [];
+const visionForced = new Set<string>();
+let visionRunning = false;
+
+export function enqueueVisionIfEnabled(ids: string[], force = false): void {
+  if (!visionEnabled(getState().settings.ai)) return;
+  for (const id of ids) {
+    if (force) visionForced.add(id);
+    if (!visionQueue.includes(id)) visionQueue.push(id);
+  }
+  setState({ visionQueueLength: visionQueue.length });
+  void runVisionQueue();
+}
+
+/** Re-runs vision analysis for one image (user-triggered "read with AI"). */
+export function rerunVision(id: string): void {
+  enqueueVisionIfEnabled([id], true);
+}
+
+async function runVisionQueue(): Promise<void> {
+  if (visionRunning) return;
+  visionRunning = true;
+  try {
+    while (visionQueue.length) {
+      const id = visionQueue.shift() as string;
+      setState({ visionQueueLength: visionQueue.length + 1 });
+      await processVision(id, visionForced.delete(id));
+    }
+  } finally {
+    visionRunning = false;
+    setState({ visionQueueLength: 0 });
+  }
+}
+
+async function processVision(id: string, force: boolean): Promise<void> {
+  const { settings, categories } = getState();
+  if (!visionEnabled(settings.ai)) return;
+  let rec = await db.getImage(id);
+  if (!rec) return;
+  // Skip images already analysed (unless forced) — like the OCR queue.
+  if (!force && rec.aiStatus === 'done' && rec.aiSourceHash === rec.hash) return;
+  const blobs = await db.getBlobs(id);
+  if (!blobs) return;
+  const processing: ImageRecord = { ...rec, aiStatus: 'pending', updatedAt: rec.updatedAt };
+  delete processing.aiError;
+  await db.putImage(processing);
+  upsertImageInState(processing);
+  setState((s) => ({ visionBusy: { ...s.visionBusy, [id]: true } }));
+  let next: ImageRecord;
+  try {
+    const dataUrl = await toVisionDataUrl(blobs.original);
+    const analysis = await aiVisionAnalyze(
+      dataUrl,
+      categories.map((c) => ({ id: c.id, name: categoryName(c, 'en') })),
+      settings.ai,
+      settings.lang,
+    );
+    // Re-read: the user may have edited the record while the request was in flight.
+    rec = (await db.getImage(id)) ?? processing;
+    next = mergeVisionResult(rec, analysis, settings.reviewThreshold);
+  } catch (e) {
+    const latest = (await db.getImage(id)) ?? processing;
+    next = { ...latest, aiStatus: 'error', aiError: (e as Error)?.message ?? String(e) };
+  }
+  try {
+    await db.putImage(next);
+  } catch {
+    /* storage errors are surfaced by the next user action */
+  }
+  upsertImageInState(next);
+  setState((s) => {
+    const busy = { ...s.visionBusy };
+    delete busy[id];
+    return { visionBusy: busy };
+  });
+}
+
+function mergeVisionResult(r: ImageRecord, a: { text: string; title: string; categoryId: string | null; confidence: number }, reviewThreshold: number): ImageRecord {
+  const next: ImageRecord = {
+    ...r,
+    aiTitle: a.title,
+    aiCategory: a.categoryId ?? undefined,
+    aiConfidence: a.confidence,
+    aiStatus: 'done',
+    aiAt: Date.now(),
+    aiSourceHash: r.hash,
+    updatedAt: Date.now(),
+  };
+  delete next.aiError;
+  if (!r.aiEdited) next.aiText = a.text;
+  // Apply the suggested title only while the user has not set one.
+  if (!r.title.trim() && a.title) next.title = a.title;
+  // Apply the suggested category unless the user assigned one manually.
+  if (a.categoryId && r.categorySource !== 'manual' && (r.categorySource === 'none' || a.confidence > r.categoryConfidence || r.needsReview)) {
+    next.categoryId = a.categoryId;
+    next.categoryConfidence = a.confidence;
+    next.categorySource = 'ai';
+    next.categoryReasons = ['AI vision'];
+    next.needsReview = a.confidence < reviewThreshold;
+  }
+  // An image whose local OCR found nothing but that AI read successfully counts as having text.
+  if ((r.ocrStatus === 'empty' || r.ocrStatus === 'error') && a.text.trim()) next.ocrStatus = 'done';
+  next.searchTokens = buildSearchTokens(next);
+  return next;
+}
+
+/**
+ * The AI text editor used by the detail screen: returns the edited preview.
+ * The caller decides whether to apply it (updateImage) — nothing is written here.
+ */
+export async function aiEditPreview(id: string, mode: AiEditMode): Promise<string> {
+  const r = await db.getImage(id);
+  if (!r) throw new Error('missing record');
+  const { settings } = getState();
+  if (!settings.ai.enabled || !settings.ai.apiKey) throw new Error('AI_DISABLED');
+  return aiEditText(primaryText(r), mode, settings.ai, settings.lang);
+}
+
 async function processOcr(id: string, force: boolean): Promise<void> {
   const rec = await db.getImage(id);
   if (!rec) return;
@@ -272,6 +403,8 @@ async function processOcr(id: string, force: boolean): Promise<void> {
     delete ocr[id];
     return { ocr };
   });
+  // Local OCR finished (or failed): hand over to the AI vision queue.
+  enqueueVisionIfEnabled([id]);
 }
 
 // ------------------------------------------------------------------ categorisation
@@ -386,7 +519,7 @@ export async function deleteRules(ids: string[]): Promise<void> {
 
 // ------------------------------------------------------------------ edits
 
-export async function updateImage(id: string, patch: Partial<Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText'>>): Promise<ImageRecord | undefined> {
+export async function updateImage(id: string, patch: Partial<Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'aiText'>>): Promise<ImageRecord | undefined> {
   const r = getState().images.find((x) => x.id === id);
   if (!r) return undefined;
   let next: ImageRecord = { ...r, ...patch, updatedAt: Date.now() };
@@ -395,8 +528,13 @@ export async function updateImage(id: string, patch: Partial<Pick<ImageRecord, '
     next.ocrEdited = true;
     if (next.ocrStatus === 'empty' || next.ocrStatus === 'error' || next.ocrStatus === 'skipped') next.ocrStatus = next.ocrText.trim() ? 'done' : next.ocrStatus;
   }
+  if (patch.aiText !== undefined && patch.aiText !== r.aiText) {
+    next.aiEdited = true;
+    if (next.ocrStatus === 'empty' || next.ocrStatus === 'error') next.ocrStatus = next.aiText?.trim() ? 'done' : next.ocrStatus;
+  }
   next.searchTokens = buildSearchTokens(next);
   if (patch.ocrText !== undefined && patch.ocrText !== r.ocrText && next.categorySource !== 'manual') next = await withAutoCategory(next);
+  else if (patch.aiText !== undefined && patch.aiText !== r.aiText && next.categorySource !== 'manual') next = await withAutoCategory(next);
   await db.putImage(next);
   upsertImageInState(next);
   return next;

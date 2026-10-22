@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { BRAND } from './src/config/brand.ts';
+import { BRAND, logoSvg } from './src/config/brand.ts';
 
 const base = process.env.VITE_BASE ?? '/';
 
@@ -67,7 +67,8 @@ function brandPwa(): Plugin {
         .replaceAll('%BRAND_NAME%', BRAND.name)
         .replaceAll('%BRAND_DESC%', BRAND.description.tr)
         .replaceAll('%THEME_LIGHT%', BRAND.colors.themeLight)
-        .replaceAll('%THEME_DARK%', BRAND.colors.themeDark);
+        .replaceAll('%THEME_DARK%', BRAND.colors.themeDark)
+        .replaceAll('%LOGO%', logoSvg(64));
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {

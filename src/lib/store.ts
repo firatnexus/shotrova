@@ -18,6 +18,9 @@ export interface AppState {
   ocrQueueLength: number;
   ocrEngine: 'idle' | 'loading' | 'ready' | 'error';
   online: boolean;
+  /** AI vision analysis: per-image busy flag and pending queue length. */
+  visionBusy: Record<string, boolean>;
+  visionQueueLength: number;
 }
 
 let state: AppState = {
@@ -31,6 +34,8 @@ let state: AppState = {
   ocrQueueLength: 0,
   ocrEngine: 'idle',
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
+  visionBusy: {},
+  visionQueueLength: 0,
 };
 
 const listeners = new Set<() => void>();

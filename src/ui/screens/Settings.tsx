@@ -259,6 +259,7 @@ export function SettingsScreen() {
           checked={s.ai.enabled && s.categorizer === 'ai'}
           onChange={(v) => {
             if (v && !ai.apiKey) return toast(t('set.ai_need_key'), 'warning');
+            setAi({ ...ai, enabled: v });
             void updateSettings({ categorizer: v ? 'ai' : 'keywords', ai: { ...ai, enabled: v } });
           }}
         />
@@ -275,6 +276,17 @@ export function SettingsScreen() {
           <input id="ai-key" className="input" type="password" autoComplete="off" value={ai.apiKey} onChange={(e) => setAi({ ...ai, apiKey: e.target.value })} placeholder="sk-…" />
           <span className="faint xs">{t('set.ai_key_d')}</span>
         </div>
+        <Toggle
+          label={t('set.ai_vision')}
+          desc={t('set.ai_vision_d')}
+          checked={ai.vision}
+          onChange={(v) => {
+            setAi({ ...ai, vision: v });
+            void updateSettings({ ai: { ...ai, vision: v } });
+            if (v) toast(t('set.ai_vision_warn'), 'warning', undefined, 7000);
+          }}
+          testId="ai-vision"
+        />
         <div className="row">
           <button type="button" className="btn" onClick={() => void updateSettings({ ai: { ...ai, enabled: s.ai.enabled && Boolean(ai.apiKey) } }).then(() => toast(t('detail.saved'), 'success'))}>
             {t('common.save')}

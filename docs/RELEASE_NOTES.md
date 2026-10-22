@@ -1,5 +1,16 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.2.0
+
+- **AI vision (opt-in):** when enabled in Settings, images are sent to your own OpenAI-compatible provider and the model extracts a **clean title, category and the full text** of the image — replacing the garbled on-device OCR as the primary text. The raw device OCR remains available behind a "raw OCR" disclosure. With vision off (default), only text is ever sent — images never leave the device.
+- **AI text editor:** "clean" fixes OCR garbling and formatting in the extracted text; "emoji" adds tasteful emojis. Always previewed before applying; manual edits are never overwritten silently.
+- **Entities:** links, e-mails, phone numbers and dates in the text become one-tap chips — copy, open, call. "Copy text" copies the text of all selected images at once.
+- **New design:** a "precision scanner" identity unique to Shotrova — Clash Display + Switzer typography, cool graphite surfaces, teal scan accent and viewfinder-corner motifs. Not a template of any other app.
+- **Splash screen:** the app now opens with a proper branded splash (web boot screen + native Android splash) instead of launching straight into a half-loaded UI.
+- **No accidental zoom (APK):** pinch zoom is disabled in the native app, so it no longer behaves like a zooming web page. The web version keeps zoom for accessibility.
+
+## The app
+
 - Share one or many screenshots to Shotrova from the Android share sheet.
 - OCR (Turkish + English) files are bundled, so text recognition works offline from the first launch.
 - Save originals and backups with the Android "Save as" dialog; share images through the share sheet.

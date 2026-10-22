@@ -538,9 +538,114 @@ test('theme: dark and light both render', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe('rgb(18, 20, 24)');
+  expect(bg).toBe('rgb(11, 17, 27)'); // v1.2.0 graphite dark (#0b111b)
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.getByTestId('theme-light').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+});
+
+test('13 AI vision: consent gates the image upload, AI text merges, editor + entities work', async ({ page }) => {
+  // Mock OpenAI-compatible endpoint. Distinguishes request types by payload:
+  // vision (contains image_url) vs text categorisation vs text editor.
+  const bodies: Array<Record<string, unknown>> = [];
+  await page.route('**/chat/completions', async (route) => {
+    const body = JSON.parse(route.request().postData() ?? '{}');
+    bodies.push(body);
+    const raw = JSON.stringify(body.messages ?? []);
+    const isVision = raw.includes('image_url');
+    const isEditor = raw.includes('garbl'); // both editor prompts mention OCR garbling
+    const content = isVision
+      ? JSON.stringify({
+          text: 'Fatura No: 12345\nTarih: 12.03.2025\nE-posta: siparis@deneme.com.tr\nTel: +90 532 000 00 00\nhttps://example.com/tarif',
+          title: 'Sipariş Faturası (AI)',
+          category_id: 'documents',
+          confidence: 0.95,
+        })
+      : isEditor
+        ? JSON.stringify({ text: '✅ Düzeltildi ve emoji eklendi' })
+        : JSON.stringify({ id: 'recipes', confidence: 0.6 });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ choices: [{ message: { content } }] }),
+    });
+  });
+
+  // --- Phase A: AI enabled WITHOUT vision — the image must never be sent.
+  await openApp(page, '/settings');
+  await page.fill('#ai-url', 'https://ai-mock.test');
+  await page.fill('#ai-model', 'mock-model');
+  await page.fill('#ai-key', 'sk-test');
+  await page.getByRole('switch', { name: 'Kategorilemede yapay zekâ kullan' }).check();
+  await importFixtures(page, ['recipe_tr.png']);
+  const imgs = await waitForOcr(page, 1);
+  const rec = imgs[0];
+  // AI categorisation ran on the OCR text only (categorySource 'ai', 'recipes' from mock).
+  await expect
+    .poll(async () => (await dbImages(page)).find((i) => i.id === rec.id)?.categorySource)
+    .toBe('ai');
+  expect((await dbImages(page)).find((i) => i.id === rec.id)?.categoryId).toBe('recipes');
+  const catBody = bodies.find((b) => JSON.stringify(b.messages ?? '').includes('Categories:'));
+  expect(catBody).toBeTruthy();
+  expect(JSON.stringify(catBody?.messages ?? '')).not.toContain('image_url'); // image never leaves the device
+  expect(bodies.some((b) => JSON.stringify(b.messages ?? '').includes('image_url'))).toBe(false);
+
+  // --- Phase B: vision consent ON — now the image is sent and the result merges.
+  await openApp(page, '/settings');
+  await page.getByTestId('ai-vision').check();
+  // The settings write is async — wait for it to land in IndexedDB before navigating.
+  await expect
+    .poll(async () =>
+      page.evaluate(
+        () =>
+          new Promise<boolean>((resolve) => {
+            const req = indexedDB.open('shotrova-db');
+            req.onsuccess = () => {
+              const db = req.result;
+              const q = db.transaction('settings').objectStore('settings').get('app');
+              q.onsuccess = () => resolve(Boolean((q.result?.value as { ai?: { vision?: boolean } })?.ai?.vision));
+              q.onerror = () => resolve(false);
+            };
+            req.onerror = () => resolve(false);
+          }),
+      ),
+    )
+    .toBe(true);
+  await openApp(page, `/image/${rec.id}`);
+  await page.getByRole('button', { name: 'Yapay zekâ ile oku' }).click();
+  await expect
+    .poll(async () => (await dbImages(page)).find((i) => i.id === rec.id)?.aiStatus)
+    .toBe('done');
+  const after = (await dbImages(page)).find((i) => i.id === rec.id);
+  const visionBody = bodies.find((b) => JSON.stringify(b.messages ?? '').includes('image_url'));
+  expect(visionBody).toBeTruthy();
+  expect(JSON.stringify(visionBody?.messages ?? '')).toContain('data:image/jpeg'); // downscaled JPEG data URL
+  // Merged: AI text stored, AI title applied (user had none), better category wins.
+  expect(after?.aiText).toContain('Fatura No: 12345');
+  expect(after?.title).toBe('Sipariş Faturası (AI)');
+  expect(after?.categoryId).toBe('documents');
+  expect(after?.aiConfidence).toBe(0.95);
+  // The Detail panel shows the AI text as primary, raw OCR stays accessible.
+  await expect(page.getByTestId('ocr-text')).toContainText('Fatura No: 12345');
+  await expect(page.getByText('Cihazdaki OCR sonucu')).toBeVisible();
+  // Entities extracted from the AI text.
+  await expect(page.getByTestId('entities').getByTestId('entity-url')).toContainText('example.com/tarif');
+  await expect(page.getByTestId('entities').getByTestId('entity-email')).toContainText('siparis@deneme.com.tr');
+  await expect(page.getByTestId('entities').getByTestId('entity-phone')).toContainText('+90 532 000 00 00');
+  await expect(page.getByTestId('entities').getByTestId('entity-date')).toContainText('12.03.2025');
+
+  // --- Phase C: AI text editor (clean/emoji) — text only, never the image.
+  await page.getByTestId('ai-clean').click();
+  await expect(page.locator('.aipanel')).toContainText('Düzeltildi ve emoji eklendi');
+  await page.getByTestId('ai-apply').click();
+  await expect
+    .poll(async () => (await dbImages(page)).find((i) => i.id === rec.id)?.aiText)
+    .toBe('✅ Düzeltildi ve emoji eklendi');
+  const edited = (await dbImages(page)).find((i) => i.id === rec.id);
+  expect(edited?.aiEdited).toBe(true);
+  // The editor request carried text only.
+  const editorBody = bodies.find((b) => JSON.stringify(b.messages ?? []).includes('garbl'));
+  expect(editorBody).toBeTruthy();
+  expect(JSON.stringify(editorBody?.messages ?? '')).not.toContain('image_url');
 });

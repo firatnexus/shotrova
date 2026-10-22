@@ -4,14 +4,14 @@ import { confirmCategory, deleteImages, setCategory } from '../../lib/actions';
 import { categoryAllNames, categoryName, translate, useT } from '../../i18n';
 import { fold } from '../../search/normalize';
 import { parseQuery } from '../../search/query';
-import { search, type SearchOptions } from '../../search/search';
+import { displayTitle, search, type SearchOptions } from '../../search/search';
 import { toast } from '../../lib/toast';
 import { navigate, useRoute } from '../router';
 import { Tile } from '../Tile';
 import { CategoryPicker, Dot, Empty, confirmDialog, useDebounced } from '../components';
 import { forgetThumb } from '../blobs';
 import { openPicker } from '../importer';
-import { IconCheck, IconFolder, IconImage, IconSearch, IconSelect, IconTrash, IconX } from '../icons';
+import { IconCheck, IconFolder, IconImage, IconSearch, IconSelect, IconTextCopy, IconTrash, IconX } from '../icons';
 
 type DatePreset = '' | '7d' | '30d' | 'this_month' | 'last_month' | 'this_year' | 'custom';
 const DAY = 86_400_000;
@@ -133,6 +133,22 @@ export function ImagesScreen() {
       window.removeEventListener('keydown', onKey);
     };
   }, [selecting]);
+
+  const bulkCopyText = async () => {
+    const chosen = images.filter((r) => sel.has(r.id));
+    const withText = chosen.filter((r) => (r.aiText ?? r.ocrText).trim());
+    if (!withText.length) return toast(t('bulk.copy_empty'), 'warning');
+    const joined = withText
+      .map((r) => `${displayTitle(r)}
+${r.aiText ?? r.ocrText}`)
+      .join('\n\n———\n\n');
+    try {
+      await navigator.clipboard.writeText(joined);
+      toast(t('bulk.copied_text', { n: withText.length }), 'success');
+    } catch {
+      toast(t('detail.copy_failed'), 'error');
+    }
+  };
 
   const bulkDelete = async () => {
     const ids = [...sel];
@@ -323,6 +339,9 @@ export function ImagesScreen() {
           </button>
           <button type="button" className="btn sm" disabled={!sel.size} onClick={() => void bulkConfirm()}>
             <IconCheck /> {t('bulk.confirm')}
+          </button>
+          <button type="button" className="btn sm" disabled={!sel.size} onClick={() => void bulkCopyText()} data-testid="bulk-copy-text">
+            <IconTextCopy /> {t('bulk.copy_text')}
           </button>
           <button type="button" className="btn sm" disabled={!sel.size} onClick={() => setPicker(true)}>
             <IconFolder /> {t('bulk.categorize')}

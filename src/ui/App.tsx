@@ -9,7 +9,7 @@ import { ACCEPT_ATTR } from '../import/validate';
 import { href, navigate, useRoute } from './router';
 import { ConfirmHost, Skeleton, Toasts } from './components';
 import { filesFromClipboard, registerPicker, runImport, useImportState } from './importer';
-import { IconFolder, IconGrid, IconHome, IconOffline, IconPlus, IconSettings } from './icons';
+import { IconFolder, IconGrid, IconHome, IconOffline, IconScan, IconSettings } from './icons';
 import { Dashboard } from './screens/Dashboard';
 import { ImagesScreen } from './screens/Images';
 import { DetailScreen } from './screens/Detail';
@@ -134,7 +134,6 @@ export function App() {
   const nav = [
     { to: '/', key: '', label: t('nav.home'), icon: <IconHome /> },
     { to: '/images', key: 'images', label: t('nav.images'), icon: <IconGrid /> },
-    null,
     { to: '/categories', key: 'categories', label: t('nav.categories'), icon: <IconFolder /> },
     { to: '/settings', key: 'settings', label: t('nav.settings'), icon: <IconSettings /> },
   ];
@@ -157,20 +156,12 @@ export function App() {
         {t('a11y.skip')}
       </a>
       <nav className="bottomnav" aria-label={t('a11y.main_nav')}>
-        {nav.map((n, i) =>
-          n ? (
-            <a key={n.to} href={href(n.to)} aria-current={isActive(n.key) ? 'page' : undefined}>
-              {n.icon}
-              <span>{n.label}</span>
-            </a>
-          ) : (
-            <div className="navfab" key={`fab${i}`}>
-              <button type="button" onClick={() => inputRef.current?.click()} aria-label={t('import.cta')} title={t('import.cta')} disabled={imp.busy}>
-                <IconPlus />
-              </button>
-            </div>
-          ),
-        )}
+        {nav.map((n) => (
+          <a key={n.to} href={href(n.to)} aria-current={isActive(n.key) ? 'page' : undefined}>
+            {n.icon}
+            <span>{n.label}</span>
+          </a>
+        ))}
       </nav>
       <div className="content-col">
         <header className={`topbar ${scrolled ? 'scrolled' : ''}`}>
@@ -184,6 +175,9 @@ export function App() {
               <IconOffline width={14} height={14} /> {t('net.offline')}
             </span>
           )}
+          <button type="button" className="btn primary sm" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
+            <IconScan /> {t('import.cta')}
+          </button>
         </header>
         {imp.busy && imp.progress && (
           <div className="importbar" role="status" aria-live="polite" style={{ padding: '0 16px' }}>
