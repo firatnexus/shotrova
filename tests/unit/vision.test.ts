@@ -113,3 +113,18 @@ describe('mergeVisionResult', () => {
     expect(worse.categoryId).toBe('cat-tech'); // lower confidence does not replace
   });
 });
+
+// ---- primaryText (v1.2.2): manual corrections outrank machine transcriptions ----
+
+describe('primaryText', () => {
+  it('prefers AI text by default, but a manual OCR correction stays primary', async () => {
+    const { primaryText } = await import('../../src/search/search');
+    const base: Record<string, unknown> = { ocrText: 'raw ocr', aiText: undefined, ocrEdited: false, aiEdited: false };
+    expect(primaryText(base as never)).toBe('raw ocr');
+    expect(primaryText({ ...base, aiText: 'ai text' } as never)).toBe('ai text');
+    // The user corrected the raw OCR after reading it — their correction wins over the AI text.
+    expect(primaryText({ ...base, aiText: 'ai text', ocrEdited: true } as never)).toBe('raw ocr');
+    // The user edited the AI text itself — that edited text wins.
+    expect(primaryText({ ocrText: 'raw ocr', aiText: 'edited ai', ocrEdited: true, aiEdited: true } as never)).toBe('edited ai');
+  });
+});

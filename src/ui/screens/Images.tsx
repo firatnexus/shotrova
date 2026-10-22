@@ -4,7 +4,7 @@ import { confirmCategory, deleteImages, setCategory } from '../../lib/actions';
 import { categoryAllNames, categoryName, translate, useT } from '../../i18n';
 import { fold } from '../../search/normalize';
 import { parseQuery } from '../../search/query';
-import { displayTitle, search, type SearchOptions } from '../../search/search';
+import { displayTitle, primaryText, search, type SearchOptions } from '../../search/search';
 import { toast } from '../../lib/toast';
 import { navigate, useRoute } from '../router';
 import { Tile } from '../Tile';
@@ -136,11 +136,11 @@ export function ImagesScreen() {
 
   const bulkCopyText = async () => {
     const chosen = images.filter((r) => sel.has(r.id));
-    const withText = chosen.filter((r) => (r.aiText ?? r.ocrText).trim());
+    const withText = chosen.filter((r) => primaryText(r).trim());
     if (!withText.length) return toast(t('bulk.copy_empty'), 'warning');
     const joined = withText
-      .map((r) => `${displayTitle(r)}
-${r.aiText ?? r.ocrText}`)
+      .map((r) => `${displayTitle(r) || t('img.unnamed')}
+${primaryText(r)}`)
       .join('\n\n———\n\n');
     try {
       await navigator.clipboard.writeText(joined);

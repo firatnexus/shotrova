@@ -685,4 +685,6 @@ test('13 AI vision: consent gates the image upload, AI text merges, editor + ent
   expect(rec2after?.title).toBe('Elle yazılmış başlık');
   expect(rec2after?.ocrText).toContain('Elle düzenlenmiş fatura metni');
   expect(rec2after?.aiText).toContain('Fatura No: 12345');
+  // The user's manual correction stays the PRIMARY text on screen — the AI text does not take over.
+  await expect(page.getByTestId('ocr-text')).toContainText('Elle düzenlenmiş fatura metni');
 });

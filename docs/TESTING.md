@@ -6,7 +6,7 @@ Only tests that were **actually executed** are listed as passing. Run date: 22 O
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit tests (9 files) | `npm test` | **60 / 60 passed** (includes `vision.test.ts` (AI + `mergeVisionResult` manual-edit protection) and `entities.test.ts` added in v1.2.0) |
+| Unit tests (10 files) | `npm test` | **64 / 64 passed** (v1.2.x additions: `vision.test.ts` AI + `mergeVisionResult`/`primaryText` precedence, `entities.test.ts`, `display-title.test.ts` machine-name hiding) |
 | Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **36 / 36 passed** (18 scenarios × 2 device profiles) ([JSON](test-results/e2e-root.json), [log](test-results/e2e-root.log)) |
 | Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **36 / 36 passed** ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
 | APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |

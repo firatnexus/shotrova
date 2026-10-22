@@ -21,12 +21,15 @@ export interface SearchHit {
 }
 
 /** The text the user sees and searches: AI vision transcription when present, else local OCR. */
-export function primaryText(r: Pick<ImageRecord, 'ocrText' | 'aiText'>): string {
+export function primaryText(r: Pick<ImageRecord, 'ocrText' | 'aiText' | 'ocrEdited' | 'aiEdited'>): string {
+  // A manual correction always outranks a machine transcription.
+  if (r.aiEdited) return r.aiText ?? r.ocrText; // user edited the AI text itself
+  if (r.ocrEdited) return r.ocrText; // user corrected the raw OCR — keep it primary
   return r.aiText ?? r.ocrText;
 }
 
 /** Builds the folded token list stored in the `searchTokens` multiEntry index. */
-export function buildSearchTokens(r: Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'aiText' | 'fileName'>): string[] {
+export function buildSearchTokens(r: Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'aiText' | 'fileName' | 'ocrEdited' | 'aiEdited'>): string[] {
   return indexTokens([r.title, r.notes, r.tags.join(' '), primaryText(r), r.fileName.replace(/[._-]+/g, ' ')].join('\n'));
 }
 
@@ -108,6 +111,17 @@ export function search(items: ImageRecord[], q: ParsedQuery, opts: SearchOptions
   return hits;
 }
 
+/** True for machine-generated names (UUIDs, long hex, clipboard stamps) that carry no human meaning. */
+const MACHINE_NAME_RE = /^([0-9a-f]{4,}-){3,}[0-9a-f]{4,}$/i; // UUID-style dashed hex
+const LONG_HEX_RE = /^[0-9a-f]{16,}$/i;
+const CLIPBOARD_STAMP_RE = /^clipboard-\d+(-\d+)?$/i;
+
 export function displayTitle(r: Pick<ImageRecord, 'title' | 'fileName'>): string {
-  return r.title.trim() || r.fileName.replace(/\.[a-z0-9]+$/i, '');
+  const title = r.title.trim();
+  if (title) return title;
+  const base = r.fileName.replace(/\.[a-z0-9]+$/i, '');
+  // Machine names (Android share-sheet UUIDs, clipboard stamps) are not shown as titles;
+  // callers fall back to a localized "untitled image" label.
+  if (MACHINE_NAME_RE.test(base) || LONG_HEX_RE.test(base) || CLIPBOARD_STAMP_RE.test(base)) return '';
+  return base;
 }

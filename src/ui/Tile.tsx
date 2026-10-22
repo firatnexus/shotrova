@@ -1,7 +1,7 @@
 import type { ImageRecord } from '../db/types';
 import { categoryName, useT } from '../i18n';
 import { useAppState } from '../lib/store';
-import { displayTitle } from '../search/search';
+import { displayTitle, primaryText } from '../search/search';
 import { excerpt } from '../search/normalize';
 import { useThumb } from './blobs';
 import { Dot, Highlight, OcrBadge } from './components';
@@ -38,8 +38,9 @@ export function Tile({
   const t = useT();
   const cat = useAppState((s) => s.categories.find((c) => c.id === r.categoryId));
   const lang = useAppState((s) => s.settings.lang);
-  const title = displayTitle(r);
-  const snip = terms.length && (r.aiText ?? r.ocrText) ? excerpt((r.aiText ?? r.ocrText).replace(/\s+/g, ' '), terms, 50) : null;
+  const title = displayTitle(r) || t('img.unnamed');
+  const pt = primaryText(r);
+  const snip = terms.length && pt ? excerpt(pt.replace(/\s+/g, ' '), terms, 50) : null;
   const inner = (
     <>
       <div className="thumb">

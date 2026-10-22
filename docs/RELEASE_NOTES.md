@@ -1,5 +1,11 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.2.2
+
+- A photo shared from Android with a machine-generated file name (UUID) is no longer shown with that UUID as its title — the app shows a clean "Adsız görsel" label until you or the AI set a real title.
+- When the on-device OCR result is low-confidence (hard-to-read photos), the raw garbled text is collapsed behind a "Düşük güvenli OCR sonucu" disclosure with a hint about AI vision, instead of being the main result.
+- A text you corrected by hand stays the primary text even after an AI vision result arrives (the AI transcription is kept as its own field).
+
 ## What's new in 1.2.1
 
 - Scrolled-to content (e.g. jumping to the extracted text) now lands clear of the top bar instead of sliding under it.

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getState, useAppState } from '../../lib/store';
 import { aiEditPreview, confirmCategory, deleteImages, rerunOcr, rerunVision, setCategory, updateImage } from '../../lib/actions';
 import { categoryName, formatBytes, formatDate, useT } from '../../i18n';
-import { displayTitle } from '../../search/search';
+import { displayTitle, primaryText } from '../../search/search';
 import { safeFileName } from '../../import/validate';
 import { extractEntities } from '../../lib/entities';
 import { toast } from '../../lib/toast';
@@ -35,7 +35,7 @@ export function DetailScreen({ id }: { id: string }) {
 
   const aiOn = aiCfg.enabled && !!aiCfg.apiKey;
   const hasAi = r ? r.aiStatus === 'done' || !!(r.aiText ?? '') : false;
-  const display = r ? (r.aiText ?? r.ocrText) : '';
+  const display = r ? primaryText(r) : '';
   const entities = r ? extractEntities(display) : [];
 
   const runAiEdit = async (mode: 'clean' | 'emoji') => {
@@ -53,7 +53,7 @@ export function DetailScreen({ id }: { id: string }) {
   };
   const applyAiPreview = async () => {
     if (!r || !aiPreview) return;
-    const before = r.aiText ?? r.ocrText;
+    const before = primaryText(r);
     const patch = hasAi ? { aiText: aiPreview.text } : { ocrText: aiPreview.text };
     await save(patch, t('detail.saved'));
     setPrevText(before);
@@ -67,7 +67,7 @@ export function DetailScreen({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [r?.id]);
   useEffect(() => {
-    if (r && !editingText) setText(r.aiText ?? r.ocrText);
+    if (r && !editingText) setText(primaryText(r));
   }, [r, editingText]);
 
   if (!r)
@@ -162,7 +162,7 @@ export function DetailScreen({ id }: { id: string }) {
           ) : url === null ? (
             <Empty icon={<IconImage />} title={t('detail.image_missing')} />
           ) : (
-            <img src={url} alt={displayTitle(r)} onClick={() => setZoom(!zoom)} data-testid="full-image" />
+            <img src={url} alt={displayTitle(r) || t('img.unnamed')} onClick={() => setZoom(!zoom)} data-testid="full-image" />
           )}
         </div>
         <div className="stack" style={{ gap: 16 }}>
@@ -172,7 +172,7 @@ export function DetailScreen({ id }: { id: string }) {
               id="d-title"
               className="input"
               value={title}
-              placeholder={displayTitle({ title: '', fileName: r.fileName })}
+              placeholder={displayTitle({ title: '', fileName: r.fileName }) || t('img.unnamed')}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={() => title !== r.title && void save({ title: title.trim() }, t('detail.saved'))}
               onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
@@ -251,7 +251,7 @@ export function DetailScreen({ id }: { id: string }) {
                 <label className="sr-only" htmlFor="d-text">{t('detail.text')}</label>
                 <textarea id="d-text" className="input" value={text} onChange={(e) => setText(e.target.value)} rows={10} data-testid="ocr-edit" />
                 <div className="row" style={{ justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn sm" onClick={() => { setText(r.aiText ?? r.ocrText); setEditingText(false); }}>
+                  <button type="button" className="btn sm" onClick={() => { setText(primaryText(r)); setEditingText(false); }}>
                     <IconX /> {t('common.cancel')}
                   </button>
                   <button type="button" className="btn sm primary" onClick={() => { void save(hasAi ? { aiText: text } : { ocrText: text }, t('detail.saved')); setEditingText(false); }}>
@@ -260,16 +260,27 @@ export function DetailScreen({ id }: { id: string }) {
                 </div>
               </>
             ) : display ? (
-              <div className="textpanel">
-                <div className={`body ${hasAi ? 'ai' : 'raw'}`} data-testid="ocr-text" lang={r.ocrLanguage === 'eng' && !hasAi ? 'en' : undefined}>{display}</div>
-                {!hasAi && r.ocrConfidence > 0 && r.ocrConfidence < 55 && <p className="faint xs">{t('detail.ocr_low')}</p>}
-                {hasAi && r.ocrText && (
-                  <details className="rawocr">
-                    <summary>{t('detail.raw_ocr')}</summary>
-                    <div className="body">{r.ocrText}</div>
+              !hasAi && r.ocrConfidence > 0 && r.ocrConfidence < 55 ? (
+                <div className="textpanel">
+                  {/* Low-confidence OCR is collapsed so unreadable output is not the main result. */}
+                  <details className="rawocr" data-testid="low-ocr">
+                    <summary>{t('detail.ocr_low_details')}</summary>
+                    <div className="body">{display}</div>
                   </details>
-                )}
-              </div>
+                  <p className="faint xs">{t('detail.ocr_low_ai')}</p>
+                </div>
+              ) : (
+                <div className="textpanel">
+                  <div className={`body ${hasAi ? 'ai' : 'raw'}`} data-testid="ocr-text" lang={r.ocrLanguage === 'eng' && !hasAi ? 'en' : undefined}>{display}</div>
+                  {!hasAi && r.ocrConfidence > 0 && r.ocrConfidence < 55 && <p className="faint xs">{t('detail.ocr_low')}</p>}
+                  {hasAi && r.ocrText && (
+                    <details className="rawocr">
+                      <summary>{t('detail.raw_ocr')}</summary>
+                      <div className="body">{r.ocrText}</div>
+                    </details>
+                  )}
+                </div>
+              )
             ) : (
               <p className="faint">
                 {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: r.ocrError ?? '' }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy || aiBusy ? t('detail.ocr_wait') : t('detail.no_text')}
