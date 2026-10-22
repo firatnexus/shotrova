@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { aiEditText, aiVisionAnalyze, visionEnabled } from '../../src/ai/vision';
 import { mergeVisionResult } from '../../src/lib/actions';
+import type { ImageRecord } from '../../src/db/types';
 
 const cfg = { enabled: true, baseUrl: 'https://api.example.com/v1', model: 'm', apiKey: 'k', vision: true };
 const cats = [
@@ -71,30 +72,41 @@ describe('ai vision', () => {
 
 // ---- mergeVisionResult (v1.2.0): manual edits are never overwritten ----
 
-const baseRec = { id: '1', title: '', notes: '', tags: [], fileName: 'a.jpg', ocrText: '', aiText: '', categorySource: 'none', categoryConfidence: 0, needsReview: false } as never;
+const baseRec = {
+  id: '1',
+  title: '',
+  notes: '',
+  tags: [],
+  fileName: 'a.jpg',
+  ocrText: 'some words',
+  aiText: '',
+  categorySource: 'none',
+  categoryConfidence: 0,
+  needsReview: false,
+} as unknown as ImageRecord;
 
 describe('mergeVisionResult', () => {
   it('fills the title only when the user has not set one', () => {
     const base = baseRec;
     const merged = mergeVisionResult(base, { text: 't', title: 'AI Title', categoryId: 'cat-tech', confidence: 0.9 }, 0.5);
     expect(merged.title).toBe('AI Title');
-    const manual = { ...baseRec, title: 'My own title' };
+    const manual: ImageRecord = { ...baseRec, title: 'My own title' };
     expect(mergeVisionResult(manual, { text: 't', title: 'AI Title', categoryId: 'cat-tech', confidence: 0.9 }, 0.5).title).toBe('My own title');
   });
 
   it('never overwrites a manual category or AI-edited text', () => {
-    const manualCat = { ...baseRec, categorySource: 'manual', categoryId: 'cat-tarif', categoryConfidence: 0.4 };
+    const manualCat: ImageRecord = { ...baseRec, categorySource: 'manual', categoryId: 'cat-tarif', categoryConfidence: 0.4 };
     const merged = mergeVisionResult(manualCat, { text: 'new text', title: 'T', categoryId: 'cat-tech', confidence: 0.95 }, 0.5);
     expect(merged.categoryId).toBe('cat-tarif'); // manual wins over higher AI confidence
     expect(merged.categorySource).toBe('manual');
 
-    const edited = { ...baseRec, aiEdited: true, aiText: 'my manual cleanup' };
+    const edited: ImageRecord = { ...baseRec, aiEdited: true, aiText: 'my manual cleanup' };
     const kept = mergeVisionResult(edited, { text: 'ai rewrite', title: 'T', categoryId: 'cat-tech', confidence: 0.9 }, 0.5);
     expect(kept.aiText).toBe('my manual cleanup'); // user's edit survives
   });
 
   it('applies a better AI category and leaves worse ones alone', () => {
-    const base = { ...baseRec, categorySource: 'ai', categoryId: 'cat-tech', categoryConfidence: 0.6 };
+    const base: ImageRecord = { ...baseRec, categorySource: 'ai', categoryId: 'cat-tech', categoryConfidence: 0.6 };
     const better = mergeVisionResult(base, { text: 't', title: 'T', categoryId: 'cat-tarif', confidence: 0.9 }, 0.5);
     expect(better.categoryId).toBe('cat-tarif');
     const worse = mergeVisionResult(base, { text: 't', title: 'T', categoryId: 'cat-tarif', confidence: 0.5 }, 0.5);
