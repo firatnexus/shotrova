@@ -48,6 +48,7 @@ export function DetailScreen({ id }: { id: string }) {
 
   const runAiEdit = async (mode: 'clean' | 'emoji') => {
     if (!r) return;
+    if (r.noAi) return toast(t('cap.detail.excluded'), 'warning');
     if (!aiOn) return toast(t('detail.ai_disabled'), 'warning');
     setAiWorking(mode);
     try {
@@ -70,6 +71,7 @@ export function DetailScreen({ id }: { id: string }) {
 
   const askQuestion = async () => {
     if (!r || !askInput.trim() || askBusy) return;
+    if (r.noAi) return toast(t('cap.detail.excluded'), 'warning');
     const q = askInput.trim();
     setAskInput('');
     setAskBusy(true);
@@ -347,7 +349,7 @@ export function DetailScreen({ id }: { id: string }) {
                 {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: r.ocrError ?? '' }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy || aiBusy ? t('detail.ocr_wait') : t('detail.no_text')}
               </p>
             )}
-            {aiOn && aiCfg.vision && !editingText && (
+            {aiOn && aiCfg.vision && !editingText && !r.noAi && (
               <div className="card stack" style={{ gap: 10 }} data-testid="ask-panel">
                 <div className="row" style={{ justifyContent: 'space-between' }}>
                   <strong className="small">{t('detail.ask_title')}</strong>
@@ -457,7 +459,7 @@ export function DetailScreen({ id }: { id: string }) {
                 )}
               </div>
             )}
-            {aiOn && !editingText && !aiBusy && (
+            {aiOn && !editingText && !aiBusy && !r.noAi && (
               <div className="row">
                 {!hasAi && aiCfg.vision && (
                   <button type="button" className="btn sm" onClick={() => rerunVision(r.id)}>

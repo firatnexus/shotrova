@@ -20,7 +20,7 @@ export function Dashboard() {
   const categories = useAppState((s) => s.categories);
   const lang = useAppState((s) => s.settings.lang);
   const onboardingDismissed = useAppState((s) => s.settings.onboardingDismissed);
-  const captureConsentSeen = useAppState((s) => s.settings.capture?.aiConsent);
+  const captureSetupSeen = useAppState((s) => !!s.settings.capture?.setupSeen);
   const queue = useAppState((s) => s.ocrQueueLength);
   const visionQueue = useAppState((s) => s.visionQueueLength);
   const engine = useAppState((s) => s.ocrEngine);
@@ -37,10 +37,10 @@ export function Dashboard() {
 
   // First run on the native app: open the consent sheet once (opt-in only).
   useEffect(() => {
-    if (isNativeApp() && !onboardingDismissed && captureConsentSeen === undefined) {
+    if (isNativeApp() && !onboardingDismissed && !captureSetupSeen) {
       openSetup();
     }
-  }, [onboardingDismissed, captureConsentSeen]);
+  }, [onboardingDismissed, captureSetupSeen]);
 
   // Keep the status card fresh while the dashboard is visible.
   useEffect(() => {

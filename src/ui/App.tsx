@@ -1,7 +1,6 @@
-import { isNativeApp, onNativeShare, takeNativeSharedFiles, getNativeLaunchCapture, onNativeCapture } from '../native/bridge';
+import { isNativeApp, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
-import { useAppState, setState, getState } from '../lib/store';
-import { syncCaptures } from '../auto/capture';
+import { useAppState, setState } from '../lib/store';
 import { consumeShareInbox } from '../lib/actions';
 import { toast } from '../lib/toast';
 import { useT } from '../i18n';
@@ -113,29 +112,8 @@ export function App() {
     return onNativeShare(() => void pull());
   }, [ready, fatal, t]);
 
-  // Android app: notification tap delivers a capture id; jump to that image.
-  useEffect(() => {
-    if (!ready || fatal || !isNativeApp()) return;
-    let alive = true;
-    const consumeLaunch = async () => {
-      try {
-        const launch = await getNativeLaunchCapture();
-        if (!alive || !launch) return;
-        const prefix = launch.captureId.replace(/^cap_/, '');
-        const img = getState().images.find((x) => x.hash.startsWith(prefix));
-        if (img) navigate(`/image/${img.id}`, true);
-        else if (launch.focusCategory) navigate('/categories', true);
-      } catch {
-        /* launch info is best-effort */
-      }
-    };
-    void consumeLaunch();
-    const off = onNativeCapture(() => void syncCaptures());
-    return () => {
-      alive = false;
-      off();
-    };
-  }, [ready, fatal]);
+  // Android app: capture sync + notification-tap navigation are owned by
+  // installCaptureSync (see lib/actions init) — a single owner avoids double pulls.
 
   // Installed PWA share target: the service worker parks shared files in Cache Storage.
   useEffect(() => {

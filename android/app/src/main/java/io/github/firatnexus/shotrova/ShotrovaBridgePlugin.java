@@ -610,6 +610,24 @@ public class ShotrovaBridgePlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** Same as getLaunchCapture but keeps the request: the web layer retries until the image is imported. */
+    @PluginMethod
+    public void peekLaunchCapture(PluginCall call) {
+        JSObject r = new JSObject();
+        String id = pendingLaunchCaptureId;
+        r.put("captureId", id == null ? "" : id);
+        r.put("focusCategory", pendingLaunchFocusCategory);
+        call.resolve(r);
+    }
+
+    /** Clears the pending launch request after the web layer handled it. */
+    @PluginMethod
+    public void clearLaunchCapture(PluginCall call) {
+        pendingLaunchCaptureId = null;
+        pendingLaunchFocusCategory = false;
+        call.resolve(new JSObject());
+    }
+
     /** Deletes staged copies that were already imported (storage management). */
     @PluginMethod
     public void purgeCapturedStaging(PluginCall call) {

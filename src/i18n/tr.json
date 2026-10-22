@@ -400,9 +400,9 @@
   "cap.setup.title": "Otomatik kayıt kurulumu",
   "cap.setup.intro": "Ekran görüntüsü aldığında Shotrova onu otomatik bulsun, kopyalasın ve yapay zekayla başlıklandırsın. Önce neye izin verdiğini açıkça görelim:",
   "cap.setup.perm_media_title": "Fotoğraf ve videolara erişim",
-  "cap.setup.perm_media_body": "Yalnızca ekran görüntüsü klasörleri taranır (Pictures/Screenshots, DCIM/Screenshots); diğer fotoğraflarınız okunmaz. Android 14+ 'te \"Fotoğrafları ve videoları seç\" denirse otomatik algılama çalışmaz — \"Tümüne izin ver\" gerekir.",
+  "cap.setup.perm_media_body": "Yalnızca ekran görüntüsü klasörleri taranır (Pictures/Screenshots, DCIM/Screenshots); diğer fotoğraflarınız okunmaz. Android 14 ve üstünde \"Fotoğrafları ve videoları seç\" denirse otomatik algılama çalışmaz — \"Tümüne izin ver\" gerekir.",
   "cap.setup.perm_notif_title": "Bildirimler",
-  "cap.setup.perm_notif_body": "Kayıt sonunda \"'Fatura Özeti' başlığıyla Alışveriş kategorisine kaydedildi\" gibi bildirim almak için.",
+  "cap.setup.perm_notif_body": "Kayıt sonunda \"Fatura Özeti başlığıyla Alışveriş kategorisine kaydedildi\" gibi bir bildirim almak için.",
   "cap.setup.ai_title": "Yapay zeka analizi",
   "cap.setup.ai_body": "Her yeni ekran görüntüsü için kısa Türkçe başlık, kategori ve etiket üretilir. Ne gönderileceğini seç:",
   "cap.setup.ai_option_off": "Kapalı — ekran görüntüleri başlıksız kaydedilir",
@@ -456,5 +456,8 @@
   "set.capture.storage_compressed": "Sıkıştırılmış",
   "set.capture.storage_original": "Orijinal",
   "set.capture.purge": "Bekleyen aşama dosyalarını temizle",
-  "set.capture.purged": "{n} bekleyen dosya temizlendi"
+  "set.capture.purged": "{n} bekleyen dosya temizlendi",
+  "cap.setup.perm_denied": "Medya izni verilmedi; otomatik algılama açılamadı. Durum kartındaki \"İzin ver\" düğmesiyle tekrar deneyebilirsin.",
+  "cap.setup.native_failed": "Yerel katman açılamadı; ayar kaydedildi ancak algılama başlatılamadı. Ayarlar ekranından tekrar deneyin.",
+  "cap.storage_line": "Depolama: {used} / {total}"
 }

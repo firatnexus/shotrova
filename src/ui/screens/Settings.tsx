@@ -59,7 +59,11 @@ export function SettingsScreen() {
     setBusy('purge');
     try {
       const n = await purgeNativeStaging();
-      toast(t('set.capture.purged', { n: n ?? 0 }), 'success');
+      if (n === null) {
+        toast(t('cap.setup.native_failed'), 'error');
+        return;
+      }
+      toast(t('set.capture.purged', { n }), 'success');
     } catch {
       toast(t('common.error'), 'error');
     } finally {
@@ -208,8 +212,13 @@ export function SettingsScreen() {
             checked={!!s.capture?.enabled}
             testId="capture-enabled"
             onChange={async (v) => {
+              // Honest enable/disable: the native side owns the truth.
+              const after = await setNativeAutoCapture(v, s.capture?.storageMode ?? 'compressed');
+              if (v && (!after || !after.enabled)) {
+                toast(t('cap.setup.native_failed'), 'error');
+                return;
+              }
               await updateSettings({ capture: { ...DEFAULT_CAPTURE, ...s.capture, enabled: v } });
-              await setNativeAutoCapture(v, s.capture?.storageMode ?? 'compressed');
             }}
           />
           <Toggle

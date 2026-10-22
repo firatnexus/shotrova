@@ -132,6 +132,8 @@ export interface CaptureSettings {
   storageMode: 'original' | 'compressed';
   /** First-run AI consent: the user read what is sent and opted in. */
   aiConsent: boolean;
+  /** Set once the first-run setup sheet was shown (independent of aiConsent). */
+  setupSeen?: boolean;
   /** Automatic AI analysis on/off; off = screenshots saved without AI. */
   autoAnalyze: boolean;
 }

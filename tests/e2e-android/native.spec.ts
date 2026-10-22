@@ -99,7 +99,7 @@ test('A5 Share from Shotrova opens the Android share sheet with the original fil
 });
 
 test('A6 Paste button reads the image from the Android clipboard', async ({ page }) => {
-  await openNative(page);
+  await openNative(page, '/', [], true);
   await page.evaluate(() => {
     (window as unknown as { __native: { clipboard: unknown[] } }).__native.clipboard = [
       { path: '/data/cache/inbox/9-phone_settings_en.webp', name: 'clip.webp', mime: 'image/webp' },
@@ -110,7 +110,7 @@ test('A6 Paste button reads the image from the Android clipboard', async ({ page
 });
 
 test('A7 Back button closes dialogs, walks in-app history, then lets Android leave', async ({ page }) => {
-  await openNative(page);
+  await openNative(page, '/', [], true);
   const back = () => page.evaluate(() => (window as unknown as { __shotrovaBack: () => boolean }).__shotrovaBack());
   expect(await back()).toBe(false); // home screen: Android handles it
   await page.getByRole('link', { name: 'Kategoriler' }).first().click();

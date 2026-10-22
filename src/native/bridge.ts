@@ -82,6 +82,8 @@ export interface ShotrovaBridgePlugin {
   markCapturedImported(o: { ids: string[] }): Promise<void>;
   runCatchupScan(): Promise<CaptureStatus & { staged: number }>;
   getLaunchCapture(): Promise<{ captureId: string; focusCategory: boolean }>;
+  peekLaunchCapture(): Promise<{ captureId: string; focusCategory: boolean }>;
+  clearLaunchCapture(): Promise<void>;
   purgeCapturedStaging(): Promise<CaptureStatus & { purged: number }>;
   deleteFromPhone(o: { msIds: number[] }): Promise<{ deleted: boolean; unsupported?: boolean }>;
   openPermissionSettings(): Promise<void>;
@@ -139,6 +141,8 @@ function bridge(): ShotrovaBridgePlugin | null {
     markCapturedImported: call('markCapturedImported'),
     runCatchupScan: call<CaptureStatus & { staged: number }>('runCatchupScan'),
     getLaunchCapture: call<{ captureId: string; focusCategory: boolean }>('getLaunchCapture'),
+    peekLaunchCapture: call<{ captureId: string; focusCategory: boolean }>('peekLaunchCapture'),
+    clearLaunchCapture: call<void>('clearLaunchCapture'),
     purgeCapturedStaging: call<CaptureStatus & { purged: number }>('purgeCapturedStaging'),
     deleteFromPhone: call<{ deleted: boolean; unsupported?: boolean }>('deleteFromPhone'),
     openPermissionSettings: call('openPermissionSettings'),
@@ -314,6 +318,20 @@ export async function getNativeLaunchCapture(): Promise<{ captureId: string; foc
   const p = bridge();
   if (!p) return null;
   try { return await p.getLaunchCapture(); } catch { return null; }
+}
+
+/** Non-destructive variant: the request stays until clearNativeLaunchCapture. */
+export async function peekNativeLaunchCapture(): Promise<{ captureId: string; focusCategory: boolean } | null> {
+  const p = bridge();
+  if (!p) return null;
+  try { return await p.peekLaunchCapture(); } catch { return null; }
+}
+
+/** Clears the pending launch request after the web layer handled it. */
+export async function clearNativeLaunchCapture(): Promise<void> {
+  const p = bridge();
+  if (!p) return;
+  try { await p.clearLaunchCapture(); } catch { /* best effort */ }
 }
 
 /** Deletes staged copies that were already imported (storage management). */

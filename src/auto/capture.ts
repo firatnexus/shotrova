@@ -13,8 +13,10 @@
 
 import {
   getCaptureStatus,
+  clearNativeLaunchCapture,
   markCapturedImported,
   onNativeCapture,
+  peekNativeLaunchCapture,
   readNativeCaptureFile,
   runNativeCatchupScan,
   takeNativeCaptured,
@@ -26,6 +28,7 @@ import { findByHash } from '../db/db';
 import { getState, setState } from '../lib/store';
 import { importCapturedFile } from '../lib/actions';
 import { categoryName } from '../i18n';
+import { navigate } from '../ui/router';
 
 /** The status card state machine result shown on the home screen. */
 export type CaptureUiState =
@@ -173,10 +176,53 @@ export async function syncCaptures(): Promise<{ imported: number; analyzed: numb
  */
 export async function catchUpAndSync(): Promise<void> {
   const s = await getCaptureStatus();
-  if (!s?.enabled) return;
+  if (!s?.enabled) {
+    // A notification tap can still point at a capture staged before the user
+    // turned detection off; the launch handler must run in that case too.
+    await consumeLaunchCapture();
+    return;
+  }
   await runNativeCatchupScan();
   await syncCaptures();
   await refreshCaptureStatus();
+  await consumeLaunchCapture();
+}
+
+let launchBusy = false;
+/**
+ * Handles a notification tap: pulls the launch request, syncs first (the
+ * screenshot may still be in native staging — the image must be in the
+ * library before we can open it), then navigates. Runs on cold start, on
+ * every foreground sync and after every autocapture event, so warm taps work
+ * too. The native side keeps the request until consumed, so nothing is lost
+ * if the image is not available yet.
+ */
+export async function consumeLaunchCapture(): Promise<void> {
+  if (launchBusy) return;
+  launchBusy = true;
+  try {
+    const launch = await peekNativeLaunchCapture();
+    if (!launch || !launch.captureId) return;
+    // Make sure the tapped capture is in the library before looking it up.
+    await syncCaptures();
+    const prefix = launch.captureId.replace(/^cap_/, '');
+    const img = getState().images.find((x) => x.hash.startsWith(prefix));
+    if (img) {
+      navigate(`/image/${img.id}`, true);
+      await clearNativeLaunchCapture();
+      return;
+    }
+    if (launch.focusCategory) {
+      navigate('/categories', true);
+      await clearNativeLaunchCapture();
+    }
+    // Image not imported yet and no category fallback: keep the request for
+    // the next sync instead of dropping the tap.
+  } catch {
+    /* launch info is best-effort */
+  } finally {
+    launchBusy = false;
+  }
 }
 
 let installed = false;
@@ -195,6 +241,6 @@ export function installCaptureSync(): void {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') void catchUpAndSync();
   });
-  onNativeCapture(() => void syncCaptures().then(() => refreshCaptureStatus()));
+  onNativeCapture(() => void syncCaptures().then(() => refreshCaptureStatus()).then(() => consumeLaunchCapture()));
   window.setInterval(() => void refreshCaptureStatus(), 30000);
 }

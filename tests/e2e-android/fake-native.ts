@@ -97,12 +97,14 @@ export function installFakeBridge(preShared: Array<Record<string, unknown>> = []
           state.capture.enabled = Boolean((o as { enabled?: boolean }).enabled);
           return { supported: true, androidVersion: 34, mediaAccess: 'full', notifications: true, enabled: state.capture.enabled, storageMode: 'compressed', pendingCount: 0, stagedBytes: 0, lastScanAt: Date.now() };
         case 'takeCaptured': {
-          const captures = state.capture.staged;
-          state.capture.staged = [];
-          return { captures };
+          // Retain-until-acknowledged, like the real native store.
+          return { captures: [...state.capture.staged] };
         }
-        case 'markCapturedImported':
+        case 'markCapturedImported': {
+          const ids = new Set((o as { ids?: string[] }).ids ?? []);
+          state.capture.staged = state.capture.staged.filter((c) => !ids.has(String((c as { id?: string }).id)));
           return undefined;
+        }
         case 'runCatchupScan':
           return { staged: 0, supported: true, androidVersion: 34, mediaAccess: 'full', notifications: true, enabled: state.capture.enabled, storageMode: 'compressed', pendingCount: 0, stagedBytes: 0, lastScanAt: Date.now() };
         case 'getLaunchCapture': {
@@ -110,6 +112,13 @@ export function installFakeBridge(preShared: Array<Record<string, unknown>> = []
           state.capture.launch = null;
           sessionStorage.removeItem('__fakeLaunch');
           return l;
+        }
+        case 'peekLaunchCapture':
+          return state.capture.launch;
+        case 'clearLaunchCapture': {
+          state.capture.launch = null;
+          sessionStorage.removeItem('__fakeLaunch');
+          return undefined;
         }
         case 'purgeCapturedStaging':
           return { purged: state.capture.staged.length, supported: true, androidVersion: 34, mediaAccess: 'full', notifications: true, enabled: state.capture.enabled, storageMode: 'compressed', pendingCount: 0, stagedBytes: 0, lastScanAt: Date.now() };
@@ -127,7 +136,7 @@ export function installFakeBridge(preShared: Array<Record<string, unknown>> = []
   };
 }
 
-export async function openNative(page: Page, hash = '/', preShared: Array<Record<string, unknown>> = []) {
+export async function openNative(page: Page, hash = '/', preShared: Array<Record<string, unknown>> = [], dismissSetup = false) {
   await page.addInitScript(installFakeBridge, preShared);
   // Files staged by the native side are served from /_capacitor_file_/<path>.
   await page.route('**/_capacitor_file_/**', (route) => {
@@ -137,6 +146,15 @@ export async function openNative(page: Page, hash = '/', preShared: Array<Record
   await page.goto(`./#${hash}`);
   await expect(page.locator('main')).toBeVisible();
   await page.waitForFunction(() => !document.querySelector('main [aria-busy="true"]'));
+  // The first-run setup sheet opens on the dashboard; dismiss it when a test
+  // needs to interact with the page behind it (the sheet itself is covered by
+  // the visual and A9/A10 tests).
+  if (dismissSetup) {
+    const later = page.getByRole('button', { name: 'Şimdi değil' });
+    await expect(later).toBeVisible();
+    await later.click();
+    await expect(page.getByTestId('capture-setup')).toHaveCount(0);
+  }
 }
 
 export const log = (page: Page) => page.evaluate(() => (window as unknown as { __native: NativeLog }).__native);

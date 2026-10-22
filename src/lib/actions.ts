@@ -411,6 +411,10 @@ async function processVision(id: string, force: boolean): Promise<void> {
   if (!rec) return;
   // Per-item opt-out: this screenshot must never be sent to the AI provider.
   if (rec.noAi) return;
+  // Automatic captures are only auto-analysed with explicit consent
+  // (capture.autoAnalyze); otherwise they honestly stay "Analiz bekliyor".
+  // A user-triggered rerun (force) still goes through.
+  if (!force && rec.source === 'auto' && !(settings.capture?.autoAnalyze ?? true)) return;
   // Skip images already analysed (unless forced) — like the OCR queue.
   if (!force && rec.aiStatus === 'done' && rec.aiSourceHash === rec.hash) return;
   const blobs = await db.getBlobs(id);
@@ -546,10 +550,13 @@ async function processOcr(id: string, force: boolean): Promise<void> {
 
 // ------------------------------------------------------------------ categorisation
 
-async function withAutoCategory(r: ImageRecord): Promise<ImageRecord> {
+async function withAutoCategory(r: ImageRecord, opts: { stickyAi?: boolean } = {}): Promise<ImageRecord> {
   const { settings, categories, rules } = getState();
-  // Manual AND AI categories are sticky: an OCR re-run must not discard them.
-  if (r.categorySource === 'manual' || r.categorySource === 'ai' || !settings.autoCategorize) return { ...r, needsReview: r.categorySource !== 'manual' && r.needsReview };
+  // Manual categories are always sticky; AI categories are sticky for automatic
+  // re-runs (OCR) so a native/AI result is not discarded, but the explicit
+  // "recategorize all" action re-evaluates them.
+  const stickyAi = opts.stickyAi ?? true;
+  if (r.categorySource === 'manual' || (stickyAi && r.categorySource === 'ai') || !settings.autoCategorize) return { ...r, needsReview: r.categorySource !== 'manual' && r.needsReview };
   const kw = categorize({ text: r.ocrText, title: r.title, fileName: r.fileName, categories, rules, reviewThreshold: settings.reviewThreshold });
   let result = { categoryId: kw.categoryId, confidence: kw.confidence, needsReview: kw.needsReview, reasons: kw.reasons, source: (kw.reasons.some((x) => x.startsWith('✓')) ? 'rule' : 'auto') as ImageRecord['categorySource'] };
   if (kw.insufficientText || kw.confidence === 0) result.source = 'none';
@@ -576,7 +583,7 @@ export async function recategorizeAll(): Promise<number> {
   const changed: ImageRecord[] = [];
   for (const r of getState().images) {
     if (r.categorySource === 'manual') continue;
-    const n = await withAutoCategory(r);
+    const n = await withAutoCategory(r, { stickyAi: false });
     if (n.categoryId !== r.categoryId || n.categoryConfidence !== r.categoryConfidence || n.needsReview !== r.needsReview) changed.push({ ...n, updatedAt: Date.now() });
   }
   if (changed.length) {

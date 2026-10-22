@@ -25,6 +25,7 @@ export default defineConfig({
     locale: 'tr-TR',
     timezoneId: 'Europe/Istanbul',
     ...devices['Pixel 7'],
+    colorScheme: 'dark',
   },
   projects: [{ name: 'apk-webview-sim' }],
   webServer: {

@@ -456,5 +456,8 @@
   "set.capture.storage_compressed": "Compressed",
   "set.capture.storage_original": "Original",
   "set.capture.purge": "Clear pending staging files",
-  "set.capture.purged": "{n} pending files cleared"
+  "set.capture.purged": "{n} pending files cleared",
+  "cap.setup.perm_denied": "Media permission denied; automatic capture could not be enabled. Retry from the status card.",
+  "cap.setup.native_failed": "The native layer could not be enabled; the setting was saved but detection did not start. Retry from Settings.",
+  "cap.storage_line": "Storage: {used} / {total}"
 }
