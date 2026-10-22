@@ -3,7 +3,18 @@ import { aiEditText, aiVisionAnalyze, visionEnabled } from '../../src/ai/vision'
 import { mergeVisionResult } from '../../src/lib/actions';
 import type { ImageRecord } from '../../src/db/types';
 
-const cfg = { enabled: true, baseUrl: 'https://api.example.com/v1', model: 'm', apiKey: 'k', vision: true };
+const cfg = {
+  enabled: true,
+  provider: 'custom' as const,
+  vision: true,
+  providers: {
+    openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4.1-mini', apiKey: '' },
+    anthropic: { baseUrl: 'https://api.anthropic.com', model: 'claude-haiku-5-5', apiKey: '' },
+    google: { baseUrl: 'https://generativelanguage.googleapis.com', model: 'gemini-3.8-flash', apiKey: '' },
+    openrouter: { baseUrl: 'https://openrouter.ai/api/v1', model: 'openrouter/auto', apiKey: '' },
+    custom: { baseUrl: 'https://api.example.com/v1', model: 'm', apiKey: 'k' },
+  } satisfies Record<string, { baseUrl: string; model: string; apiKey: string }>,
+};
 const cats = [
   { id: 'cat-tarif', name: 'Recipes' },
   { id: 'cat-tech', name: 'Technology' },
@@ -65,7 +76,7 @@ describe('ai vision', () => {
   it('visionEnabled requires consent, key and enabled', () => {
     expect(visionEnabled(cfg)).toBe(true);
     expect(visionEnabled({ ...cfg, vision: false })).toBe(false);
-    expect(visionEnabled({ ...cfg, apiKey: '' })).toBe(false);
+    expect(visionEnabled({ ...cfg, providers: { ...cfg.providers, custom: { ...cfg.providers.custom, apiKey: '' } } })).toBe(false);
     expect(visionEnabled({ ...cfg, enabled: false })).toBe(false);
   });
 });

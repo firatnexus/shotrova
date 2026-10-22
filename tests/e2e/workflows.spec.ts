@@ -577,6 +577,8 @@ test('13 AI vision: consent gates the image upload, AI text merges, editor + ent
 
   // --- Phase A: AI enabled WITHOUT vision — the image must never be sent.
   await openApp(page, '/settings');
+  // Pick the custom (OpenAI-compatible) provider so the mock URL field appears.
+  await page.getByTestId('ai-provider-custom').click();
   await page.fill('#ai-url', 'https://ai-mock.test');
   await page.fill('#ai-model', 'mock-model');
   await page.fill('#ai-key', 'sk-test');

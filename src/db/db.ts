@@ -2,7 +2,7 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { BRAND } from '../config/brand';
 import { buildDefaultCategories } from '../categorize/defaults';
 import type { BlobRecord, Category, ImageRecord, LearnedRule, Settings } from './types';
-import { DEFAULT_SETTINGS } from './types';
+import { DEFAULT_SETTINGS, migrateAiSettings } from './types';
 
 export const DB_NAME = `${BRAND.storagePrefix}-db`;
 export const DB_VERSION = 1;
@@ -296,7 +296,7 @@ export async function loadSettings(): Promise<Settings> {
   const db = await getDB();
   const row = await db.get('settings', 'app');
   const stored = (row?.value ?? {}) as Partial<Settings>;
-  return { ...DEFAULT_SETTINGS, ...stored, ai: { ...DEFAULT_SETTINGS.ai, ...(stored.ai ?? {}) } };
+  return { ...DEFAULT_SETTINGS, ...stored, ai: migrateAiSettings(stored.ai) };
 }
 
 export async function saveSettings(s: Settings): Promise<void> {

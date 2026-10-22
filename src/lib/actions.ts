@@ -5,6 +5,7 @@ import type { Category, ImageRecord, LearnedRule, Settings } from '../db/types';
 import { categorize, correctionTokens } from '../categorize/categorizer';
 import { aiCategorize } from '../categorize/ai';
 import { aiVisionAnalyze, aiEditText, visionEnabled, type AiEditMode } from '../ai/vision';
+import { activeProviderConfig } from '../ai/providers';
 import { FALLBACK_CATEGORY_ID } from '../categorize/defaults';
 import { validateBytes, sha256Hex } from '../import/validate';
 import { decodeAndThumb, toVisionDataUrl } from '../import/image';
@@ -67,7 +68,16 @@ export function applyTheme(s: Settings = getState().settings): void {
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
-  const next = { ...getState().settings, ...patch, ai: { ...getState().settings.ai, ...(patch.ai ?? {}) } };
+  const cur = getState().settings;
+  const ai = { ...cur.ai, ...(patch.ai ?? {}) };
+  if (patch.ai?.providers) {
+    // Deep-merge per provider so partial patches never drop saved credentials.
+    ai.providers = { ...cur.ai.providers };
+    for (const id of Object.keys(patch.ai.providers) as Array<keyof typeof ai.providers>) {
+      ai.providers[id] = { ...(cur.ai.providers[id] ?? { baseUrl: '', model: '', apiKey: '' }), ...patch.ai.providers[id] };
+    }
+  }
+  const next = { ...cur, ...patch, ai };
   setState({ settings: next });
   applyTheme(next);
   await db.saveSettings(next);
@@ -349,7 +359,7 @@ export async function aiEditPreview(id: string, mode: AiEditMode): Promise<strin
   const r = await db.getImage(id);
   if (!r) throw new Error('missing record');
   const { settings } = getState();
-  if (!settings.ai.enabled || !settings.ai.apiKey) throw new Error('AI_DISABLED');
+  if (!settings.ai.enabled || !activeProviderConfig(settings.ai).apiKey) throw new Error('AI_DISABLED');
   return aiEditText(primaryText(r), mode, settings.ai, settings.lang);
 }
 
@@ -415,7 +425,7 @@ async function withAutoCategory(r: ImageRecord): Promise<ImageRecord> {
   const kw = categorize({ text: r.ocrText, title: r.title, fileName: r.fileName, categories, rules, reviewThreshold: settings.reviewThreshold });
   let result = { categoryId: kw.categoryId, confidence: kw.confidence, needsReview: kw.needsReview, reasons: kw.reasons, source: (kw.reasons.some((x) => x.startsWith('✓')) ? 'rule' : 'auto') as ImageRecord['categorySource'] };
   if (kw.insufficientText || kw.confidence === 0) result.source = 'none';
-  if (settings.categorizer === 'ai' && settings.ai.enabled && settings.ai.apiKey && !kw.insufficientText) {
+  if (settings.categorizer === 'ai' && settings.ai.enabled && activeProviderConfig(settings.ai).apiKey && !kw.insufficientText) {
     try {
       const ai = await aiCategorize(r.ocrText, categories.map((c) => ({ id: c.id, name: categoryName(c, 'en') })), settings.ai);
       if (ai) result = { categoryId: ai.categoryId, confidence: ai.confidence, needsReview: ai.confidence < settings.reviewThreshold, reasons: ['AI'], source: 'ai' };

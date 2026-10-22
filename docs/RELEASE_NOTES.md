@@ -1,5 +1,12 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.3.0
+
+- **Multi-provider AI:** pick your provider in Settings — OpenAI, Anthropic (Claude), Google Gemini, OpenRouter or your own OpenAI-compatible endpoint. Each provider keeps its own API key, model and (for custom) base URL; switching providers never mixes credentials. Your saved v1.2.x key and endpoint carry over automatically to the matching provider.
+- **Ask about this image (Lens-style):** with AI vision consent on, open the detail screen and ask free-form questions about a photo ("what is this?", "where was it taken?") — the image is sent to your provider with the first question, follow-ups continue as text with conversation context.
+- **Search the web:** a "Metni web'de ara" link opens a Google search for the recognised text. Google Lens itself has no official third-party API, so the app pairs this with the existing share action — on Android you can send the image to the Lens app (or any other app) through the share sheet.
+- **Key hygiene:** backups never contain any provider's API key (keys are stripped from exports entirely).
+
 ## What's new in 1.2.2
 
 - A photo shared from Android with a machine-generated file name (UUID) is no longer shown with that UUID as its title — the app shows a clean "Adsız görsel" label until you or the AI set a real title.

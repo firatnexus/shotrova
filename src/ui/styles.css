@@ -365,6 +365,8 @@ details.rawocr .body { white-space: pre-wrap; font-size: var(--text-sm); line-he
 .toggle input[type='checkbox']:checked { background: var(--accent); }
 .toggle input[type='checkbox']:checked::after { transform: translateX(20px); }
 .segmented { display: inline-grid; grid-auto-flow: column; background: var(--surface-2); border-radius: var(--r-md); padding: 3px; gap: 2px; border: 1px solid var(--border); }
+.segmented.wrap { display: flex; flex-wrap: wrap; width: 100%; }
+.segmented.wrap button { flex: 1 1 auto; min-width: 96px; }
 .segmented button { border: 0; background: transparent; min-height: 36px; padding: 0 var(--s3); border-radius: 7px; font-size: var(--text-sm); font-weight: 500; color: var(--text-2); }
 .segmented button[aria-pressed='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .meter { height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }

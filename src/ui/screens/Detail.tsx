@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getState, useAppState } from '../../lib/store';
 import { aiEditPreview, confirmCategory, deleteImages, rerunOcr, rerunVision, setCategory, updateImage } from '../../lib/actions';
+import { activeProviderConfig } from '../../ai/providers';
+import { aiAskAboutImage, type ChatTurn } from '../../ai/vision';
 import { categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { displayTitle, primaryText } from '../../search/search';
 import { safeFileName } from '../../import/validate';
@@ -32,8 +34,12 @@ export function DetailScreen({ id }: { id: string }) {
   const [aiPreview, setAiPreview] = useState<{ mode: 'clean' | 'emoji'; text: string } | null>(null);
   const [aiWorking, setAiWorking] = useState<'clean' | 'emoji' | null>(null);
   const [prevText, setPrevText] = useState<string | null>(null);
+  const [askOpen, setAskOpen] = useState(false);
+  const [askInput, setAskInput] = useState('');
+  const [askBusy, setAskBusy] = useState(false);
+  const [askTurns, setAskTurns] = useState<ChatTurn[]>([]);
 
-  const aiOn = aiCfg.enabled && !!aiCfg.apiKey;
+  const aiOn = aiCfg.enabled && !!activeProviderConfig(aiCfg).apiKey && !!activeProviderConfig(aiCfg).model;
   const hasAi = r ? r.aiStatus === 'done' || !!(r.aiText ?? '') : false;
   const display = r ? primaryText(r) : '';
   const entities = r ? extractEntities(display) : [];
@@ -58,6 +64,23 @@ export function DetailScreen({ id }: { id: string }) {
     await save(patch, t('detail.saved'));
     setPrevText(before);
     setAiPreview(null);
+  };
+
+  const askQuestion = async () => {
+    if (!r || !askInput.trim() || askBusy) return;
+    const q = askInput.trim();
+    setAskInput('');
+    setAskBusy(true);
+    try {
+      // First question carries the image; follow-ups keep the turn history.
+      const imageDataUrl = askTurns.length === 0 ? (url && url.startsWith('data:') ? url : await blobToDataUrl(blob)) : null;
+      const answer = await aiAskAboutImage(imageDataUrl, q, askTurns, aiCfg, lang);
+      setAskTurns([...askTurns, { role: 'user', text: q }, { role: 'assistant', text: answer }]);
+    } catch (e) {
+      toast(t('detail.ai_failed', { msg: (e as Error).message }), 'error');
+    } finally {
+      setAskBusy(false);
+    }
   };
 
   useEffect(() => {
@@ -100,6 +123,16 @@ export function DetailScreen({ id }: { id: string }) {
     }
   };
   const fileName = safeFileName(r.fileName);
+  /** Converts the stored original blob to a data URL for vision requests. */
+  const blobToDataUrl = async (b: Blob | null): Promise<string | null> => {
+    if (!b) return null;
+    return await new Promise<string>((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = () => reject(new Error('image read failed'));
+      fr.readAsDataURL(b);
+    });
+  };
   const share = async () => {
     if (!blob) return;
     const file = new File([blob], fileName, { type: r.mimeType });
@@ -285,6 +318,67 @@ export function DetailScreen({ id }: { id: string }) {
               <p className="faint">
                 {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: r.ocrError ?? '' }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy || aiBusy ? t('detail.ocr_wait') : t('detail.no_text')}
               </p>
+            )}
+            {aiOn && aiCfg.vision && !editingText && (
+              <div className="card stack" style={{ gap: 10 }} data-testid="ask-panel">
+                <div className="row" style={{ justifyContent: 'space-between' }}>
+                  <strong className="small">{t('detail.ask_title')}</strong>
+                  {askTurns.length === 0 && (
+                    <button type="button" className="btn ghost sm" onClick={() => setAskOpen((v) => !v)} aria-expanded={askOpen}>
+                      {askOpen ? t('common.cancel') : t('detail.ask_open')}
+                    </button>
+                  )}
+                </div>
+                {(askOpen || askTurns.length > 0) && (
+                  <>
+                    <p className="faint xs">{t('detail.ask_hint')}</p>
+                    {askTurns.length > 0 && (
+                      <div className="stack" style={{ gap: 8, maxHeight: 300, overflowY: 'auto' }}>
+                        {askTurns.map((turn, i) => (
+                          <div key={i} className={`textpanel ${turn.role === 'user' ? 'raw' : 'ai'}`}>
+                            <div className="body">{turn.role === 'user' ? `❓ ${turn.text}` : turn.text}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {askBusy && (
+                      <div className="row" role="status">
+                        <span className="spin" style={{ width: 14, height: 14, border: '2px solid var(--accent)', borderRightColor: 'transparent', borderRadius: '50%', flexShrink: 0 }} />
+                        <span className="small">{t('detail.ask_busy')}</span>
+                      </div>
+                    )}
+                    <form className="row" onSubmit={(e) => { e.preventDefault(); void askQuestion(); }}>
+                      <label className="sr-only" htmlFor="d-ask">{t('detail.ask_title')}</label>
+                      <input
+                        id="d-ask"
+                        className="input"
+                        style={{ flex: 1 }}
+                        value={askInput}
+                        onChange={(e) => setAskInput(e.target.value)}
+                        placeholder={t('detail.ask_placeholder')}
+                        disabled={askBusy}
+                        data-testid="ask-input"
+                      />
+                      <button type="submit" className="btn primary" disabled={!askInput.trim() || askBusy} data-testid="ask-send">
+                        {t('detail.ask_send')}
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
+            )}
+            {display && !editingText && (
+              <div className="row">
+                <a
+                  className="btn ghost sm"
+                  href={`https://www.google.com/search?q=${encodeURIComponent(display.slice(0, 300))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="web-search"
+                >
+                  <IconOpen /> {t('detail.web_search')}
+                </a>
+              </div>
             )}
             {(r.ocrEdited || (hasAi && r.aiEdited)) && <p className="faint xs">{t('detail.edited_note')}</p>}
             {entities.length > 0 && !editingText && (

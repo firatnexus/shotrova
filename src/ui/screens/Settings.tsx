@@ -12,6 +12,7 @@ import { Sheet, confirmDialog } from '../components';
 import { saveBlob } from '../blobs';
 import { isNativeApp } from '../../native/bridge';
 import { IconAlert, IconDownload, IconInfo, IconShield, IconTrash, IconUpload } from '../icons';
+import { activeProviderConfig, providerDef, PROVIDERS } from '../../ai/providers';
 import type { Lang, OcrLanguage, ThemePref } from '../../db/types';
 
 function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
@@ -258,24 +259,82 @@ export function SettingsScreen() {
           label={t('set.ai_enable')}
           checked={s.ai.enabled && s.categorizer === 'ai'}
           onChange={(v) => {
-            if (v && !ai.apiKey) return toast(t('set.ai_need_key'), 'warning');
+            if (v && !activeProviderConfig(ai).apiKey) return toast(t('set.ai_need_key'), 'warning');
             setAi({ ...ai, enabled: v });
             void updateSettings({ categorizer: v ? 'ai' : 'keywords', ai: { ...ai, enabled: v } });
           }}
         />
         <div className="field">
-          <label htmlFor="ai-url">{t('set.ai_url')}</label>
-          <input id="ai-url" className="input" inputMode="url" value={ai.baseUrl} onChange={(e) => setAi({ ...ai, baseUrl: e.target.value })} />
-        </div>
-        <div className="field">
-          <label htmlFor="ai-model">{t('set.ai_model')}</label>
-          <input id="ai-model" className="input" value={ai.model} onChange={(e) => setAi({ ...ai, model: e.target.value })} />
+          <span className="label" id="prov-l">{t('set.ai_provider')}</span>
+          <div className="segmented wrap" role="group" aria-labelledby="prov-l">
+            {PROVIDERS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                aria-pressed={ai.provider === p.id}
+                onClick={() => setAi({ ...ai, provider: p.id })}
+                data-testid={`ai-provider-${p.id}`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <span className="faint xs">{t('set.ai_provider_d')}</span>
         </div>
         <div className="field">
           <label htmlFor="ai-key">{t('set.ai_key')}</label>
-          <input id="ai-key" className="input" type="password" autoComplete="off" value={ai.apiKey} onChange={(e) => setAi({ ...ai, apiKey: e.target.value })} placeholder="sk-…" />
-          <span className="faint xs">{t('set.ai_key_d')}</span>
+          <input
+            id="ai-key"
+            className="input"
+            type="password"
+            autoComplete="off"
+            value={ai.providers[ai.provider]?.apiKey ?? ''}
+            onChange={(e) => setAi({ ...ai, providers: { ...ai.providers, [ai.provider]: { ...ai.providers[ai.provider], apiKey: e.target.value } } })}
+            placeholder="sk-…"
+            data-testid="ai-key"
+          />
+          <span className="faint xs">
+            {t('set.ai_key_d')}
+            {providerDef(ai.provider).keyUrl && (
+              <>
+                {' '}
+                <a href={providerDef(ai.provider).keyUrl} target="_blank" rel="noopener noreferrer">{t('set.ai_key_get')}</a>
+              </>
+            )}
+          </span>
         </div>
+        <div className="field">
+          <label htmlFor="ai-model">{t('set.ai_model')}</label>
+          <input
+            id="ai-model"
+            className="input"
+            list={`ai-models-${ai.provider}`}
+            value={ai.providers[ai.provider]?.model ?? ''}
+            onChange={(e) => setAi({ ...ai, providers: { ...ai.providers, [ai.provider]: { ...ai.providers[ai.provider], model: e.target.value } } })}
+            data-testid="ai-model"
+          />
+          <datalist id={`ai-models-${ai.provider}`}>
+            {providerDef(ai.provider).models.map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
+          </datalist>
+          <span className="faint xs">{t('set.ai_model_d')}</span>
+        </div>
+        {ai.provider === 'custom' && (
+          <div className="field">
+            <label htmlFor="ai-url">{t('set.ai_url')}</label>
+            <input
+              id="ai-url"
+              className="input"
+              inputMode="url"
+              placeholder="https://your-endpoint.example/v1"
+              value={ai.providers.custom?.baseUrl ?? ''}
+              onChange={(e) => setAi({ ...ai, providers: { ...ai.providers, custom: { ...ai.providers.custom, baseUrl: e.target.value } } })}
+              data-testid="ai-url"
+            />
+            <span className="faint xs">{t('set.ai_url_d')}</span>
+          </div>
+        )}
         <Toggle
           label={t('set.ai_vision')}
           desc={t('set.ai_vision_d')}
@@ -288,11 +347,27 @@ export function SettingsScreen() {
           testId="ai-vision"
         />
         <div className="row">
-          <button type="button" className="btn" onClick={() => void updateSettings({ ai: { ...ai, enabled: s.ai.enabled && Boolean(ai.apiKey) } }).then(() => toast(t('detail.saved'), 'success'))}>
+          <button
+            type="button"
+            className="btn"
+            data-testid="ai-save"
+            onClick={() =>
+              void updateSettings({ ai: { ...ai, enabled: s.ai.enabled && Boolean(activeProviderConfig(ai).apiKey) } }).then(() =>
+                toast(t('detail.saved'), 'success'),
+              )}
+          >
             {t('common.save')}
           </button>
-          {s.ai.apiKey && (
-            <button type="button" className="btn danger" onClick={() => { setAi({ ...ai, apiKey: '', enabled: false }); void updateSettings({ categorizer: 'keywords', ai: { ...ai, apiKey: '', enabled: false } }); }}>
+          {s.ai.providers[s.ai.provider]?.apiKey && (
+            <button
+              type="button"
+              className="btn danger"
+              onClick={() => {
+                const cleared = { ...ai, providers: { ...ai.providers, [ai.provider]: { ...ai.providers[ai.provider], apiKey: '' } } };
+                setAi({ ...cleared, enabled: false });
+                void updateSettings({ categorizer: 'keywords', ai: { ...cleared, enabled: false } });
+              }}
+            >
               {t('set.ai_forget')}
             </button>
           )}

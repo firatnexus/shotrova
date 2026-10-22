@@ -21,7 +21,13 @@ function stamp(d = new Date()): string {
 
 async function buildManifest(includeImages: boolean): Promise<{ manifest: BackupManifest; images: ImageRecord[] }> {
   const [images, categories, rules, settings] = await Promise.all([db.listImages(), db.listCategories(), db.listRules(), db.loadSettings()]);
-  const { apiKey: _secret, ...aiPublic } = settings.ai; // never export secrets
+  // Never export secrets: every provider's API key is blanked out.
+  const aiPublic = {
+    ...settings.ai,
+    providers: Object.fromEntries(
+      Object.entries(settings.ai.providers).map(([id, c]) => [id, { baseUrl: c.baseUrl, model: c.model }]),
+    ) as typeof settings.ai.providers,
+  };
   const used = new Set<string>();
   const imgs: BackupImage[] = images.map((r) => {
     const { searchTokens: _t, ...rest } = r;

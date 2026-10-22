@@ -1,18 +1,14 @@
 import type { AiProviderSettings } from '../db/types';
+import { providerChat, parseJson, type ChatTurn } from './providers';
+
+export type { ChatTurn };
 
 /**
- * Optional AI vision provider (OpenAI-compatible Chat Completions with image
- * input). ONLY runs when the user explicitly enabled "vision" consent: the
- * image itself is uploaded to the provider. Without it, AI features receive
- * text only (see categorize/ai.ts). The API key is user-supplied and stored
- * solely in this browser's IndexedDB.
+ * AI vision analysis (title, category, transcription) and the AI text editor.
+ * ONLY sends the image itself when the user explicitly enabled the "vision"
+ * consent; without it, AI features receive text only (see categorize/ai.ts).
+ * Works with any supported provider through the shared provider layer.
  */
-
-/** Request contract: OpenAI Chat Completions message content parts. */
-interface ChatMessage {
-  role: 'system' | 'user';
-  content: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string; detail?: string } }>;
-}
 
 export interface VisionCategory {
   id: string;
@@ -38,57 +34,13 @@ interface VisionJson {
   confidence?: unknown;
 }
 
-async function chat(
-  cfg: AiProviderSettings,
-  messages: ChatMessage[],
-  signal?: AbortSignal,
-): Promise<string> {
-  const body = {
-    model: cfg.model,
-    temperature: 0,
-    response_format: { type: 'json_object' },
-    messages,
-  };
-  const res = await fetch(`${cfg.baseUrl.replace(/\/$/, '')}/chat/completions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiKey}` },
-    body: JSON.stringify(body),
-    signal,
-  });
-  if (!res.ok) {
-    let detail = '';
-    try {
-      const j = (await res.json()) as { error?: { message?: string } };
-      detail = j.error?.message ? `: ${j.error.message}` : '';
-    } catch {
-      /* ignore */
-    }
-    throw new Error(`AI provider HTTP ${res.status}${detail}`);
-  }
-  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  const content = json.choices?.[0]?.message?.content ?? '';
-  if (!content) throw new Error('AI provider returned an empty response');
-  return content;
-}
-
-function parseJson(content: string): Record<string, unknown> {
-  const trimmed = content.trim();
-  // Tolerate markdown-fenced JSON some providers emit despite response_format.
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const raw = fenced?.[1] ?? trimmed;
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start < 0 || end < start) throw new Error('AI response is not JSON');
-  return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown>;
-}
 
 const asText = (v: unknown, max = 8000): string =>
   typeof v === 'string' ? v.replace(/\r/g, '').slice(0, max) : '';
 
 /**
  * Reads one image: transcription + title + category suggestion.
- * The image is sent as a data URL in the standard OpenAI vision message
- * format (works with OpenAI, OpenRouter, Groq vision models, etc.).
+ * The image is sent as a data URL in each provider's native vision format.
  */
 export async function aiVisionAnalyze(
   imageDataUrl: string,
@@ -106,11 +58,19 @@ export async function aiVisionAnalyze(
     `"title" = a concise title in ${uiLang === 'tr' ? 'Turkish' : 'English'} (empty string if you cannot tell); ` +
     '"category_id" = exactly one id from the provided list, or null if nothing fits; ' +
     '"confidence" = your certainty from 0 to 1.';
-  const content: ChatMessage['content'] = [
-    { type: 'text', text: `Categories (id: name):\n${list || '(no categories; always return null)'}` },
-    { type: 'image_url', image_url: { url: imageDataUrl, detail: 'high' } },
-  ];
-  const out = parseJson(await chat(cfg, [{ role: 'system', content: [{ type: 'text', text: system }] }, { role: 'user', content }], signal)) as VisionJson;
+  const out = parseJson(
+    await providerChat(
+      cfg,
+      {
+        system,
+        json: true,
+        user: `Categories (id: name):\n${list || '(no categories; always return null)'}`,
+        imageDataUrl,
+      },
+      [],
+      signal,
+    ),
+  ) as VisionJson;
   const id = typeof out.category_id === 'string' ? out.category_id : null;
   const confidence = typeof out.confidence === 'number' ? Math.max(0, Math.min(1, out.confidence)) : 0.5;
   return {
@@ -145,15 +105,14 @@ export async function aiEditText(
     'language and all content, then add a few fitting emojis at natural places (headings, list items). ' +
     'Never replace words with emojis. Reply with JSON {"text": string}.';
   const out = parseJson(
-    await chat(
+    await providerChat(
       cfg,
-      [
-        { role: 'system', content: [{ type: 'text', text: mode === 'clean' ? clean : emoji }] },
-        {
-          role: 'user',
-          content: [{ type: 'text', text: `${uiLang === 'tr' ? 'Arayüz dili Türkçe; başlıklar Türkçe olabilir.' : 'UI language is English.'}\n\nText:\n${text.slice(0, 6000)}` }],
-        },
-      ],
+      {
+        system: mode === 'clean' ? clean : emoji,
+        json: true,
+        user: `${uiLang === 'tr' ? 'Arayüz dili Türkçe; başlıklar Türkçe olabilir.' : 'UI language is English.'}\n\nText:\n${text.slice(0, 6000)}`,
+      },
+      [],
       signal,
     ),
   );
@@ -162,7 +121,37 @@ export async function aiEditText(
   return edited;
 }
 
+/**
+ * Ask a free-form question about an image ("what is in this picture?",
+ * "where was this taken?", follow-ups...). The image is sent with the first
+ * question; previous turns give the model conversation context.
+ */
+export async function aiAskAboutImage(
+  imageDataUrl: string | null,
+  question: string,
+  history: ChatTurn[],
+  cfg: AiProviderSettings,
+  uiLang: 'tr' | 'en',
+  signal?: AbortSignal,
+): Promise<string> {
+  const system =
+    'You are a helpful visual assistant inside an image library app. Answer questions about the given image ' +
+    'concisely and factually; say clearly when something cannot be determined from the image. ' +
+    `Reply in ${uiLang === 'tr' ? 'Turkish' : 'English'}.`;
+  return providerChat(
+    cfg,
+    { system, user: question.slice(0, 2000), ...(imageDataUrl ? { imageDataUrl } : {}) },
+    history.slice(-6),
+    signal,
+  );
+}
+
 /** True when the vision pipeline should run for new/changed images. */
 export function visionEnabled(cfg: AiProviderSettings): boolean {
-  return cfg.enabled && cfg.vision && !!cfg.apiKey && !!cfg.baseUrl;
+  if (!cfg.enabled || !cfg.vision) return false;
+  const conf = cfg.providers?.[cfg.provider];
+  if (!conf?.apiKey) return false;
+  if (!conf.model) return false;
+  if (cfg.provider === 'custom' && !conf.baseUrl) return false;
+  return true;
 }
