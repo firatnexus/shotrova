@@ -43,6 +43,12 @@ export interface DbImage {
   notes: string;
   tags: string[];
   createdAt: number;
+  // v1.2.0 AI vision fields (optional for older flows)
+  aiStatus?: string;
+  aiText?: string;
+  aiTitle?: string;
+  aiEdited?: boolean;
+  aiConfidence?: number;
 }
 
 export async function dbImages(page: Page): Promise<DbImage[]> {

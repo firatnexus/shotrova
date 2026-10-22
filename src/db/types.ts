@@ -47,6 +47,22 @@ export interface ImageRecord {
   /** Hash of the image bytes that the stored OCR text belongs to. */
   ocrSourceHash: string;
   ocrAt?: number;
+
+  // ---- AI vision analysis (optional, user-enabled; see AiProviderSettings.vision) ----
+  /** Faithful transcription of the image text read by the AI vision model. */
+  aiText?: string;
+  /** True when the user manually edited the AI transcription. */
+  aiEdited?: boolean;
+  /** Suggested title from the vision model (applied to `title` only while empty). */
+  aiTitle?: string;
+  /** Suggested category id from the vision model (validated against known ids). */
+  aiCategory?: string;
+  aiConfidence?: number;
+  aiStatus?: 'pending' | 'done' | 'error';
+  aiError?: string;
+  aiAt?: number;
+  /** Hash of the image bytes the stored AI analysis belongs to. */
+  aiSourceHash?: string;
   /** Original file timestamp, if the browser exposed one. */
   fileLastModified?: number;
   createdAt: number;
@@ -83,6 +99,12 @@ export interface AiProviderSettings {
   model: string;
   /** Stored only in this browser's IndexedDB, never exported or bundled. */
   apiKey: string;
+  /**
+   * Explicit consent to send the image itself (not just its text) to the AI
+   * provider for vision transcription. Default false: text-only AI users never
+   * transmit images. Enabling this is a deliberate privacy decision.
+   */
+  vision: boolean;
 }
 
 export interface Settings {
@@ -109,5 +131,5 @@ export const DEFAULT_SETTINGS: Settings = {
   learnFromCorrections: true,
   reviewThreshold: 0.55,
   categorizer: 'keywords',
-  ai: { enabled: false, baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', apiKey: '' },
+  ai: { enabled: false, baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', apiKey: '', vision: false },
 };

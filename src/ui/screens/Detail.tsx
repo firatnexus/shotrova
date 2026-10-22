@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { getState, useAppState } from '../../lib/store';
-import { confirmCategory, deleteImages, rerunOcr, setCategory, updateImage } from '../../lib/actions';
+import { aiEditPreview, confirmCategory, deleteImages, rerunOcr, rerunVision, setCategory, updateImage } from '../../lib/actions';
 import { categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { displayTitle } from '../../search/search';
 import { safeFileName } from '../../import/validate';
+import { extractEntities } from '../../lib/entities';
 import { toast } from '../../lib/toast';
 import { href, navigate } from '../router';
 import { CategoryPicker, Empty, OcrBadge, Skeleton, confirmDialog } from '../components';
 import { forgetThumb, saveBlob, useOriginal } from '../blobs';
 import { nativeShareBlob } from '../../native/bridge';
-import { IconBack, IconCheck, IconCopy, IconDownload, IconEdit, IconFolder, IconImage, IconRefresh, IconShare, IconTrash, IconX } from '../icons';
+import { IconBack, IconCalendar, IconCheck, IconCopy, IconDownload, IconEdit, IconFolder, IconImage, IconLink, IconMail, IconOpen, IconPhone, IconRefresh, IconShare, IconSpark, IconTrash, IconUndo, IconX } from '../icons';
 
 export function DetailScreen({ id }: { id: string }) {
   const t = useT();
@@ -18,6 +19,8 @@ export function DetailScreen({ id }: { id: string }) {
   const lang = useAppState((s) => s.settings.lang);
   const ocrEnabled = useAppState((s) => s.settings.ocrEnabled);
   const prog = useAppState((s) => s.ocr[id]);
+  const aiBusy = useAppState((s) => s.visionBusy[id]);
+  const aiCfg = useAppState((s) => s.settings.ai);
   const { url, blob } = useOriginal(id);
   const [zoom, setZoom] = useState(false);
   const [title, setTitle] = useState('');
@@ -26,6 +29,36 @@ export function DetailScreen({ id }: { id: string }) {
   const [editingText, setEditingText] = useState(false);
   const [text, setText] = useState('');
   const [picker, setPicker] = useState(false);
+  const [aiPreview, setAiPreview] = useState<{ mode: 'clean' | 'emoji'; text: string } | null>(null);
+  const [aiWorking, setAiWorking] = useState<'clean' | 'emoji' | null>(null);
+  const [prevText, setPrevText] = useState<string | null>(null);
+
+  const aiOn = aiCfg.enabled && !!aiCfg.apiKey;
+  const hasAi = r ? r.aiStatus === 'done' || !!(r.aiText ?? '') : false;
+  const display = r ? (r.aiText ?? r.ocrText) : '';
+  const entities = r ? extractEntities(display) : [];
+
+  const runAiEdit = async (mode: 'clean' | 'emoji') => {
+    if (!r) return;
+    if (!aiOn) return toast(t('detail.ai_disabled'), 'warning');
+    setAiWorking(mode);
+    try {
+      const out = await aiEditPreview(r.id, mode);
+      setAiPreview({ mode, text: out });
+    } catch (e) {
+      toast(t('detail.ai_failed', { msg: (e as Error).message }), 'error');
+    } finally {
+      setAiWorking(null);
+    }
+  };
+  const applyAiPreview = async () => {
+    if (!r || !aiPreview) return;
+    const before = r.aiText ?? r.ocrText;
+    const patch = hasAi ? { aiText: aiPreview.text } : { ocrText: aiPreview.text };
+    await save(patch, t('detail.saved'));
+    setPrevText(before);
+    setAiPreview(null);
+  };
 
   useEffect(() => {
     if (!r) return;
@@ -34,7 +67,7 @@ export function DetailScreen({ id }: { id: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [r?.id]);
   useEffect(() => {
-    if (r && !editingText) setText(r.ocrText);
+    if (r && !editingText) setText(r.aiText ?? r.ocrText);
   }, [r, editingText]);
 
   if (!r)
@@ -197,34 +230,116 @@ export function DetailScreen({ id }: { id: string }) {
                 <div style={{ width: `${Math.round((prog.status === 'recognizing text' ? prog.progress : 0.05) * 100)}%` }} />
               </div>
             )}
+            {aiBusy && (
+              <div className="row" role="status">
+                <span className="spin" style={{ width: 14, height: 14, border: '2px solid var(--accent)', borderRightColor: 'transparent', borderRadius: '50%', flexShrink: 0 }} />
+                <span className="small">{t('detail.ai_reading')}</span>
+              </div>
+            )}
+            {r.aiStatus === 'error' && !aiBusy && (
+              <div className="notice warn" role="alert">
+                <span className="small">{t('detail.ai_error', { msg: r.aiError ?? '' })}</span>
+                {aiOn && (
+                  <button type="button" className="btn sm" onClick={() => rerunVision(r.id)}>
+                    <IconRefresh /> {t('common.retry')}
+                  </button>
+                )}
+              </div>
+            )}
             {editingText ? (
               <>
                 <label className="sr-only" htmlFor="d-text">{t('detail.text')}</label>
                 <textarea id="d-text" className="input" value={text} onChange={(e) => setText(e.target.value)} rows={10} data-testid="ocr-edit" />
                 <div className="row" style={{ justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn sm" onClick={() => { setText(r.ocrText); setEditingText(false); }}>
+                  <button type="button" className="btn sm" onClick={() => { setText(r.aiText ?? r.ocrText); setEditingText(false); }}>
                     <IconX /> {t('common.cancel')}
                   </button>
-                  <button type="button" className="btn sm primary" onClick={() => { void save({ ocrText: text }, t('detail.saved')); setEditingText(false); }}>
+                  <button type="button" className="btn sm primary" onClick={() => { void save(hasAi ? { aiText: text } : { ocrText: text }, t('detail.saved')); setEditingText(false); }}>
                     <IconCheck /> {t('common.save')}
                   </button>
                 </div>
               </>
-            ) : r.ocrText ? (
-              <div className="ocrtext" data-testid="ocr-text" lang={r.ocrLanguage === 'eng' ? 'en' : undefined}>{r.ocrText}</div>
+            ) : display ? (
+              <div className="textpanel">
+                <div className={`body ${hasAi ? 'ai' : 'raw'}`} data-testid="ocr-text" lang={r.ocrLanguage === 'eng' && !hasAi ? 'en' : undefined}>{display}</div>
+                {!hasAi && r.ocrConfidence > 0 && r.ocrConfidence < 55 && <p className="faint xs">{t('detail.ocr_low')}</p>}
+                {hasAi && r.ocrText && (
+                  <details className="rawocr">
+                    <summary>{t('detail.raw_ocr')}</summary>
+                    <div className="body">{r.ocrText}</div>
+                  </details>
+                )}
+              </div>
             ) : (
               <p className="faint">
-                {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: r.ocrError ?? '' }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy ? t('detail.ocr_wait') : t('detail.no_text')}
+                {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: r.ocrError ?? '' }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy || aiBusy ? t('detail.ocr_wait') : t('detail.no_text')}
               </p>
             )}
-            {r.ocrEdited && <p className="faint xs">{t('detail.edited_note')}</p>}
+            {(r.ocrEdited || (hasAi && r.aiEdited)) && <p className="faint xs">{t('detail.edited_note')}</p>}
+            {entities.length > 0 && !editingText && (
+              <div className="field">
+                <span className="label">{t('detail.entities')}</span>
+                <div className="entities" data-testid="entities">
+                  {entities.map((e) => (
+                    <span key={`${e.kind}:${e.value}`} className="entity" data-testid={`entity-${e.kind}`}>
+                      {e.kind === 'url' ? <IconLink /> : e.kind === 'email' ? <IconMail /> : e.kind === 'phone' ? <IconPhone /> : <IconCalendar />}
+                      <span className="val">{e.value}</span>
+                      <span className="act">
+                        <button type="button" aria-label={t('ent.copy')} onClick={() => void navigator.clipboard.writeText(e.value).then(() => toast(t('detail.copied'), 'success'))}><IconCopy /></button>
+                        {e.href && <a className="btn ghost icon" style={{ minWidth: 30, width: 30, height: 30, minHeight: 30 }} href={e.href} target={e.kind === 'url' ? '_blank' : undefined} rel={e.kind === 'url' ? 'noopener noreferrer' : undefined} aria-label={t('ent.open')}><IconOpen /></a>}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {aiOn && !editingText && !aiBusy && (
+              <div className="row">
+                {!hasAi && aiCfg.vision && (
+                  <button type="button" className="btn sm" onClick={() => rerunVision(r.id)}>
+                    <IconSpark /> {t('detail.ai_read')}
+                  </button>
+                )}
+                {display && (
+                  <>
+                    <button type="button" className="btn sm" onClick={() => void runAiEdit('clean')} disabled={aiWorking !== null} data-testid="ai-clean">
+                      <IconSpark /> {aiWorking === 'clean' ? t('common.working') : t('detail.ai_clean')}
+                    </button>
+                    <button type="button" className="btn sm" onClick={() => void runAiEdit('emoji')} disabled={aiWorking !== null} data-testid="ai-emoji">
+                      <IconSpark /> {aiWorking === 'emoji' ? t('common.working') : t('detail.ai_emoji')}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+            {aiPreview && (
+              <div className="aipanel">
+                <strong className="small">{t('detail.ai_preview')}</strong>
+                <div className="body">{aiPreview.text}</div>
+                <div className="row" style={{ justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn sm" onClick={() => setAiPreview(null)}>
+                    <IconX /> {t('common.cancel')}
+                  </button>
+                  <button type="button" className="btn sm primary" onClick={() => void applyAiPreview()} data-testid="ai-apply">
+                    <IconCheck /> {t('detail.ai_apply')}
+                  </button>
+                </div>
+              </div>
+            )}
+            {prevText !== null && !aiPreview && (
+              <div className="row">
+                <button type="button" className="btn ghost sm" onClick={() => { void save(hasAi ? { aiText: prevText } : { ocrText: prevText }, t('detail.saved')); setPrevText(null); }}>
+                  <IconUndo /> {t('detail.ai_undo')}
+                </button>
+              </div>
+            )}
             {!busy && ocrEnabled && (
               <button
                 type="button"
                 className="btn sm"
                 style={{ alignSelf: 'flex-start' }}
                 onClick={async () => {
-                  if (r.ocrEdited && !(await confirmDialog({ title: t('detail.rerun_title'), body: t('detail.rerun_body'), confirmLabel: t('detail.rerun') }))) return;
+                  if ((r.ocrEdited || (hasAi && r.aiEdited)) && !(await confirmDialog({ title: t('detail.rerun_title'), body: t('detail.rerun_body'), confirmLabel: t('detail.rerun') }))) return;
                   rerunOcr(r.id);
                 }}
               >

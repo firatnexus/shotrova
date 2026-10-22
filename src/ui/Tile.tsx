@@ -39,7 +39,7 @@ export function Tile({
   const cat = useAppState((s) => s.categories.find((c) => c.id === r.categoryId));
   const lang = useAppState((s) => s.settings.lang);
   const title = displayTitle(r);
-  const snip = terms.length && r.ocrText ? excerpt(r.ocrText.replace(/\s+/g, ' '), terms, 50) : null;
+  const snip = terms.length && (r.aiText ?? r.ocrText) ? excerpt((r.aiText ?? r.ocrText).replace(/\s+/g, ' '), terms, 50) : null;
   const inner = (
     <>
       <div className="thumb">

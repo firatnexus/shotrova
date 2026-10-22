@@ -184,6 +184,9 @@ export function useCategory(id: string): Category | undefined {
 export function OcrBadge({ r }: { r: ImageRecord }) {
   const t = useT();
   const prog = useAppState((s) => s.ocr[r.id]);
+  const aiBusy = useAppState((s) => s.visionBusy[r.id]);
+  if (aiBusy || r.aiStatus === 'pending') return <span className="badge accent">{t('detail.ai_badge')}…</span>;
+  if (r.aiStatus === 'done' && (r.aiText ?? '') !== '') return <span className="badge accent">{t('detail.ai_badge')}</span>;
   switch (r.ocrStatus) {
     case 'pending':
       return <span className="badge">{t('ocr.status.pending')}</span>;

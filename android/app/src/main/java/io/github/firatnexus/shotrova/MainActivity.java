@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.webkit.WebView;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -12,6 +13,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Branded launch screen (background + icon, see AppTheme.NoActionBarLaunch).
+        // Must run before super.onCreate; swaps to AppTheme.NoActionBar afterwards.
+        SplashScreen.installSplashScreen(this);
         registerPlugin(ShotrovaBridgePlugin.class);
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());

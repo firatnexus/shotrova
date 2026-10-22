@@ -18,6 +18,7 @@ export function Dashboard() {
   const lang = useAppState((s) => s.settings.lang);
   const onboardingDismissed = useAppState((s) => s.settings.onboardingDismissed);
   const queue = useAppState((s) => s.ocrQueueLength);
+  const visionQueue = useAppState((s) => s.visionQueueLength);
   const engine = useAppState((s) => s.ocrEngine);
   const [q, setQ] = useState('');
 
@@ -79,10 +80,14 @@ export function Dashboard() {
             <span>{t('dash.to_review')}</span>
           </a>
         </div>
-        {queue > 0 && (
+        {(queue > 0 || visionQueue > 0) && (
           <div className="notice" role="status" aria-live="polite">
             <span className="spin" style={{ width: 16, height: 16, border: '2px solid var(--accent)', borderRightColor: 'transparent', borderRadius: '50%', flexShrink: 0, marginTop: 2 }} />
-            <span>{engine === 'loading' ? t('ocr.engine_loading') : t('ocr.queue', { n: queue })}</span>
+            <span>
+              {queue > 0 ? (engine === 'loading' ? t('ocr.engine_loading') : t('ocr.queue', { n: queue })) : ''}
+              {queue > 0 && visionQueue > 0 ? ' · ' : ''}
+              {visionQueue > 0 ? t('ai.queue', { n: visionQueue }) : ''}
+            </span>
           </div>
         )}
       </section>
@@ -157,7 +162,7 @@ function ImportCard({ compact = false }: { compact?: boolean }) {
     }
   };
   return (
-    <div className="dropzone" data-testid="dropzone">
+    <div className="dropzone vf" data-testid="dropzone">
       {!compact && <IconUpload className="big" />}
       <strong>{t('import.card_title')}</strong>
       <span className="faint">{t('import.card_body')}</span>

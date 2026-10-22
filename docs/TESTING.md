@@ -1,14 +1,14 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Run date: 22 October 2026. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Run date: 22 October 2026 (v1.2.0). Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
 
 ## Summary
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit tests (7 files) | `npm test` | **47 / 47 passed** ([log](test-results/unit.log)) |
-| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **34 / 34 passed** (17 scenarios × 2 device profiles) ([JSON](test-results/e2e-root.json), [log](test-results/e2e-root.log)) |
-| Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **34 / 34 passed** ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
+| Unit tests (9 files) | `npm test` | **57 / 57 passed** (includes `vision.test.ts` and `entities.test.ts` added in v1.2.0) |
+| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **36 / 36 passed** (18 scenarios × 2 device profiles) ([JSON](test-results/e2e-root.json), [log](test-results/e2e-root.log)) |
+| Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **36 / 36 passed** ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
 | APK web-shell E2E, debug APK | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
 | APK web-shell E2E, signed release APK | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
 | APK build and inspection | `./gradlew assembleDebug` / `assembleRelease`, `aapt2 dump badging`, `apksigner verify` | **Built and verified** (see below) |
@@ -21,7 +21,7 @@ Any uncaught page error (`pageerror`) fails the test.
 
 OCR tests never use fake data. Test images (`scripts/make-fixtures.mjs`) are PNG, JPEG and WebP files with real text, and tesseract.js really runs.
 
-## Web scenarios (the 15 workflows from the spec)
+## Web scenarios (the 15 workflows from the spec, plus v1.2.0 AI vision)
 
 | # | Scenario | Verified |
 |---|---|---|
@@ -41,7 +41,8 @@ OCR tests never use fake data. Test images (`scripts/make-fixtures.mjs`) are PNG
 | 15b | OCR engine failure | If the language model cannot be downloaded the status becomes "error" and "Retry" recovers |
 | 15c | Quota error | `QuotaExceededError` is reported, no half-written record remains, the next import works |
 | + | Paste and drag and drop | Import via clipboard and drop events |
-| + | Theme | Light and dark theme colors |
+| + | Theme | Light and dark theme colors (v1.2.0 graphite/teal palette) |
+| + | AI vision consent and merge (v1.2.0) | With vision off, the AI request contains OCR text only and no `image_url`; with vision on, the request contains a downscaled JPEG data URL; the result merges title/category/text conservatively (manual edits never overwritten); raw OCR stays visible behind a disclosure; entities (URL/e-mail/phone/date) render from the extracted text; the AI text editor works over text only with preview + Apply |
 
 ## Android APK
 

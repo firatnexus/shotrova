@@ -7,11 +7,20 @@ import './ui/styles.css';
 import { installNativeBackHandler, isNativeApp } from './native/bridge';
 
 if (isNativeApp()) {
-  document.documentElement.classList.add('native-app');
+  document.documentElement.classList.add('native-app', 'native');
   installNativeBackHandler();
+  // Inside the APK the app behaves like a native app: no pinch/double-tap zoom.
+  // (The public website keeps the browser's zoom and accessibility intact.)
+  const vp = document.querySelector('meta[name="viewport"]');
+  vp?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
 }
 
 void init();
+
+// Remove the boot splash once the app is ready (or failed — never leave it up).
+const removeBoot = () => document.getElementById('boot')?.remove();
+if (getState().ready) removeBoot();
+else subscribe(() => { if (getState().ready || getState().fatal) { removeBoot(); } });
 
 // Follow the OS theme while the preference is "system".
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

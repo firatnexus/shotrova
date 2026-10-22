@@ -50,7 +50,7 @@ describe('database', () => {
 
 describe('backup & restore', () => {
   it('exports a ZIP with originals and Turkish file names, never the API key', async () => {
-    await db.saveSettings({ ...(await db.loadSettings()), ai: { enabled: true, baseUrl: 'x', model: 'm', apiKey: 'sk-SECRET' } });
+    await db.saveSettings({ ...(await db.loadSettings()), ai: { enabled: true, baseUrl: 'x', model: 'm', apiKey: 'sk-SECRET', vision: false } });
     await seed('Ekran görüntüsü çğış.png', PNG, { ocrText: 'Şeftali reçeli', title: 'Başlık' });
     const { blob, imageCount } = await exportZip();
     expect(imageCount).toBe(1);

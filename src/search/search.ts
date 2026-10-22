@@ -20,9 +20,14 @@ export interface SearchHit {
   fields: Array<'title' | 'notes' | 'tags' | 'ocr' | 'file' | 'category'>;
 }
 
+/** The text the user sees and searches: AI vision transcription when present, else local OCR. */
+export function primaryText(r: Pick<ImageRecord, 'ocrText' | 'aiText'>): string {
+  return r.aiText ?? r.ocrText;
+}
+
 /** Builds the folded token list stored in the `searchTokens` multiEntry index. */
-export function buildSearchTokens(r: Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'fileName'>): string[] {
-  return indexTokens([r.title, r.notes, r.tags.join(' '), r.ocrText, r.fileName.replace(/[._-]+/g, ' ')].join('\n'));
+export function buildSearchTokens(r: Pick<ImageRecord, 'title' | 'notes' | 'tags' | 'ocrText' | 'aiText' | 'fileName'>): string[] {
+  return indexTokens([r.title, r.notes, r.tags.join(' '), primaryText(r), r.fileName.replace(/[._-]+/g, ' ')].join('\n'));
 }
 
 function fieldTokens(text: string): string[] {
@@ -61,7 +66,7 @@ export function search(items: ImageRecord[], q: ParsedQuery, opts: SearchOptions
       title: fieldTokens(item.title),
       tags: fieldTokens(item.tags.join(' ')),
       notes: fieldTokens(item.notes),
-      ocr: item.searchTokens.length ? item.searchTokens : fieldTokens(item.ocrText),
+      ocr: item.searchTokens.length ? item.searchTokens : fieldTokens(primaryText(item)),
       file: fieldTokens(item.fileName.replace(/[._-]+/g, ' ')),
       category: fieldTokens(catLabel),
     };
