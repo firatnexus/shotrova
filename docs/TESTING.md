@@ -41,7 +41,7 @@ OCR tests never use fake data. Test images (`scripts/make-fixtures.mjs`) are PNG
 | 15b | OCR engine failure | If the language model cannot be downloaded the status becomes "error" and "Retry" recovers |
 | 15c | Quota error | `QuotaExceededError` is reported, no half-written record remains, the next import works |
 | + | Paste and drag and drop | Import via clipboard and drop events |
-| + | Theme | Light and dark theme colors (v1.2.0 graphite/teal palette) |
+| + | Theme | Light and dark theme colors (Apple-style parchment/near-black palette, Action Blue accent) |
 | + | AI vision consent and merge (v1.2.0) | With vision off, the AI request contains OCR text only and no `image_url`; with vision on, the request contains a downscaled JPEG data URL; the result merges title/category/text conservatively (manual edits never overwritten); raw OCR stays visible behind a disclosure; entities (URL/e-mail/phone/date) render from the extracted text; the AI text editor works over text only with preview + Apply |
 
 ## Android APK

@@ -32,7 +32,7 @@ Installing the APK: download it on the phone, open it, and allow "Install unknow
 - **Native feel (Android):** pinch/zoom is disabled in the app (images scale to fit), a proper splash screen shows on launch, and system bars follow the theme.
 - **Search:** **text-based** (not semantic) search over OCR text, title, note, tags, category and file name. Tolerant of Turkish characters; phrases like "last month" and category names become filters; matches are highlighted.
 - **Screens:** Dashboard, Images (filters, sorting, multi-select, bulk actions), Detail, Categories, Settings.
-- **Design:** a "precision scanner" visual identity unique to Shotrova — Clash Display + Switzer typography, cool graphite surfaces and a teal scan accent, with viewfinder-corner motifs. Mobile-first, light/dark theme, keyboard accessible, reduced-motion support, skeleton loading, empty states, toasts and confirmation dialogs.
+- **Design:** an Apple-inspired visual language — the system font stack (SF Pro on Apple devices, Inter-like system fonts elsewhere) with 17px body copy and tight display headlines, a single Action Blue (#0066cc) interactive color, parchment (#f5f5f7) and near-black (#1d1d1f) surfaces separated by hairlines, pill CTAs with the signature press-scale micro-interaction, and elevation from surface-color changes instead of shadows. Mobile-first, light/dark theme, keyboard accessible, reduced-motion support, skeleton loading, empty states, toasts and confirmation dialogs.
 - **Privacy:** no server, no account, no analytics. Everything stays in IndexedDB on the device. ZIP (with images) or JSON backup and validated restore.
 - **Languages:** Turkish (default) and English.
 
@@ -85,4 +85,4 @@ Details, signing and CI: [docs/DEPLOY.md](docs/DEPLOY.md)
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [Satoshi font](https://www.fontshare.com/fonts/satoshi) (ITF Free Font License), React (MIT), idb (ISC), fflate (MIT).
+MIT, see [LICENSE](LICENSE). Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), React (MIT), idb (ISC), fflate (MIT). No webfonts are bundled — the UI uses the operating system font stack.

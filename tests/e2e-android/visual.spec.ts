@@ -7,6 +7,8 @@ test('visual: capture UI at phone width', async ({ page }) => {
   await page.waitForFunction(() => ((window as unknown as { __native?: { listeners?: Record<string, unknown[]> } }).__native?.listeners?.autocapture?.length ?? 0) > 0);
   // First run: the consent sheet opens by itself.
   await expect(page.getByTestId('capture-setup')).toBeVisible();
+  // Let the sheet's entrance animation finish so the shot is never mid-slide.
+  await page.waitForTimeout(500);
   await page.screenshot({ path: '/tmp/shots/setup-sheet.png' });
   // Start without AI (secondary button).
   await page.getByRole('button', { name: /olmadan/i }).click();

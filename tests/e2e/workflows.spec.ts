@@ -538,7 +538,7 @@ test('theme: dark and light both render', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe('rgb(11, 17, 27)'); // v1.2.0 graphite dark (#0b111b)
+  expect(bg).toBe('rgb(29, 29, 31)'); // Apple-style near-black dark (#1d1d1f)
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.getByTestId('theme-light').click();
