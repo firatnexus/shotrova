@@ -31,7 +31,7 @@ export function ImportScreen() {
     <div className="stack" style={{ gap: 16 }}>
       <h1>{t('import.title')}</h1>
       <div
-        className={`dropzone vf ${over ? 'over' : ''}`}
+        className={`dropzone ${over ? 'over' : ''}`}
         onDragOver={(e) => {
           e.preventDefault();
           setOver(true);

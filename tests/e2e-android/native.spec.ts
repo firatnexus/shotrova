@@ -130,7 +130,7 @@ test('A8 System bars follow the theme', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await page.getByTestId('theme-light').click();
   const bars = (await log(page)).calls.filter(([m]) => m === 'setSystemBars').map(([, o]) => o);
-  expect(bars).toEqual(expect.arrayContaining([{ dark: true, color: '#0B111B' }, { dark: false, color: '#EDF1F6' }])); // v1.2.0 graphite/teal palette
+  expect(bars).toEqual(expect.arrayContaining([{ dark: true, color: '#1d1d1f' }, { dark: false, color: '#f5f5f7' }])); // Apple-style parchment/near-black palette
 });
 
 test('A9 Automatic capture: a staged screenshot syncs in with its native analysis', async ({ page }) => {

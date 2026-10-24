@@ -1,5 +1,9 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.5.0
+
+- **Yeni tasarım:** Apple esintili bir arayüz dili — tek etkileşim rengi olarak Action Blue (#0066cc), parşömen (#f5f5f7) ve siyaha yakın (#1d1d1f) yüzeyler, ince çizgi (hairline) kenarlıklar, hap (pill) biçimli düğmeler ve basınca ölçek küçülmesi (0.95) mikro etkileşimi. Gövde metni 17px'te, başlıklar sistem fontu yığınında (Apple cihazlarda SF Pro) negatif harf aralığıyla akıyor; gölge yalnızca ürün görseline ayrıldı, kartlar, diyaloglar ve bildirimler dahil tüm arayüz düz. Clash Display/Switzer web fontları kaldırıldı (paket küçüldü), iOS tarzı segment kontrolü ve anahtarlar eklendi, dokunmatik genişliklerde kompakt denetimler 44px hedefe büyüdü. Koyu temada düğme dolguları Action Blue kalırken bağlantılar ve odak halkaları daha parlak Sky Link Blue (#2997ff) oldu. Marka renkleri, açılış ekranı, manifest tema renkleri ve tüm uygulama simgeleri (web + Android launcher) yeni paletle yeniden üretildi.
+
 ## What's new in 1.4.0
 
 - **Otomatik ekran görüntüsü algılama (kullanıcı onayına bağlı):** uygulama, arka plan işi (MediaStore + WorkManager; sürekli bildirim yok) aracılığıyla yeni ekran görüntülerini algılamayı hedefler — uygulama açıkken anında, kapalıyken işletim sisteminin arka plan çalışmaya izin verdiği anda. Görüntüyü kendi deposuna kopyalar (galeriden silsen bile uygulamadaki kopya kalır) ve açık izinle yapay zekâ başlık + kategori önerir. Kaydedilen her görüntü için "Ekran görüntüsü 'Fatura Özeti' başlığıyla Alışveriş kategorisine kaydedildi" gibi bildirim alırsın; bildirime dokununca görüntü açılır. Not: cihaza özgü algılama hızı (ekran kapalıyken, Xiaomi/HyperOS) gerçek cihaz testi gerektirir.

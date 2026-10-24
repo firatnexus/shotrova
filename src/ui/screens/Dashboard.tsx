@@ -182,7 +182,7 @@ function ImportCard({ compact = false }: { compact?: boolean }) {
     }
   };
   return (
-    <div className="dropzone vf" data-testid="dropzone">
+    <div className="dropzone" data-testid="dropzone">
       {!compact && <IconUpload className="big" />}
       <strong>{t('import.card_title')}</strong>
       <span className="faint">{t('import.card_body')}</span>
