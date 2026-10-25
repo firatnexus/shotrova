@@ -15,7 +15,11 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Branded launch screen (background + icon, see AppTheme.NoActionBarLaunch).
         // Must run before super.onCreate; swaps to AppTheme.NoActionBar afterwards.
-        SplashScreen.installSplashScreen(this);
+        // Kept on screen until the web layer has painted its first frame (or a
+        // 3s safety timeout), so the hand-off is seamless — the PWA boot screen
+        // never stacks on top of the native splash.
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        splashScreen.setKeepOnScreenCondition(() -> !ShotrovaBridgePlugin.isFirstFrameReady());
         registerPlugin(ShotrovaBridgePlugin.class);
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());

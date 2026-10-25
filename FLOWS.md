@@ -5,6 +5,7 @@ Checked after every edit. Names are user-visible text.
 ## Launch
 - Start: index.html
 - Expect: branded boot splash (logo + name) while storage loads, then home screen; no uncaught errors.
+- Android: the native launch splash (background + icon) stays on screen until the web layer paints its first usable frame (markFirstFrame, 3s safety cap) — a single splash, the PWA boot screen never stacks on top of it.
 
 ## Home / dashboard
 - Expect: hero dropzone with "Görsel ekle" and "Panodan yapıştır" buttons, recent strip, category chips, compact stats.
@@ -32,7 +33,7 @@ Checked after every edit. Names are user-visible text.
 - Expect: AI vision toggle with privacy warning (image leaves device); key save; export ZIP/JSON; restore merge/replace.
 
 ## Native (APK)
-- Splash: launch shows branded splash (background + icon) then app.
+- Splash: one splash on every platform — Android keeps the native launch splash until the app's first frame (no second web splash); web/PWA shows the boot splash while storage loads.
 - No pinch zoom in APK; viewer zoom still works.
 - Share from gallery → Shotrova; back button; system bars match theme.
 

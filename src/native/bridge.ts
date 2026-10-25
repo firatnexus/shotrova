@@ -62,6 +62,7 @@ export interface ShotrovaBridgePlugin {
   shareOutboxFile(o: { name: string; mime: string; title?: string; text?: string }): Promise<void>;
   shareText(o: { text: string; title?: string }): Promise<void>;
   readClipboardImage(): Promise<{ files: StagedFile[] }>;
+  markFirstFrame(): Promise<void>;
   setSystemBars(o: { dark: boolean; color?: string }): Promise<void>;
   getCaptureState(): Promise<CaptureStatus>;
   requestCapturePermissions(): Promise<CaptureStatus>;
@@ -107,6 +108,16 @@ function cap(): CapacitorGlobal | undefined {
   return typeof window === 'undefined' ? undefined : (window as unknown as { Capacitor?: CapacitorGlobal }).Capacitor;
 }
 
+/**
+ * Tell the native side that the web layer has painted its first usable frame.
+ * The Android launch splash stays on screen until this fires (or a 3s safety
+ * timeout), so startup shows a single splash — no PWA boot screen on top of
+ * the native one. No-op on the web.
+ */
+export function markFirstFrame(): void {
+  bridge()?.markFirstFrame().catch(() => undefined);
+}
+
 /** True inside the Android app (Capacitor WebView). */
 export function isNativeApp(): boolean {
   return Boolean(cap()?.isNativePlatform?.());
@@ -148,6 +159,7 @@ function bridge(): ShotrovaBridgePlugin | null {
     openPermissionSettings: call('openPermissionSettings'),
     openNotificationSettings: call('openNotificationSettings'),
     openBatterySettings: call('openBatterySettings'),
+    markFirstFrame: call('markFirstFrame'),
     addListener: (event: 'share' | 'autocapture', cb: (e: { count: number }) => void) => (c.addListener as NonNullable<CapacitorGlobal['addListener']>)(PLUGIN, event, cb as (data: unknown) => void),
   };
   return cached;

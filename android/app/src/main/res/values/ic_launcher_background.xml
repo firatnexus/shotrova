@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- BRAND.colors (src/config/brand.ts) -->
-    <color name="ic_launcher_background">#1d1d1f</color>
-    <color name="splash_background">#f5f5f7</color>
-    <color name="splash_background_dark">#1d1d1f</color>
+    <color name="ic_launcher_background">#202020</color>
+    <color name="splash_background">#f9f7f3</color>
+    <color name="splash_background_dark">#202020</color>
 </resources>

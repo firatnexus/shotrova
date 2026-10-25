@@ -5,7 +5,8 @@ import { chromium } from '@playwright/test';
 const OUT = 'docs/screenshots';
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
 const FX = (n) => `tests/fixtures/${n}`;
-const browser = await chromium.launch();
+const launchBrowser = () => chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
+const browser = await launchBrowser();
 
 const FIXTURES = ['recipe_tr.png', 'invoice_tr.png', 'address_tr.png', 'shopping_en.png', 'phone_settings_en.webp', 'soup_tr.jpg'];
 

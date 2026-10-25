@@ -11,7 +11,8 @@ mkdirSync('public/icons', { recursive: true });
 writeFileSync('public/icons/favicon.svg', logoSvg(64));
 writeFileSync('public/icons/logo.svg', logoSvg(512));
 
-const browser = await chromium.launch();
+const launchBrowser = () => chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
+const browser = await launchBrowser();
 const page = await browser.newPage({ deviceScaleFactor: 1 });
 async function render(svg, size, out, bg = 'transparent') {
   await page.setViewportSize({ width: size, height: size });
@@ -32,7 +33,7 @@ await browser.close();
 import { existsSync, rmSync } from 'node:fs';
 if (existsSync('android/app/src/main/res')) {
   const RES = 'android/app/src/main/res';
-  const b2 = await chromium.launch();
+  const b2 = await launchBrowser();
   const pg = await b2.newPage({ deviceScaleFactor: 1 });
   const draw = async (svg, size, out) => {
     await pg.setViewportSize({ width: size, height: size });

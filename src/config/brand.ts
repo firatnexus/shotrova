@@ -25,14 +25,14 @@ export const BRAND = {
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Primary accent (Action Blue — the single interactive color). */
-    accent: '#0066cc',
-    accentDark: '#2997ff',
-    /** Near-black ink used for the logo tile and dark theme. */
-    ink: '#1d1d1f',
-    paper: '#f5f5f7',
-    themeLight: '#f5f5f7',
-    themeDark: '#1d1d1f',
+    /** Primary accent (Replicate orange — bright for the mark, deep for text/fills). */
+    accent: '#ea2804',
+    accentDark: '#c01f00',
+    /** Ink used for the logo tile and the dark canvas. */
+    ink: '#202020',
+    paper: '#f9f7f3',
+    themeLight: '#f9f7f3',
+    themeDark: '#202020',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;

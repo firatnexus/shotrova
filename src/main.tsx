@@ -18,6 +18,8 @@ if (isNativeApp()) {
 void init();
 
 // Remove the boot splash once the app is ready (or failed — never leave it up).
+// On Android the native launch splash owns startup and the web layer signals
+// its first painted frame separately (see App) — one splash per platform.
 const removeBoot = () => document.getElementById('boot')?.remove();
 if (getState().ready) removeBoot();
 else subscribe(() => { if (getState().ready || getState().fatal) { removeBoot(); } });
