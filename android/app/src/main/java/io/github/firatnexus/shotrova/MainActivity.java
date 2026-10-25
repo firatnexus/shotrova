@@ -51,10 +51,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // The Android WebView draws its own vertical scrollbar overlay while
-        // scrolling (rendered on the left edge on current WebView versions).
-        // Hide just that indicator — touch scrolling, inner scrollable areas and
-        // the horizontal scrollbar are unaffected.
+        // The Android WebView can draw its own vertical scrollbar overlay while
+        // the page is scrolled. Hide just that built-in indicator — touch
+        // scrolling, inner scrollable areas and the horizontal scrollbar are
+        // unaffected.
         WebView wv = getBridge() == null ? null : getBridge().getWebView();
         if (wv != null) wv.setVerticalScrollBarEnabled(false);
     }
