@@ -1,4 +1,4 @@
-import { isNativeApp, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
+import { isNativeApp, markFirstFrame, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
 import { useAppState, setState } from '../lib/store';
 import { consumeShareInbox } from '../lib/actions';
@@ -27,6 +27,24 @@ export function App() {
   const route = useRoute();
   const ready = useAppState((s) => s.ready);
   const fatal = useAppState((s) => s.fatal);
+
+  // Hand the native Android launch splash off only after the ready/fatal
+  // screen has actually committed and painted (one frame after commit) —
+  // one-shot, so later store updates never re-signal readiness.
+  const splashHanded = useRef(false);
+  useEffect(() => {
+    if (!ready && !fatal) return;
+    if (splashHanded.current) return;
+    splashHanded.current = true;
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => markFirstFrame());
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [ready, fatal]);
   const online = useAppState((s) => s.online);
   const imp = useImportState();
   const inputRef = useRef<HTMLInputElement>(null);

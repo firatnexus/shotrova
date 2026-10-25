@@ -19,6 +19,7 @@ export default defineConfig({
     acceptDownloads: true,
     locale: 'tr-TR',
     timezoneId: 'Europe/Istanbul',
+    launchOptions: process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
   },
   projects: [
     { name: 'android-pixel7', use: { ...devices['Pixel 7'] } },

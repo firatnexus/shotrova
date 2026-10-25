@@ -68,6 +68,24 @@ public class ShotrovaBridgePlugin extends Plugin {
     private static final List<JSObject> pending = new ArrayList<>();
     private static ShotrovaBridgePlugin instance;
 
+    /** Set when the web layer has painted its first usable frame (splash hand-off). */
+    private static volatile boolean firstFrameReady = false;
+    private static long LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
+    /** Safety cap: never hold the launch splash longer than this, even if JS fails. */
+    private static final long MAX_SPLASH_MS = 3000;
+
+    /** True while the native launch splash should stay on screen (first frame + timeout guard). */
+    static boolean isFirstFrameReady() {
+        return firstFrameReady || (android.os.SystemClock.uptimeMillis() - LAUNCHED_AT) >= MAX_SPLASH_MS;
+    }
+
+    /** Called by the web layer once its first frame is painted. */
+    @PluginMethod
+    public void markFirstFrame(PluginCall call) {
+        firstFrameReady = true;
+        call.resolve();
+    }
+
     @Override
     protected void handleOnDestroy() {
         if (instance == this) instance = null;
@@ -413,6 +431,11 @@ public class ShotrovaBridgePlugin extends Plugin {
     @Override
     public void load() {
         instance = this;
+        // New WebView/Activity startup: reset the splash hand-off gate so a
+        // recreated Activity never inherits a stale "ready" flag or an
+        // expired launch deadline from the previous instance.
+        firstFrameReady = false;
+        LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
         try {
             deleteLauncher = getBridge().registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),

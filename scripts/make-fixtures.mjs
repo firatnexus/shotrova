@@ -54,7 +54,8 @@ const fixtures = {
   ], { accent: '#e67700' }),
 };
 
-const browser = await chromium.launch();
+const launchBrowser = () => chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 720, height: 900 } });
 for (const [name, html] of Object.entries(fixtures)) {
   await page.setContent(html);

@@ -562,7 +562,7 @@ export function DetailScreen({ id }: { id: string }) {
               </>
             )}
             <dt>{t('detail.filename')}</dt>
-            <dd data-testid="filename">{r.fileName}</dd>
+            <dd data-testid="filename" className="mono">{r.fileName}</dd>
             <dt>{t('detail.size')}</dt>
             <dd>
               {r.width}×{r.height} · {formatBytes(r.size, lang)} · {r.mimeType.replace('image/', '').toUpperCase()}
