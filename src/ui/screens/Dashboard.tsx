@@ -56,7 +56,7 @@ export function Dashboard() {
   return (
     <div className="stack" style={{ gap: 0 }}>
       <section className="hero" aria-labelledby="dash-title">
-        <div className="stack" style={{ gap: 4 }}>
+        <div className="stack" style={{ gap: 12 }}>
           <h1 id="dash-title">{empty ? t('dash.title_empty') : t('dash.title')}</h1>
           <p className="muted">{empty ? t('dash.sub_empty') : t('dash.sub', { n: images.length })}</p>
         </div>
@@ -111,7 +111,6 @@ export function Dashboard() {
 
       {empty && isNativeApp() && <CaptureStatusCard />}
       {empty && !onboardingDismissed && <Onboarding />}
-      {empty && onboardingDismissed && <ImportCard compact={isNativeApp()} />}
 
       {!empty && (
         <section className="section" aria-labelledby="recent-h">
@@ -158,12 +157,11 @@ export function Dashboard() {
         </div>
       </section>
 
-      {!empty && (
-        <section className="section">
-          {isNativeApp() ? <CaptureStatusCard /> : null}
-          <ImportCard compact />
-        </section>
-      )}
+      {/* Every home screen resolves on the closing teal import band. */}
+      <section className="section stack" style={{ gap: 16 }}>
+        {!empty && isNativeApp() ? <CaptureStatusCard /> : null}
+        <ImportCard compact={!empty || (onboardingDismissed && isNativeApp())} />
+      </section>
       <CaptureSetupSheet />
     </div>
   );
@@ -203,7 +201,6 @@ function Onboarding() {
   const t = useT();
   return (
     <section className="section stack" aria-labelledby="ob-h" style={{ gap: 16 }}>
-      <ImportCard />
       <div className="card stack">
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <h2 id="ob-h">{t('ob.title')}</h2>

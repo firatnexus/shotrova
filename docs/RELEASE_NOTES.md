@@ -1,5 +1,17 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.6.0
+
+- **Yeni tasarım (Superhuman esintili):** üç zeminli bir arayüz dili. Ana ekran, mor-gök atmosferik geçişli lacivert (#1b1938) bir hero alanıyla açılıyor; beyaz başlık, beyaz arama kutusu, hap biçimli örnek aramalar ve ince çizgilerle ayrılmış istatistik satırı bu alanın içinde. Gövde beyaz (#ffffff / #fafaf8) ve metin saf siyah yerine sıcak koyu gri (#292827). Ana ekran her zaman koyu teal (#0e3030) bir kapanış bandıyla, yani "Ekran görüntülerini ekle" alanıyla bitiyor.
+- **Tipografi:** tek font ailesi (Inter, değişken) ve ara ağırlıklar (460 / 540 / 600), sıkı başlık satır aralığı ve negatif harf aralığı. Bricolage Grotesque ve JetBrains Mono kaldırıldı (paket küçüldü); dosya adları gibi teknik metinler sistem eş aralıklı fontunu kullanıyor.
+- **Bileşenler:** 8px köşeli dikdörtgen düğmeler (lacivert birincil, çerçeveli ikincil), hap biçimli filtre çipleri, 12px köşeli ince çizgili kartlar, 6px köşeli giriş alanları, lacivert bildirimler (toast) ve 16px köşeli diyaloglar. Gölge yalnızca kartlarda hafif, diyalog / bildirim / ürün görselinde belirgin.
+- **Koyu tema:** gece mavisi zemin (#0e0c1f), lacivert yüzeyler, düğme ve bağlantılarda açık mor (#c9b4fa). Tüm metin/zemin eşleşmeleri WCAG AA (≥ 4.5:1) sağlıyor.
+- **Marka:** uygulama simgeleri (web + Android launcher), açılış ekranları (açık: beyaz, koyu: gece mavisi), manifest ve Android sistem çubuğu renkleri yeni paletle yeniden üretildi.
+- **1.5.0'dan bu yana birleşen ve bu sürümle ilk kez yayınlanan düzeltmeler:**
+  - Çift açılış ekranı giderildi: Android'de web açılış ekranı gizleniyor ve yerel açılış ekranı ilk kare çizilene kadar kalıyor.
+  - Koyu tema için karanlık yerel açılış ekranı eklendi; sistem çubukları temayı takip ediyor.
+  - Kaydırma sırasında görünen WebView dikey kaydırma çubuğu gizlendi.
+
 ## What's new in 1.5.0
 
 - **Yeni tasarım:** Apple esintili bir arayüz dili — tek etkileşim rengi olarak Action Blue (#0066cc), parşömen (#f5f5f7) ve siyaha yakın (#1d1d1f) yüzeyler, ince çizgi (hairline) kenarlıklar, hap (pill) biçimli düğmeler ve basınca ölçek küçülmesi (0.95) mikro etkileşimi. Gövde metni 17px'te, başlıklar sistem fontu yığınında (Apple cihazlarda SF Pro) negatif harf aralığıyla akıyor; gölge yalnızca ürün görseline ayrıldı, kartlar, diyaloglar ve bildirimler dahil tüm arayüz düz. Clash Display/Switzer web fontları kaldırıldı (paket küçüldü), iOS tarzı segment kontrolü ve anahtarlar eklendi, dokunmatik genişliklerde kompakt denetimler 44px hedefe büyüdü. Koyu temada düğme dolguları Action Blue kalırken bağlantılar ve odak halkaları daha parlak Sky Link Blue (#2997ff) oldu. Marka renkleri, açılış ekranı, manifest tema renkleri ve tüm uygulama simgeleri (web + Android launcher) yeni paletle yeniden üretildi.

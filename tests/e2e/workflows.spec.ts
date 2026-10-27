@@ -538,7 +538,7 @@ test('theme: dark and light both render', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe('rgb(32, 32, 32)'); // Replicate surface-dark canvas (#202020)
+  expect(bg).toBe('rgb(14, 12, 31)'); // Superhuman indigo-deep body canvas (#0e0c1f)
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.getByTestId('theme-light').click();
