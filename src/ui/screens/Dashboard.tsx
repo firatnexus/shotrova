@@ -12,19 +12,6 @@ import { isNativeApp } from '../../native/bridge';
 import { CaptureSetupSheet, CaptureStatusCard, openSetup } from '../CaptureCard';
 import { refreshCaptureStatus } from '../../auto/capture';
 
-/** Sets the one rainbow-italic word of a headline; the text content stays identical. */
-function Emphasis({ text, word }: { text: string; word: string }) {
-  const i = word ? text.indexOf(word) : -1;
-  if (i < 0) return <>{text}</>;
-  return (
-    <>
-      {text.slice(0, i)}
-      <em>{word}</em>
-      {text.slice(i + word.length)}
-    </>
-  );
-}
-
 const EXAMPLES = ['ex.q1', 'ex.q2', 'ex.q3', 'ex.q4', 'ex.q5', 'ex.q6'];
 
 export function Dashboard() {
@@ -70,9 +57,7 @@ export function Dashboard() {
     <div className="stack" style={{ gap: 0 }}>
       <section className="hero" aria-labelledby="dash-title">
         <div className="stack" style={{ gap: 12 }}>
-          <h1 id="dash-title">
-            <Emphasis text={empty ? t('dash.title_empty') : t('dash.title')} word={empty ? t('dash.title_empty_em') : t('dash.title_em')} />
-          </h1>
+          <h1 id="dash-title">{empty ? t('dash.title_empty') : t('dash.title')}</h1>
           <p className="muted">{empty ? t('dash.sub_empty') : t('dash.sub', { n: images.length })}</p>
         </div>
         <form

@@ -55,8 +55,6 @@
   "storage.write_failed": "Could not save",
   "dash.title": "Your screenshots, organized.",
   "dash.title_empty": "Make your screenshots findable.",
-  "dash.title_em": "organized",
-  "dash.title_empty_em": "findable",
   "dash.sub": "{n} images stored on this device. Search by the text inside.",
   "dash.sub_empty": "Add images; we read the text on your device and sort them into categories.",
   "dash.examples": "Example searches",

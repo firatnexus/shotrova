@@ -1,5 +1,17 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.8.0
+
+- **Yeni tasarım (Threads esintili):** içeriği öne çıkaran sade bir arayüz. Zemin #fafafa, kartlar beyaz, metin saf siyah. Gölge ve geçiş (gradient) kaldırıldı; yüzeyler 1px gri ince çizgiyle (#d5d5d5) ayrılıyor.
+- **Renk kullanımı:** Verified Indigo (#385898) yalnızca bağlantı, odak halkası ve rozetlerde; Signal Blue (#0095f6) yalnızca birincil eylemin çerçevesinde. Tek dolgulu düğme üst çubuktaki siyah "Görsel ekle" hapı. Dinlenme hâlindeki simgeler renksiz.
+- **Tipografi:** web fontları (Inter, Plus Jakarta Sans) kaldırıldı, yalnızca sistem fontu kullanılıyor. Hiyerarşi ağırlıkla kuruluyor (400/600/700); metin boyutları 12/13/15px, başlıklar 17/24px. Uygulama paketi küçüldü.
+- **Düzen:** beyaz, 56px yüksekliğinde, alt çizgili ve başlığı ortalı üst çubuk. Masaüstünde 80px genişliğinde, yalnızca simgeli sol menü (en üstte logo, etkin öğede 4px siyah çizgi) ve ortalanmış 600px içerik sütunu. Mobilde yalnızca simgeli alt sekme çubuğu (etiketler ekran okuyucular için korunuyor).
+- **Bileşenler:** 18px köşeli kartlar, 8px köşeli görsel ve giriş alanları, tamamen yuvarlak düğme/etiket/avatarlar. Sıkı boşluk düzeni (4px taban, 16px kart iç boşluğu, 12px aralık).
+- **Koyu tema:** Threads'in kendi koyu paletinden türetildi (#101010 zemin, #181818 yüzeyler, #f3f5f7 metin). Metin/zemin eşleşmeleri WCAG AA sağlıyor.
+- **Logo ve simgeler:** polaroid logo siyah-beyaza geçti ve uygulama içinde temayla birlikte tersine dönüyor. Uygulama simgesi (adaptive icon ön plan / arka plan), favicon, PWA simgeleri, açılış ekranı (açık: beyaz, koyu: #101010 üzerinde beyaz simge) ve README logosu yenilendi.
+- **Akıcılık:** gölge, bulanıklık ve eğik kart çizimi kaldırıldı, uzun listelerde ekran dışındaki kartlar çizilmiyor (`content-visibility`), yükleme iskeleti parıltı yerine hafif opaklık animasyonu kullanıyor.
+- İşlevlerde değişiklik yok; yalnızca görünüm ve düzen güncellendi.
+
 ## What's new in 1.7.0
 
 - **Yeni tasarım (Portrait esintili):** tek beyaz zemin ve renkli bant yok. Metin, ince çizgi ve çerçevelerin hepsi tek mürekkep renginde (#08304c). Tek vurgu rengi Nautical Teal (#084e72); küçük yüzeylerde yumuşak pasteller kullanılıyor (nane #d7ffe2, gök #e8f1ff, şeftali #ffebd6).

@@ -55,8 +55,6 @@
   "storage.write_failed": "Kaydedilemedi",
   "dash.title": "Ekran görüntülerin, düzenli.",
   "dash.title_empty": "Ekran görüntülerini bulunur hale getir.",
-  "dash.title_em": "düzenli",
-  "dash.title_empty_em": "bulunur",
   "dash.sub": "{n} görsel cihazında saklanıyor. İçindeki yazıyla ara.",
   "dash.sub_empty": "Görsel ekle; içindeki yazıyı cihazında okuyup kategorilere ayıralım.",
   "dash.examples": "Örnek aramalar",
