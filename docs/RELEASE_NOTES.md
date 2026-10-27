@@ -1,5 +1,16 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.7.0
+
+- **Yeni tasarım (Portrait esintili):** tek beyaz zemin ve renkli bant yok. Metin, ince çizgi ve çerçevelerin hepsi tek mürekkep renginde (#08304c). Tek vurgu rengi Nautical Teal (#084e72); küçük yüzeylerde yumuşak pasteller kullanılıyor (nane #d7ffe2, gök #e8f1ff, şeftali #ffebd6).
+- **Gökkuşağı vurgusu:** yalnızca üç yerde: üst çubuktaki "Görsel ekle" düğmesinin 1.5px çerçevesi, ana başlıktaki tek eğik kelime ("düzenli" / "bulunur") ve açılış ekranındaki ince çizgi.
+- **Bileşenler:** yüzen hap biçimli üst çubuk ve alt menü, 24px köşeli kartlar, 28px hap düğmeler (birincil düğme dolgu yerine mürekkep çerçeveli, ikincil düğme hayalet), 16px köşeli giriş alanları, hap etiketler, polaroid görünümlü görsel kartları (son eklenenler hafif eğik). Gölgeler en fazla %8 siyah, katmanlı ve 1px ince çizgili.
+- **Tipografi:** arayüz metinlerinde Inter, büyük başlıklarda Plus Jakarta Sans (değişken, OFL lisanslı) ve sıkı negatif harf aralığı.
+- **Yeni logo:** mürekkep renkli kare üzerinde hafif eğik, minimal beyaz bir polaroid. Uygulama simgesi (adaptive icon ön plan / arka plan / tek renk), bildirim simgesi, favicon, PWA simgeleri ve README logosu yenilendi.
+- **Açılış ekranı:** açık temada beyaz, koyu temada derin mürekkep (#061f33) zemin; Android sistem çubuğu ve tema renkleri yeni palete uyarlandı.
+- **Koyu tema:** derin mürekkep zemin (#061f33), mürekkep yüzeyler (#08304c), beyaz metin. Metin/zemin eşleşmeleri WCAG AA sağlıyor.
+- İşlevlerde değişiklik yok; yalnızca görünüm ve düzen güncellendi.
+
 ## What's new in 1.6.0
 
 - **Yeni tasarım (Superhuman esintili):** üç zeminli bir arayüz dili. Ana ekran, mor-gök atmosferik geçişli lacivert (#1b1938) bir hero alanıyla açılıyor; beyaz başlık, beyaz arama kutusu, hap biçimli örnek aramalar ve ince çizgilerle ayrılmış istatistik satırı bu alanın içinde. Gövde beyaz (#ffffff / #fafaf8) ve metin saf siyah yerine sıcak koyu gri (#292827). Ana ekran her zaman koyu teal (#0e3030) bir kapanış bandıyla, yani "Ekran görüntülerini ekle" alanıyla bitiyor.

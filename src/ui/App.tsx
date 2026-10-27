@@ -198,7 +198,7 @@ export function App() {
               <IconOffline width={14} height={14} /> {t('net.offline')}
             </span>
           )}
-          <button type="button" className="btn sm" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
+          <button type="button" className="btn sm rainbow" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
             <IconScan /> {t('import.cta')}
           </button>
         </header>

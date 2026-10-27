@@ -45,9 +45,9 @@ if (existsSync('android/app/src/main/res')) {
     mkdirSync(`${RES}/mipmap-${d}`, { recursive: true });
     await draw(logoSvg(512), 48 * f, `${RES}/mipmap-${d}/ic_launcher.png`);
     await draw(logoSvg(512, { maskable: true }).replace('rx="0"', 'rx="256"'), 48 * f, `${RES}/mipmap-${d}/ic_launcher_round.png`);
-    // Adaptive icon layers are 108dp; keep the mark inside the 66dp safe zone.
-    await draw(logoSvg(512, { foreground: true, pad: 0.26 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_foreground.png`);
-    await draw(logoSvg(512, { monochrome: true, pad: 0.26 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_monochrome.png`);
+    // Adaptive icon layers are 108dp; the tilted card diagonal (~0.59) stays inside the 66dp (0.61) safe zone.
+    await draw(logoSvg(512, { foreground: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_foreground.png`);
+    await draw(logoSvg(512, { monochrome: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_monochrome.png`);
     console.log('✓ android', d);
   }
   await b2.close();
