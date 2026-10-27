@@ -19,21 +19,19 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.7.0',
+  version: '1.8.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Interactive ink on light surfaces (Portrait Ink). */
-    accentDark: '#08304c',
-    /** Logo tile, adaptive-icon background (Portrait Ink). */
-    ink: '#08304c',
+    /** Logo tile and adaptive-icon background (Threads Ink). */
+    ink: '#000000',
     /** Polaroid frame and text lines on the tile. */
     paper: '#ffffff',
-    /** System bars / manifest: white paper (light) and deep ink (dark). */
+    /** System bars / manifest: white top bar (light) and #101010 (dark). */
     themeLight: '#ffffff',
-    themeDark: '#061f33',
+    themeDark: '#101010',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;
@@ -50,12 +48,14 @@ function rr(x: number, y: number, w: number, h: number, r: number): string {
  * wall, whose photo window holds two text lines — a screenshot you find by
  * the words inside. Two colours only (ink tile, white paper); the window is
  * cut out with an even-odd path so the monochrome/foreground variants stay a
- * single white glyph. Original artwork, generated as SVG so every icon size
+ * single white glyph. `themed` draws the tile in currentColor and the paper in
+ * --logo-paper so the in-app mark inverts with the theme (black on light,
+ * near-white on dark), like a monochrome glyph. Original artwork, generated as SVG so every icon size
  * comes from this one source.
  */
 export function logoSvg(
   size = 512,
-  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number } = {},
+  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app: tile = currentColor, paper = var(--logo-paper). */ themed?: boolean } = {},
 ): string {
   const { ink, paper } = BRAND.colors;
   const pad = opts.pad ?? (opts.maskable ? 0.2 : 0.12);
@@ -65,6 +65,7 @@ export function logoSvg(
   const o = s * pad;
   const fg = opts.monochrome ? '#FFFFFF' : paper;
   const bg = opts.monochrome ? 'none' : ink;
+  const fill = (c: string, themedVal: string) => (opts.themed ? `style="fill:${themedVal}"` : `fill="${c}"`);
   // Polaroid card: portrait 0.62 × 0.76 of the inner box, centred.
   const cw = inner * 0.62;
   const ch = inner * 0.76;
@@ -76,12 +77,12 @@ export function logoSvg(
   const card = rr(cx, cy, cw, ch, cw * 0.1);
   const win = rr(cx + m, cy + m, ww, wh, cw * 0.05);
   const lh = ww * 0.11;
-  const line = (y: number, w: number) => `<rect x="${cx + m + ww * 0.16}" y="${y}" width="${w}" height="${lh}" rx="${lh / 2}" fill="${fg}"/>`;
+  const line = (y: number, w: number) => `<rect x="${cx + m + ww * 0.16}" y="${y}" width="${w}" height="${lh}" rx="${lh / 2}" ${fill(fg, 'var(--logo-paper, #fff)')}/>`;
   const ly = cy + m + wh * 0.4;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${s} ${s}">
-  ${bg === 'none' || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" fill="${bg}"/>`}
+  ${bg === 'none' || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" ${fill(bg, 'currentColor')}/>`}
   <g transform="rotate(-8 ${s / 2} ${s / 2})">
-    <path d="${card} ${win}" fill="${fg}" fill-rule="evenodd"/>
+    <path d="${card} ${win}" ${fill(fg, 'var(--logo-paper, #fff)')} fill-rule="evenodd"/>
     ${line(ly, ww * 0.68)}
     ${line(ly + lh * 2, ww * 0.46)}
   </g>

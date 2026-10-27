@@ -68,7 +68,7 @@ function brandPwa(): Plugin {
         .replaceAll('%BRAND_DESC%', BRAND.description.tr)
         .replaceAll('%THEME_LIGHT%', BRAND.colors.themeLight)
         .replaceAll('%THEME_DARK%', BRAND.colors.themeDark)
-        .replaceAll('%LOGO%', logoSvg(64));
+        .replaceAll('%LOGO%', logoSvg(64, { themed: true }));
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {

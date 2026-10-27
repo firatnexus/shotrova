@@ -18,8 +18,8 @@ import { SettingsScreen } from './screens/Settings';
 import { ImportScreen } from './screens/Import';
 import { BackgroundScreen } from './screens/Background';
 
-export function Logo({ size = 30 }: { size?: number }) {
-  return <span aria-hidden="true" style={{ width: size, height: size, display: 'inline-block' }} dangerouslySetInnerHTML={{ __html: logoSvg(size) }} />;
+export function Logo({ size = 28 }: { size?: number }) {
+  return <span aria-hidden="true" style={{ width: size, height: size, display: 'inline-block' }} dangerouslySetInnerHTML={{ __html: logoSvg(size, { themed: true }) }} />;
 }
 
 export function App() {
@@ -179,6 +179,9 @@ export function App() {
         {t('a11y.skip')}
       </a>
       <nav className="bottomnav" aria-label={t('a11y.main_nav')}>
+        <a className="rail-logo" href={href("/")} aria-hidden="true" tabIndex={-1}>
+          <Logo />
+        </a>
         {nav.map((n) => (
           <a key={n.to} href={href(n.to)} aria-current={isActive(n.key) ? 'page' : undefined}>
             {n.icon}
@@ -198,7 +201,7 @@ export function App() {
               <IconOffline width={14} height={14} /> {t('net.offline')}
             </span>
           )}
-          <button type="button" className="btn sm rainbow" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
+          <button type="button" className="btn sm inverse" onClick={() => inputRef.current?.click()} disabled={imp.busy} data-testid="scan-button">
             <IconScan /> {t('import.cta')}
           </button>
         </header>
