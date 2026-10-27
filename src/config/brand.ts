@@ -19,20 +19,23 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.5.0',
+  version: '1.6.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Primary accent (Replicate orange — bright for the mark, deep for text/fills). */
-    accent: '#ea2804',
-    accentDark: '#c01f00',
-    /** Ink used for the logo tile and the dark canvas. */
-    ink: '#202020',
-    paper: '#f9f7f3',
-    themeLight: '#f9f7f3',
-    themeDark: '#202020',
+    /** Brand spark — Superhuman violet-soft (pale violet over the indigo tile). */
+    accent: '#c9b4fa',
+    /** Interactive fill on light surfaces (indigo navy). */
+    accentDark: '#1b1938',
+    /** Logo tile and hero canvas (indigo navy). */
+    ink: '#1b1938',
+    /** Logo frame / text lines on the tile. */
+    paper: '#ffffff',
+    /** System bars / manifest: white body (light) and indigo-deep body (dark). */
+    themeLight: '#ffffff',
+    themeDark: '#0e0c1f',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;
