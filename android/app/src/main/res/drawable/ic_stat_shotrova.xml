@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Notification small icon: white screenshot-frame glyph on transparent. -->
+<!-- Notification small icon: the tilted polaroid mark (white, window cut out) on transparent. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M3,4 h5 v2 h-3 v3 h-2 z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M21,4 h-5 v2 h3 v3 h2 z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M3,20 h5 v-2 h-3 v-3 h-2 z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M21,20 h-5 v-2 h3 v-3 h2 z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M9,11.5 h6 v1.5 h-6 z" />
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:rotation="-8">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M8,4 h8 a2,2 0 0 1 2,2 v12 a2,2 0 0 1 -2,2 h-8 a2,2 0 0 1 -2,-2 v-12 a2,2 0 0 1 2,-2 z M8.4,5.4 h7.2 a1,1 0 0 1 1,1 v7.2 a1,1 0 0 1 -1,1 h-7.2 a1,1 0 0 1 -1,-1 v-7.2 a1,1 0 0 1 1,-1 z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M9.4,8.6 h4.6 a0.6,0.6 0 0 1 0,1.2 h-4.6 a0.6,0.6 0 0 1 0,-1.2 z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M9.4,11 h3 a0.6,0.6 0 0 1 0,1.2 h-3 a0.6,0.6 0 0 1 0,-1.2 z" />
+    </group>
 </vector>

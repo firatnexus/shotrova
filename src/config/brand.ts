@@ -19,67 +19,71 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.6.0',
+  version: '1.7.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Brand spark — Superhuman violet-soft (pale violet over the indigo tile). */
-    accent: '#c9b4fa',
-    /** Interactive fill on light surfaces (indigo navy). */
-    accentDark: '#1b1938',
-    /** Logo tile and hero canvas (indigo navy). */
-    ink: '#1b1938',
-    /** Logo frame / text lines on the tile. */
+    /** Interactive ink on light surfaces (Portrait Ink). */
+    accentDark: '#08304c',
+    /** Logo tile, adaptive-icon background (Portrait Ink). */
+    ink: '#08304c',
+    /** Polaroid frame and text lines on the tile. */
     paper: '#ffffff',
-    /** System bars / manifest: white body (light) and indigo-deep body (dark). */
+    /** System bars / manifest: white paper (light) and deep ink (dark). */
     themeLight: '#ffffff',
-    themeDark: '#0e0c1f',
+    themeDark: '#061f33',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;
 
 export type BrandConfig = typeof BRAND;
 
+/** Rounded-rectangle path (for even-odd cut-outs). */
+function rr(x: number, y: number, w: number, h: number, r: number): string {
+  return `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
+}
+
 /**
- * The logo mark: a screenshot frame with text lines and a small four-point
- * "nova" spark. Original artwork, generated as SVG so icons can be rendered at
- * any size from a single source.
+ * The logo mark: a single polaroid, tilted a few degrees as if pinned to a
+ * wall, whose photo window holds two text lines — a screenshot you find by
+ * the words inside. Two colours only (ink tile, white paper); the window is
+ * cut out with an even-odd path so the monochrome/foreground variants stay a
+ * single white glyph. Original artwork, generated as SVG so every icon size
+ * comes from this one source.
  */
 export function logoSvg(
   size = 512,
   opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number } = {},
 ): string {
-  const { ink, accent, paper } = BRAND.colors;
-  const pad = opts.pad ?? (opts.maskable ? 0.2 : 0.1);
-  const tile = opts.maskable ? 0 : 0.22;
+  const { ink, paper } = BRAND.colors;
+  const pad = opts.pad ?? (opts.maskable ? 0.2 : 0.12);
+  const tile = opts.maskable ? 0 : 0.23;
   const s = 512;
   const inner = s * (1 - pad * 2);
   const o = s * pad;
   const fg = opts.monochrome ? '#FFFFFF' : paper;
-  const spark = opts.monochrome ? '#FFFFFF' : accent;
   const bg = opts.monochrome ? 'none' : ink;
-  // Frame geometry relative to inner box
-  const fx = o + inner * 0.2;
-  const fy = o + inner * 0.16;
-  const fw = inner * 0.5;
-  const fh = inner * 0.68;
-  const r = inner * 0.07;
-  const line = (y: number, w: number) =>
-    `<rect x="${fx + inner * 0.08}" y="${y}" width="${w}" height="${inner * 0.05}" rx="${inner * 0.025}" fill="${fg}" opacity="0.9"/>`;
-  const cx = o + inner * 0.74;
-  const cy = o + inner * 0.3;
-  const R = inner * 0.16;
-  const k = R * 0.22;
-  const sparkPath = `M ${cx} ${cy - R} Q ${cx + k} ${cy - k} ${cx + R} ${cy} Q ${cx + k} ${cy + k} ${cx} ${cy + R} Q ${cx - k} ${cy + k} ${cx - R} ${cy} Q ${cx - k} ${cy - k} ${cx} ${cy - R} Z`;
+  // Polaroid card: portrait 0.62 × 0.76 of the inner box, centred.
+  const cw = inner * 0.62;
+  const ch = inner * 0.76;
+  const cx = o + (inner - cw) / 2;
+  const cy = o + (inner - ch) / 2;
+  const m = cw * 0.11; // side/top margin of the photo window
+  const ww = cw - m * 2;
+  const wh = ww * 0.92; // window height; the thick bottom margin is the polaroid lip
+  const card = rr(cx, cy, cw, ch, cw * 0.1);
+  const win = rr(cx + m, cy + m, ww, wh, cw * 0.05);
+  const lh = ww * 0.11;
+  const line = (y: number, w: number) => `<rect x="${cx + m + ww * 0.16}" y="${y}" width="${w}" height="${lh}" rx="${lh / 2}" fill="${fg}"/>`;
+  const ly = cy + m + wh * 0.4;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${s} ${s}">
   ${bg === 'none' || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" fill="${bg}"/>`}
-  <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="${r}" fill="none" stroke="${fg}" stroke-width="${inner * 0.055}"/>
-  ${line(fy + fh * 0.36, fw * 0.62)}
-  ${line(fy + fh * 0.52, fw * 0.48)}
-  ${line(fy + fh * 0.68, fw * 0.55)}
-  <circle cx="${cx}" cy="${cy}" r="${R * 0.92}" fill="${bg === 'none' ? 'none' : bg}"/>
-  <path d="${sparkPath}" fill="${spark}"/>
+  <g transform="rotate(-8 ${s / 2} ${s / 2})">
+    <path d="${card} ${win}" fill="${fg}" fill-rule="evenodd"/>
+    ${line(ly, ww * 0.68)}
+    ${line(ly + lh * 2, ww * 0.46)}
+  </g>
 </svg>`;
 }

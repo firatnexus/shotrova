@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark launch: indigo-deep canvas with the launch icon (see values/styles.xml
+    <!-- Dark launch: deep-ink canvas with the launch icon (see values/styles.xml
          for the light white equivalent). -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background_dark</item>
