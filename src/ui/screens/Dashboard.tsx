@@ -1,13 +1,10 @@
-import type { ImageRecord } from '../../db/types';
 import { useMemo, useEffect, useState } from 'react';
 import { useAppState } from '../../lib/store';
 import { updateSettings } from '../../lib/actions';
 import { categoryName, useT } from '../../i18n';
 import { toast } from '../../lib/toast';
 import { href, navigate } from '../router';
-import { Thumb, Tile } from '../Tile';
-import { HandArrow, Sticker } from '../stickers';
-import { displayTitle } from '../../search/search';
+import { Tile } from '../Tile';
 import { Dot } from '../components';
 import { openPicker, readClipboardImages, runImport } from '../importer';
 import { IconClipboard, IconPhone, IconSearch, IconShield, IconUpload, IconX } from '../icons';
@@ -60,17 +57,7 @@ export function Dashboard() {
     <div className="stack" style={{ gap: 0 }}>
       <section className="hero" aria-labelledby="dash-title">
         <div className="hero-copy">
-          <span className="caption-hand" aria-hidden="true">
-            {t('dash.caption')}
-            <HandArrow />
-          </span>
-          <div style={{ position: 'relative' }}>
-            <h1 id="dash-title">
-              <MarkedTitle text={empty ? t('dash.title_empty') : t('dash.title')} mark={empty ? t('dash.title_empty_mark') : t('dash.title_mark')} />
-            </h1>
-            <Sticker kind="bolt" size={40} rotate={12} className="sticker-m" style={{ right: 4, top: -52 }} />
-            <Sticker kind="heart" size={30} rotate={-10} className="sticker-m" style={{ right: 46, top: -36 }} />
-          </div>
+          <h1 id="dash-title">{empty ? t('dash.title_empty') : t('dash.title')}</h1>
           <p className="lead">{empty ? t('dash.sub_empty') : t('dash.sub', { n: images.length })}</p>
           <form
             className="searchbox"
@@ -96,7 +83,6 @@ export function Dashboard() {
             ))}
           </div>
         </div>
-        <HeroArt images={images.slice(0, 3)} />
         <div className="stats">
           <div className="stat">
             <b data-testid="total-count">{images.length}</b>
@@ -162,7 +148,7 @@ export function Dashboard() {
         </div>
         <div className="catgrid">
           {categories.map((c) => (
-            <a key={c.id} className="catcard" href={href(`/images?cat=${encodeURIComponent(c.id)}`)}>
+            <a key={c.id} className="catcard" href={href(`/images?cat=${encodeURIComponent(c.id)}`)} style={{ background: `color-mix(in srgb, ${c.color} 9%, var(--surface))` }}>
               <span className="swatch" style={{ background: c.color }} aria-hidden="true" />
               <span className="name">{categoryName(c, lang)}</span>
               <span className="count" aria-label={t('cat.count', { n: counts.get(c.id) ?? 0 })}>{counts.get(c.id) ?? 0}</span>
@@ -171,7 +157,7 @@ export function Dashboard() {
         </div>
       </section>
 
-      {/* Every home screen resolves on the closing orange brand band. */}
+      {/* Every home screen resolves on the closing charcoal import card. */}
       <section className="section stack" style={{ gap: 16 }}>
         {!empty && isNativeApp() ? <CaptureStatusCard /> : null}
         <ImportCard compact={!empty || (onboardingDismissed && isNativeApp())} />
@@ -195,8 +181,6 @@ function ImportCard({ compact = false }: { compact?: boolean }) {
   };
   return (
     <div className="dropzone band" data-testid="dropzone">
-      <Sticker kind="sparkle" size={52} rotate={-12} style={{ right: 28, top: 26 }} />
-      <Sticker kind="ghost" size={46} rotate={9} style={{ right: 84, top: 64 }} />
       {!compact && <IconUpload className="big" />}
       <strong>{t('import.card_title')}</strong>
       <span className="faint">{t('import.card_body')}</span>
@@ -247,54 +231,6 @@ function Onboarding() {
         </span>
       </div>
     </section>
-  );
-}
-
-/** Display headline with one word in marker orange and a hand-drawn underline. */
-function MarkedTitle({ text, mark }: { text: string; mark: string }) {
-  const i = mark ? text.toLocaleLowerCase().indexOf(mark.toLocaleLowerCase()) : -1;
-  if (i < 0) return <>{text}</>;
-  return (
-    <>
-      {text.slice(0, i)}
-      <span className="marker">{text.slice(i, i + mark.length)}</span>
-      {text.slice(i + mark.length)}
-    </>
-  );
-}
-
-/** Hero product object: the latest screenshots as a tilted polaroid stack
- *  with a school name-label sticker — or, when empty, a stack of blank
- *  polaroids waiting for their first photo. Desktop only, decorative. */
-function HeroArt({ images }: { images: ImageRecord[] }) {
-  const t = useT();
-  const lang = useAppState((s) => s.settings.lang);
-  const categories = useAppState((s) => s.categories);
-  const top = images[0];
-  const cat = top ? categories.find((c) => c.id === top.categoryId) : undefined;
-  const slots = ['p1', 'p2', 'p3'];
-  // Front photo (p3) is the newest; behind it the next two.
-  const order = [images[2], images[1], images[0]];
-  return (
-    <div className="hero-art" aria-hidden="true">
-      {slots.map((cls, i) => (
-        <div key={cls} className={`stack-photo ${cls}`}>
-          <div className="ph" style={{ position: 'relative' }}>{order[i] ? <Thumb id={order[i]!.id} alt="" /> : null}</div>
-        </div>
-      ))}
-      <span className="caption-hand">
-        <HandArrow />
-        {top ? t('dash.art_caption') : t('dash.art_caption_empty')}
-      </span>
-      <div className="label-sticker">
-        <div className="l-row"><span className="l-key">{t('label.name')}</span><span className="l-val">{top ? displayTitle(top) || t('img.unnamed') : '—'}</span></div>
-        <div className="l-row"><span className="l-key">{t('label.cat')}</span><span className="l-val">{cat ? categoryName(cat, lang) : '—'}</span></div>
-        <div className="l-row"><span className="l-key">{t('label.no')}</span><span className="l-val">{images.length ? String(images.length).padStart(3, '0') : '000'}</span></div>
-      </div>
-      <Sticker kind="bolt" size={64} rotate={14} style={{ left: 0, top: '58%' }} />
-      <Sticker kind="heart" size={52} rotate={-9} style={{ right: '4%', top: '44%', zIndex: 4 }} />
-      <Sticker kind="star" size={44} rotate={8} style={{ left: '44%', top: -10, zIndex: 4 }} />
-    </div>
   );
 }
 

@@ -19,83 +19,63 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.9.1',
+  version: '1.10.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Logo tile and adaptive-icon background (Marker Orange). */
-    ink: '#ff6f1e',
-    /** Polaroid frame and text lines on the tile (Cream Paper). */
-    paper: '#fdfbf9',
-    /** Outline of the polaroid and its text lines (Charcoal). */
-    line: '#171717',
-    /** System bars / manifest: cream paper (light) and warm night cocoa (dark). */
-    themeLight: '#fdfbf9',
-    themeDark: '#17120d',
+    /** Mark stroke/fill and adaptive-icon foreground (Ink — the Contra backbone color). */
+    ink: '#14171f',
+    /** Card/canvas surfaces (Paper). */
+    paper: '#ffffff',
+    /** Secondary mark color where two tones are needed (Charcoal action color). */
+    line: '#222834',
+    /** System bars / manifest: paper (light) and ink (dark). */
+    themeLight: '#ffffff',
+    themeDark: '#14171f',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;
 
 export type BrandConfig = typeof BRAND;
 
-/** Rounded-rectangle path (for even-odd cut-outs). */
-function rr(x: number, y: number, w: number, h: number, r: number): string {
-  return `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
-}
-
 /**
- * The logo mark: a single cream polaroid, tilted a few degrees as if stuck
- * onto a notebook page, sitting on a Marker Orange tile. The polaroid is
- * outlined in Charcoal ink like a hand-drawn sticker; its photo window holds
- * two text lines — the second one in marker orange, like a highlighted word —
- * i.e. a screenshot you find by the words inside. `monochrome` (Android 13
- * themed icons) collapses everything into a single white glyph: card minus
- * window (even-odd) plus the text lines. `foreground` drops the tile for the
- * adaptive-icon foreground layer (the tile colour becomes the background
- * layer). The in-app mark (`themed`) is identical in both themes — the orange
- * tile reads on cream paper and on the dark cocoa canvas alike. Original
- * artwork, generated as SVG so every icon size comes from this one source.
+ * The logo mark: a minimal screenshot frame — a rounded rectangle outline —
+ * holding two text lines, i.e. "a screenshot you find by the words inside".
+ * One color, one weight, no tile: a single Ink stroke system that reads at
+ * every size. `monochrome` (Android 13 themed icons, notification) renders
+ * the same mark in pure white. `foreground` drops padding for the adaptive
+ * icon foreground layer (the background layer is Paper white). `themed` uses
+ * `currentColor` so the in-app mark follows the text color in both themes.
+ * Original artwork, generated as SVG so every icon size comes from this one source.
  */
 export function logoSvg(
   size = 512,
-  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark (kept for call-site compatibility; same artwork in both themes). */ themed?: boolean } = {},
+  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark: follows currentColor. */ themed?: boolean } = {},
 ): string {
-  const { ink, paper, line: lineInk } = BRAND.colors;
-  const pad = opts.pad ?? (opts.maskable ? 0.2 : 0.12);
-  const tile = opts.maskable ? 0 : 0.23;
+  const ink = opts.monochrome ? '#FFFFFF' : opts.themed ? 'currentColor' : BRAND.colors.ink;
   const s = 512;
+  const pad = opts.pad ?? (opts.maskable || opts.foreground ? 0.2 : 0.14);
   const inner = s * (1 - pad * 2);
   const o = s * pad;
-  // Polaroid card: portrait 0.62 × 0.76 of the inner box, centred.
-  const cw = inner * 0.62;
-  const ch = inner * 0.76;
-  const cx = o + (inner - cw) / 2;
-  const cy = o + (inner - ch) / 2;
-  const m = cw * 0.11; // side/top margin of the photo window
-  const ww = cw - m * 2;
-  const wh = ww * 0.92; // window height; the thick bottom margin is the polaroid lip
-  const card = rr(cx, cy, cw, ch, cw * 0.1);
-  const win = rr(cx + m, cy + m, ww, wh, cw * 0.05);
-  const lh = ww * 0.11;
-  const ly = cy + m + wh * 0.4;
-  const lx = cx + m + ww * 0.16;
-  const sw = cw * 0.055; // ink outline weight
-  const bar = (y: number, w: number, color: string) => `<rect x="${lx}" y="${y}" width="${w}" height="${lh}" rx="${lh / 2}" fill="${color}"/>`;
-  const tileRect = opts.monochrome || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" fill="${ink}"/>`;
-  const body = opts.monochrome
-    ? `<path d="${card} ${win}" fill="#FFFFFF" fill-rule="evenodd"/>
-    ${bar(ly, ww * 0.68, '#FFFFFF')}
-    ${bar(ly + lh * 2, ww * 0.46, '#FFFFFF')}`
-    : `<path d="${card}" fill="${paper}" stroke="${lineInk}" stroke-width="${sw}" stroke-linejoin="round"/>
-    <path d="${win}" fill="#f7efe9" stroke="${lineInk}" stroke-width="${sw * 0.7}" stroke-linejoin="round"/>
-    ${bar(ly, ww * 0.68, lineInk)}
-    ${bar(ly + lh * 2, ww * 0.46, ink)}`;
+  // Frame: a portrait screenshot card, centred, with generous rounded corners.
+  const fw = inner * 0.78;
+  const fh = inner * 0.94;
+  const fx = o + (inner - fw) / 2;
+  const fy = o + (inner - fh) / 2;
+  const sw = Math.max(10, inner * 0.058); // stroke weight
+  const r = fw * 0.16;
+  // Two text lines inside the frame: the longer first, the shorter second,
+  // like lines of OCR'd text. Pure geometry — no font needed at render size.
+  const lw = fw * 0.58;
+  const lw2 = fw * 0.38;
+  const lh = Math.max(12, fw * 0.085);
+  const lx = fx + fw * 0.16;
+  const ly = fy + fh * 0.42;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${s} ${s}">
-  ${tileRect}
-  <g transform="rotate(-8 ${s / 2} ${s / 2})">
-    ${body}
-  </g>
+  <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="${r}" fill="none" stroke="${ink}" stroke-width="${sw}"/>
+  <rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="${lh / 2}" fill="${ink}"/>
+  <rect x="${lx}" y="${ly + lh * 2.2}" width="${lw2}" height="${lh}" rx="${lh / 2}" fill="${ink}"/>
 </svg>`;
 }

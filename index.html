@@ -12,8 +12,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="%BRAND_NAME%" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link rel="preload" href="fonts/fraunces-soft-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/inter-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png" />
@@ -33,35 +33,29 @@
   </head>
   <body>
     <style>
-      /* Two voices (Superr reference, "warm schoolyard notebook"): Fraunces
-         with its SOFT axis at 100 stands in for gelica — the rounded, soft
-         display serif for headlines, captions and buttons — and Geist is the
-         clean grotesque for UI text. Both are variable, OFL, latin + latin-ext
+      /* One voice (Contra reference, "editorial portfolio on white"): Inter
+         stands in for GT Standard — tight -0.01em tracking at 15–16px body
+         sizes and large 58px display moments. Variable, OFL, latin + latin-ext
          (full Turkish coverage) and bundled in public/fonts — no CDN. */
-      @font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 300 800; font-display: swap; src: url('fonts/fraunces-soft-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-      @font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 300 800; font-display: swap; src: url('fonts/fraunces-soft-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-      @font-face { font-family: 'Geist'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('fonts/geist-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-      @font-face { font-family: 'Geist'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('fonts/geist-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('fonts/inter-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('fonts/inter-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
       /* Boot splash (web/PWA only — on Android the native splash owns startup):
-         cream paper, the orange polaroid sticker, a lowercase wordmark and a
-         hand-drawn marker squiggle that draws itself. Warm cocoa night in dark. */
-      #boot { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #fdfbf9; color: #2b1a07; }
-      [data-theme='dark'] #boot { background: #17120d; color: #f6efe7; }
-      #boot .boot-mark { display: grid; justify-items: center; gap: 10px; padding: 40px; }
-      #boot svg.logo { width: 72px; height: 72px; transform: rotate(-4deg); }
-      #boot .boot-name { font-family: 'Fraunces', ui-serif, Georgia, serif; font-variation-settings: 'SOFT' 100; font-weight: 600; font-size: 1.75rem; line-height: 1.1; text-transform: lowercase; }
-      #boot svg.squiggle { width: 112px; height: 14px; color: #ff6f1e; }
-      #boot svg.squiggle path { stroke-dasharray: 140; stroke-dashoffset: 140; animation: bootdraw 1.2s ease-in-out infinite alternate; }
+         white paper, the ink frame mark, an Inter wordmark with tight tracking.
+         Ink canvas at night, white mark. */
+      #boot { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #ffffff; color: #14171f; }
+      [data-theme='dark'] #boot { background: #14171f; color: #f5f6f9; }
+      #boot .boot-mark { display: grid; justify-items: center; gap: 14px; padding: 40px; }
+      #boot svg.logo { width: 72px; height: 72px; }
+      #boot .boot-name { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 1.5rem; line-height: 1.05; letter-spacing: -0.015em; }
+      #boot .boot-line { width: 56px; height: 2px; background: currentColor; opacity: 0.18; border-radius: 1px; }
       html.native #boot { display: none; }
-      @keyframes bootdraw { to { stroke-dashoffset: 0; } }
-      @media (prefers-reduced-motion: reduce) { #boot svg.squiggle path { animation: none; stroke-dashoffset: 0; } }
     </style>
     <!-- Boot splash (web/PWA only — suppressed on Android, where the native launch splash stays up until the app's first frame). -->
     <div id="boot" aria-label="%BRAND_NAME%">
       <div class="boot-mark">
         %LOGO%
         <span class="boot-name">%BRAND_NAME%</span>
-        <svg class="squiggle" viewBox="0 0 112 14" aria-hidden="true"><path d="M3 9c10-6 18 4 28-1s17-5 26 0 18 4 27-1 15-4 25 1" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <span class="boot-line" aria-hidden="true"></span>
       </div>
     </div>
     <div id="root"></div>

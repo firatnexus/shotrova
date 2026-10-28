@@ -14,18 +14,21 @@ writeFileSync('public/icons/logo.svg', logoSvg(512));
 const launchBrowser = () => chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const browser = await launchBrowser();
 const page = await browser.newPage({ deviceScaleFactor: 1 });
+// Legacy (non-adaptive) launcher PNGs bake a Paper rounded-square behind the
+// mark so the transparent mark never floats on an arbitrary launcher background.
+const withTile = (svg) => svg.replace(/(<svg[^>]*>)/, `$1<rect width="512" height="512" rx="116" fill="#ffffff"/>`);
 async function render(svg, size, out, bg = 'transparent') {
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(`<html><body style="margin:0;background:${bg}">${svg.replace(/width="\d+" height="\d+"/, `width="${size}" height="${size}"`)}</body></html>`);
   await page.locator('svg').screenshot({ path: out, omitBackground: bg === 'transparent' });
   console.log('✓', out);
 }
-await render(logoSvg(192), 192, 'public/icons/icon-192.png');
-await render(logoSvg(512), 512, 'public/icons/icon-512.png');
+await render(withTile(logoSvg(192)), 192, 'public/icons/icon-192.png');
+await render(withTile(logoSvg(512)), 512, 'public/icons/icon-512.png');
 await render(logoSvg(512, { maskable: true }), 512, 'public/icons/maskable-512.png');
 await render(logoSvg(512, { monochrome: true }), 512, 'public/icons/monochrome-512.png');
-await render(logoSvg(180, { maskable: true }), 180, 'public/icons/apple-touch-icon.png');
-await render(logoSvg(32), 32, 'public/icons/favicon-32.png');
+await render(withTile(logoSvg(180, { maskable: true })), 180, 'public/icons/apple-touch-icon.png');
+await render(withTile(logoSvg(32)), 32, 'public/icons/favicon-32.png');
 await browser.close();
 
 // ---------------------------------------------------------------- Android
@@ -43,9 +46,9 @@ if (existsSync('android/app/src/main/res')) {
   const dens = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
   for (const [d, f] of Object.entries(dens)) {
     mkdirSync(`${RES}/mipmap-${d}`, { recursive: true });
-    await draw(logoSvg(512), 48 * f, `${RES}/mipmap-${d}/ic_launcher.png`);
-    await draw(logoSvg(512, { maskable: true }).replace('rx="0"', 'rx="256"'), 48 * f, `${RES}/mipmap-${d}/ic_launcher_round.png`);
-    // Adaptive icon layers are 108dp; the tilted card diagonal (~0.59) stays inside the 66dp (0.61) safe zone.
+    await draw(withTile(logoSvg(512)), 48 * f, `${RES}/mipmap-${d}/ic_launcher.png`);
+    await draw(withTile(logoSvg(512)).replace('rx="116"', 'rx="256"'), 48 * f, `${RES}/mipmap-${d}/ic_launcher_round.png`);
+    // Adaptive icon layers are 108dp; the mark (pad 0.2) stays inside the 66dp safe zone.
     await draw(logoSvg(512, { foreground: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_foreground.png`);
     await draw(logoSvg(512, { monochrome: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_monochrome.png`);
     console.log('✓ android', d);
