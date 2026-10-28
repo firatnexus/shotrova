@@ -97,11 +97,11 @@ One-time setting: **Settings → Pages → Source: GitHub Actions**. On the free
 2. If the `SH_KEYSTORE_BASE64` secret exists: restore the keystore and run `assembleRelease`; otherwise `assembleDebug`.
 3. `apksigner verify` and `SHA256SUMS.txt`.
 4. APK web-shell E2E tests on the files extracted from the built APK.
-5. Upload the APK as a workflow artifact. For `v*` tags, create the GitHub release and attach the APK.
+5. Upload the APK as a workflow artifact. For `v*` tags, create (or update) the GitHub release and attach the APK. The release body is built by `scripts/release-notes.mjs`: only that version's `## What's new in X.Y.Z` section of `docs/RELEASE_NOTES.md`, followed by the download / install / highlights / permissions / limitations template in `.github/release-template.md` (file name, size and SHA-256 are filled in from the built APK). Older versions never appear on a release page.
 
 Repository secrets: `SH_KEYSTORE_BASE64` (`base64 -w0 shotrova-release.jks`), `SH_KEYSTORE_PASSWORD`, `SH_KEY_ALIAS`, `SH_KEY_PASSWORD`.
 
-Releasing a new version: bump `version` in `package.json` and `src/config/brand.ts`, commit, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+Releasing a new version: bump `version` in `package.json` and `src/config/brand.ts`, add a `## What's new in X.Y.Z` section at the top of `docs/RELEASE_NOTES.md` (a unit test fails without it, and the release step refuses to publish), commit, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 
 ## Installing (for users)
 
