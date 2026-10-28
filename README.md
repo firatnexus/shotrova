@@ -1,284 +1,288 @@
 <div align="center">
 
-<img src="public/icons/logo.svg" width="104" height="104" alt="Shotrova logosu">
+<img src="public/icons/logo.svg" width="104" height="104" alt="Shotrova logo">
 
 # shotrova
 
-**Ekran görüntülerin, düzenli. Hepsi bulunur, hepsi sende.**
+**Your screenshots, organized. All findable, all yours.**
 
-Ekran görüntülerindeki Türkçe ve İngilizce yazıyı cihazında okur, kategorilere ayırır<br>
-ve içindeki yazıyla saniyeler içinde bulmanı sağlar. Sunucu yok, hesap yok, takip yok.
+Shotrova reads the Turkish and English text in your screenshots on your device, sorts them into categories<br>
+and finds them in seconds by what they say. No server, no account, no tracking.
 
-[![Sürüm](https://img.shields.io/github/v/release/firatnexus/shotrova?label=s%C3%BCr%C3%BCm&color=ff6f1e&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/releases/latest)
+[![Release](https://img.shields.io/github/v/release/firatnexus/shotrova?label=release&color=ff6f1e&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/releases/latest)
 [![CI](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/ci.yml?branch=main&label=web%20ci&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/ci.yml)
 [![Android](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/android.yml?label=android%20apk&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/android.yml)
-[![Lisans](https://img.shields.io/github/license/firatnexus/shotrova?label=lisans&color=22c55e&labelColor=171717&style=flat-square)](LICENSE)
+[![License](https://img.shields.io/github/license/firatnexus/shotrova?label=license&color=22c55e&labelColor=171717&style=flat-square)](LICENSE)
 ![Android 8.0+](https://img.shields.io/badge/android-8.0%2B-3b82f6?labelColor=171717&style=flat-square)
-![Dil](https://img.shields.io/badge/dil-TR%20%2B%20EN-ff66cf?labelColor=171717&style=flat-square)
+![Languages](https://img.shields.io/badge/languages-TR%20%2B%20EN-ff66cf?labelColor=171717&style=flat-square)
 
-[**Android APK'yı indir**](https://github.com/firatnexus/shotrova/releases/latest) &nbsp;·&nbsp;
-[**Web uygulamasını aç**](https://firatnexus.github.io/shotrova/) &nbsp;·&nbsp;
-[Sürüm notları](docs/RELEASE_NOTES.md) &nbsp;·&nbsp;
-[Test sonuçları](docs/TESTING.md)
+[**Download the Android APK**](https://github.com/firatnexus/shotrova/releases/latest) &nbsp;·&nbsp;
+[**Open the web app**](https://firatnexus.github.io/shotrova/) &nbsp;·&nbsp;
+[Release notes](docs/RELEASE_NOTES.md) &nbsp;·&nbsp;
+[Test results](docs/TESTING.md)
 
 <br>
 
-<img src="docs/screenshots/readme-hero.png" alt="Shotrova: masaüstü ana ekran, mobil görsel detayı ve koyu tema" width="100%">
+<img src="docs/screenshots/readme-hero.png" alt="Shotrova: desktop home, mobile image detail and dark theme" width="100%">
 
 </div>
 
 <br>
 
-## İçindekiler
+## Contents
 
-- [Neden Shotrova](#neden-shotrova)
-- [Ekran görüntüleri](#ekran-görüntüleri)
-- [Özellikler](#özellikler)
-- [Nasıl çalışır](#nasıl-çalışır)
-- [Tasarım dili](#tasarım-dili)
-- [Android uygulaması](#android-uygulaması)
-- [Kurulum](#kurulum)
-- [Geliştirme](#geliştirme)
-- [Proje yapısı](#proje-yapısı)
-- [Test durumu](#test-durumu)
-- [Sınırlamalar](#sınırlamalar)
-- [Sürüm geçmişi](#sürüm-geçmişi)
-- [Lisans](#lisans)
+- [Why Shotrova](#why-shotrova)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Design language](#design-language)
+- [Android app](#android-app)
+- [Installation](#installation)
+- [Development](#development)
+- [Project structure](#project-structure)
+- [Test status](#test-status)
+- [Limitations](#limitations)
+- [Version history](#version-history)
+- [License](#license)
 
-## Neden Shotrova
+## Why Shotrova
 
-Telefonda yüzlerce ekran görüntüsü birikir: bir tarif, bir fatura, bir adres, bir sohbet, bir ayar ekranı. Galeride hepsi aynı görünür ve aradığını bulmak için tek tek kaydırırsın. Shotrova bu birikintiyi aranabilir bir defter hâline getirir.
+Hundreds of screenshots pile up on a phone: a recipe, an invoice, an address, a chat, a settings screen. In the gallery they all look the same, and finding the one you need means scrolling through them one by one. Shotrova turns that pile into a searchable notebook.
 
 | | |
 |---|---|
-| **Cihazında okur** | Gerçek OCR (tesseract.js) tarayıcıda ya da uygulamada çalışır; görsel hiçbir sunucuya yüklenmez. |
-| **Kendiliğinden düzenler** | 11 hazır kategori, güven puanı ve emin olmadığı görseller için onay kuyruğu. Düzeltmelerinden kural öğrenir. |
-| **Yazıyla bulur** | "makarna tarifi", "geçen ay kaydettiğim adres" gibi aramalar; Türkçe karakterlere toleranslı, eşleşmeler vurgulu. |
-| **Senin kalır** | Veriler cihazdaki IndexedDB'de durur. Yedekleme ZIP ya da JSON olarak senin elinde. |
-| **İki biçim, tek kod** | Yerel Android uygulaması (Capacitor) ve ana ekrana eklenebilen web uygulaması (PWA). |
+| **Reads on your device** | Real OCR (tesseract.js) runs in the browser or in the app; images are never uploaded to a server. |
+| **Organizes itself** | 11 built-in categories, a confidence score and a review queue for images it is unsure about. It learns rules from your corrections. |
+| **Finds by text** | Searches like "pasta recipe" or "address I saved last month"; tolerant of Turkish characters, with highlighted matches. |
+| **Stays yours** | Data lives in IndexedDB on the device. Backups are ZIP or JSON files you keep. |
+| **Two forms, one codebase** | A native Android app (Capacitor) and an installable web app (PWA). |
 
-## Ekran görüntüleri
+## Screenshots
 
 <table>
   <tr>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-light-welcome.png" alt="İlk açılış"><br><sub><b>İlk açılış</b> · açık</sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-light-dashboard.png" alt="Ana ekran"><br><sub><b>Ana ekran</b> · açık</sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-dark-dashboard.png" alt="Ana ekran koyu"><br><sub><b>Ana ekran</b> · koyu</sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-dark-search.png" alt="Arama"><br><sub><b>Arama</b> · koyu</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/mobile-light-welcome.png" alt="First launch"><br><sub><b>First launch</b> · light</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/mobile-light-dashboard.png" alt="Home"><br><sub><b>Home</b> · light</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/mobile-dark-dashboard.png" alt="Home, dark"><br><sub><b>Home</b> · dark</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/mobile-dark-search.png" alt="Search"><br><sub><b>Search</b> · dark</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/mobile-light-detail.png" alt="Görsel detayı"><br><sub><b>Görsel detayı</b> · açık</sub></td>
-    <td align="center"><img src="docs/screenshots/mobile-dark-categories.png" alt="Kategoriler"><br><sub><b>Kategoriler</b> · koyu</sub></td>
-    <td align="center"><img src="docs/screenshots/mobile-light-settings-ai.png" alt="Yapay zekâ ayarları"><br><sub><b>Yapay zekâ ayarları</b> · açık</sub></td>
-    <td align="center"><img src="docs/img/boot-light.png" alt="Açılış ekranı"><br><sub><b>Açılış ekranı</b> · açık</sub></td>
+    <td align="center"><img src="docs/screenshots/mobile-light-detail.png" alt="Image detail"><br><sub><b>Image detail</b> · light</sub></td>
+    <td align="center"><img src="docs/screenshots/mobile-dark-categories.png" alt="Categories"><br><sub><b>Categories</b> · dark</sub></td>
+    <td align="center"><img src="docs/screenshots/mobile-light-settings-ai.png" alt="AI settings"><br><sub><b>AI settings</b> · light</sub></td>
+    <td align="center"><img src="docs/img/boot-light.png" alt="Splash screen"><br><sub><b>Splash</b> · light</sub></td>
   </tr>
 </table>
 
 <table>
   <tr>
-    <td width="33%" align="center"><img src="docs/screenshots/desktop-light-dashboard.png" alt="Masaüstü ana ekran"><br><sub><b>Masaüstü</b> · ana ekran</sub></td>
-    <td width="33%" align="center"><img src="docs/screenshots/desktop-light-search.png" alt="Masaüstü arama"><br><sub><b>Masaüstü</b> · arama</sub></td>
-    <td width="33%" align="center"><img src="docs/screenshots/desktop-dark-detail.png" alt="Masaüstü detay koyu"><br><sub><b>Masaüstü</b> · detay, koyu</sub></td>
+    <td width="33%" align="center"><img src="docs/screenshots/desktop-light-dashboard.png" alt="Desktop home"><br><sub><b>Desktop</b> · home</sub></td>
+    <td width="33%" align="center"><img src="docs/screenshots/desktop-light-search.png" alt="Desktop search"><br><sub><b>Desktop</b> · search</sub></td>
+    <td width="33%" align="center"><img src="docs/screenshots/desktop-dark-detail.png" alt="Desktop detail, dark"><br><sub><b>Desktop</b> · detail, dark</sub></td>
   </tr>
 </table>
 
-## Özellikler
+Screenshots show the English UI. Turkish is the default language and can be switched in Settings.
 
-### Yakalama ve içe aktarma
+## Features
 
-- **Otomatik ekran görüntüsü algılama (Android, isteğe bağlı):** açtığında uygulama yeni ekran görüntülerini kendisi algılar (MediaStore + WorkManager arka plan işi, sürekli bildirim yok), galeriden silinse bile kalsın diye kendi depolamasına kopyalar ve açık onayınla kendi yapay zekâ anahtarınla analiz edip başlık ve kategori üretir. Her kayıt için "Ekran görüntüsü 'Fatura Özeti' başlığıyla Alışveriş kategorisine kaydedildi" gibi bir bildirim gelir; dokununca görsel açılır.
-- **Dürüst durum kartı:** ana ekranda "Otomatik algılama: Açık / Kapalı / İzin eksik / Pil kısıtı var" ve her sorun için tek dokunuşla çözüm. Xiaomi/HyperOS için adım adım "Arka plan çalışma ayarları" rehberi.
-- **Geçmişe dokunmaz:** ilk açılışta eski ekran görüntüsü arşivin içe aktarılmaz; yalnızca yeni görüntüler yakalanır. Kısmi medya erişimi (Android 14+) desteklenir.
-- **İçe aktarma yolları:** sistem fotoğraf seçicisinden çoklu seçim, dosya seçici, sürükle-bırak, pano (Ctrl+V ya da "Panodan yapıştır") ve Android paylaşım menüsü (**Paylaş → Shotrova**).
-- **Güvenli dosya işleme:** JPEG, PNG ve WebP; dosyalar sihirli baytlarıyla doğrulanır, kopyalar SHA-256 ile ayıklanır, ilerleme ve dosya başına hata gösterilir.
+### Capture and import
 
-### Okuma ve düzenleme
+- **Automatic screenshot capture (Android, opt-in):** once enabled, the app detects new screenshots by itself (MediaStore + WorkManager background work, no persistent notification), copies them into its own storage so they survive gallery deletion and, with your explicit consent, analyses them with your own AI key to produce a title and category. Each capture posts a notification like "Saved to Shopping as 'Invoice summary'"; tapping it opens the image.
+- **Honest status card:** home shows "Automatic capture: On / Off / Missing permission / Battery restricted" with a one-tap fix for each problem, plus a step-by-step "Background work settings" guide for Xiaomi/HyperOS.
+- **Leaves your history alone:** your existing screenshot archive is never imported on first enable; only new screenshots are captured. Partial media access (Android 14+) is supported.
+- **Import methods:** multi-select from the system photo picker, file picker, drag and drop, clipboard (Ctrl+V or "Paste from clipboard") and the Android share sheet (**Share → Shotrova**).
+- **Safe file handling:** JPEG, PNG and WebP; files are validated by their magic bytes, duplicates are detected with SHA-256, and progress and per-file errors are shown.
 
-- **Cihaz üzerinde OCR:** Türkçe + İngilizce. Her görselin durumu görünür (sırada, işleniyor, tamam, yazı yok, hata), hatalar yeniden denenebilir, değişmeyen görsel iki kez işlenmez. Okunan yazı düzenlenebilir; orijinal görsele asla dokunulmaz.
-- **Kategoriler:** 11 varsayılan kategori (Tarifler, Alışveriş, Yerler ve Adresler, Seyahat, Belgeler ve Fişler, Sohbetler, Teknoloji, Öğrenme, Eğlence, Oyunlar, Kategorisiz). Oluştur, yeniden adlandır, renklendir, sırala, sil.
-- **Otomatik kategorileme:** anahtar kelime tabanlı, güven puanlı. Eşiğin altındaki öneriler onay kuyruğuna düşer; düzeltmelerin **görünür ve silinebilir** "kelime → kategori" kurallarına dönüşür.
-- **Bulunan bilgiler:** yazıdaki bağlantı, e-posta, telefon numarası ve tarihler tek dokunuşluk çiplere dönüşür: kopyala, aç, ara. Görseller ekranında "Metni kopyala" seçili tüm görsellerin yazısını birden kopyalar.
+### Reading and organizing
 
-### İsteğe bağlı yapay zekâ
+- **On-device OCR:** Turkish + English. Every image shows its status (queued, processing, done, no text, error), failures can be retried and unchanged images are never processed twice. The recognized text is editable; the original image is never modified. Background analysis of automatic captures on Android uses on-device ML Kit text recognition.
+- **Categories:** 11 defaults (Recipes, Shopping, Places and Addresses, Travel, Documents and Receipts, Conversations, Technology, Learning, Entertainment, Games, Uncategorized). Create, rename, recolor, reorder and delete.
+- **Automatic categorization:** keyword-based with a confidence score. Suggestions below the threshold go to a review queue; your corrections become **visible, deletable** "word → category" rules.
+- **Entities:** links, e-mails, phone numbers and dates found in the text become one-tap chips: copy, open, call. On the Images screen, "Copy text" copies the text of every selected image at once.
 
-- **İstediğin sağlayıcı:** OpenAI, Anthropic (Claude), Google Gemini, OpenRouter ya da kendi OpenAI uyumlu uç noktan. Her sağlayıcı kendi anahtarını, modelini ve adresini ayrı tutar; anahtarlar yedeklere asla girmez.
-- **Görü kapalıyken (varsayılan):** yalnızca cihazda okunan yazı (en fazla 2000 karakter) ve kategori adları gönderilir; görselin kendisi cihazdan çıkmaz.
-- **Görü açıkken (açık onayla):** görsel sağlayıcıya gönderilir ve model **temiz bir başlık, kategori ve tam metin** çıkarır. Ham cihaz OCR'ı ayrı alanda saklanır, karşılaştırılabilir. Görsel hakkında serbest soru da sorabilirsin ("bu ne?").
-- **Yapay zekâ metin düzenleyici:** "temizle" OCR bozukluklarını ve biçimi düzeltir, "emoji" ölçülü emoji ekler. Her zaman önizlemeyle uygulanır; elle yaptığın düzeltmelerin sessizce ezilmez.
-- **Görsel başına dışlama:** "Yapay zekaya gönderme" ile tek bir görseli tamamen dışarıda bırakabilirsin.
+### Optional AI
 
-### Arama ve gizlilik
+- **Any provider:** OpenAI, Anthropic (Claude), Google Gemini, OpenRouter or your own OpenAI-compatible endpoint. Each provider keeps its own key, model and base URL; keys never end up in backups.
+- **Vision off (default):** only the on-device OCR text (up to 2000 characters) and category names are sent; the image never leaves the device.
+- **Vision on (explicit opt-in):** the image is sent to the provider and the model extracts a **clean title, category and the full text**. The raw device OCR is stored in a separate field so the two can be compared. You can also ask free-form questions about an image ("what is this?").
+- **AI text editor:** "Fix with AI" repairs OCR garbling and formatting, "Add emojis" adds tasteful emojis. Always applied after a preview; manual edits are never overwritten silently.
+- **Per-image exclusion:** "Don't send to AI" keeps a single image out of AI entirely.
 
-- **Metin tabanlı arama** (anlamsal değil): OCR yazısı, başlık, not, etiket, kategori ve dosya adı üzerinde. "geçen ay" gibi ifadeler ve kategori adları filtreye dönüşür; küçük bir TR↔EN eş anlamlı tablosu vardır.
-- **Gizlilik:** sunucu yok, hesap yok, analitik yok. Her şey cihazdaki IndexedDB'de. Görselli ZIP ya da JSON yedek ve doğrulanmış geri yükleme.
-- **Diller:** Türkçe (varsayılan) ve İngilizce.
-- **Erişilebilirlik:** klavyeyle tam kullanım, görünür odak halkası, azaltılmış hareket desteği, WCAG AA kontrast, iskelet yükleme, boş durumlar, bildirimler ve onay pencereleri.
+### Search and privacy
 
-## Nasıl çalışır
+- **Text-based search** (not semantic) over OCR text, title, note, tags, category and file name. Phrases like "last month" and category names become filters; a small TR↔EN synonym table helps across languages.
+- **Privacy:** no server, no account, no analytics. Everything stays in IndexedDB on the device. ZIP (with images) or JSON backup and validated restore.
+- **Languages:** Turkish (default) and English.
+- **Accessibility:** full keyboard use, visible focus ring, reduced-motion support, WCAG AA contrast, skeleton loading, empty states, toasts and confirmation dialogs.
+
+## How it works
 
 ```mermaid
 flowchart LR
-    A[Ekran görüntüsü] -->|otomatik algılama, paylaş, seç, yapıştır| B[Doğrulama + SHA-256]
+    A[Screenshot] -->|auto capture, share, pick, paste| B[Validation + SHA-256]
     B --> C[(IndexedDB)]
-    C --> D[Cihazda OCR<br/>tesseract.js TR+EN]
-    D --> E{Kategorileme}
-    E -->|güven yüksek| F[Kategori]
-    E -->|güven düşük| G[Onay kuyruğu]
-    D -. isteğe bağlı .-> H[Yapay zekâ sağlayıcısı<br/>yalnız metin ya da görü]
+    C --> D[On-device OCR<br/>tesseract.js TR+EN]
+    D --> E{Categorization}
+    E -->|high confidence| F[Category]
+    E -->|low confidence| G[Review queue]
+    D -. optional .-> H[AI provider<br/>text only or vision]
     H -.-> F
-    F --> I[Metin tabanlı arama]
-    G -->|düzeltme| J[Öğrenilen kurallar]
+    F --> I[Text-based search]
+    G -->|correction| J[Learned rules]
     J --> E
 ```
 
-Mimari ayrıntılar: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Kullanıcı akışları: [FLOWS.md](FLOWS.md)
+Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · User flows: [FLOWS.md](FLOWS.md)
 
-## Tasarım dili
+## Design language
 
-1.9.0 ile Shotrova, öğleden sonra ışığında **sıcak bir okul defteri** gibi görünüyor: krem kâğıt, kömür mürekkebi, tek bir turuncu keçeli kalem ve kenarlara yapıştırılmış birkaç çıkartma.
+Since 1.9.0 Shotrova looks like a **warm school notebook in afternoon light**: cream paper, charcoal ink, a single orange marker and a few stickers stuck on the edges.
 
-| Öğe | Açık tema | Koyu tema | Kullanım |
+| Element | Light theme | Dark theme | Used for |
 |---|---|---|---|
-| Kâğıt | `#fdfbf9` | `#17120d` | Tüm zemin |
-| Mürekkep | `#171717` | `#f6efe7` | Çizgiler, düğme çerçeveleri, kenarlar |
-| Kakao | `#2b1a07` | `#f6efe7` | Büyük başlıklar |
-| Keçeli kalem | `#ff6f1e` | `#ff6f1e` | Yalnızca el yazısı notlar, vurgulu kelime, alt bant |
-| Çiy damlası | `#f7efe9` | `#1e1711` | Seçili sekme, yumuşak yüzeyler |
-| Çıkartmalar | `#3b82f6` · `#ff66cf` · `#22c55e` | aynı | Yalnızca süsleme |
+| Paper | `#fdfbf9` | `#17120d` | The whole canvas |
+| Ink | `#171717` | `#f6efe7` | Lines, button outlines, edges |
+| Cocoa | `#2b1a07` | `#f6efe7` | Large headlines |
+| Marker | `#ff6f1e` | `#ff6f1e` | Only handwritten captions, the highlighted word, the footer band |
+| Dew drop | `#f7efe9` | `#1e1711` | Active tab, soft surfaces |
+| Stickers | `#3b82f6` · `#ff66cf` · `#22c55e` | same | Decoration only |
 
-- **Tipografi:** başlıklar ve düğmeler için Fraunces (SOFT eksenli yuvarlak serif, küçük harf), arayüz metinleri için Geist. İkisi de değişken, OFL lisanslı ve uygulamayla birlikte paketlenir; çevrimdışı da aynı görünür.
-- **Bileşenler:** krem dolgulu, 1.5px mürekkep çerçeveli, 20px yuvarlak hap düğmeler; dolgulu birincil düğme yok. 12px kartlar, 8px giriş alanları, polaroid görsel kartları.
-- **Düzen:** sola hizalı, cömert boşluklu. Masaüstünde üst çubuğun ortasında sade metin menüsü ve 1200px içerik genişliği; mobilde etiketli alt sekme çubuğu. Ana ekranın sonunda 56px üst köşe yarıçaplı turuncu "ekran görüntülerini ekle" bandı.
-- **Sınırlar:** geçiş (gradient), cam efekti ve neon yok; kart gölgeleri en fazla 0.06 opaklıkta.
-- **Logo:** turuncu kare üzerinde, mürekkeple çizilmiş hafif eğik krem bir polaroid; ikinci yazı satırı turuncu, yani vurgulanmış bir kelime.
+- **Typography:** Fraunces (soft, rounded serif via its SOFT axis, lowercase) for headlines and buttons; Geist for UI text. Both are variable, OFL-licensed and bundled with the app, so it looks the same offline.
+- **Components:** cream-filled pill buttons with a 1.5px ink outline and 20px radius; no filled primary button. 12px cards, 8px inputs, polaroid image cards.
+- **Layout:** left-aligned and generously spaced. On desktop a plain text menu centred in the top bar and a 1200px content width; on mobile a labelled bottom tab bar. Home ends with an orange "add your screenshots" band with 56px top corners.
+- **Constraints:** no gradients, glass or neon; card shadows at most 0.06 opacity.
+- **Logo:** a slightly tilted, ink-drawn cream polaroid on an orange tile; its second text line is orange, i.e. a highlighted word.
 
 <p>
-  <img src="docs/img/boot-light.png" width="160" alt="Açılış ekranı açık">
-  <img src="docs/img/boot-dark.png" width="160" alt="Açılış ekranı koyu">
-  <img src="docs/img/boot-after-light.png" width="160" alt="İlk ekran açık">
-  <img src="docs/img/boot-after-dark.png" width="160" alt="İlk ekran koyu">
+  <img src="docs/img/boot-light.png" width="160" alt="Splash, light">
+  <img src="docs/img/boot-dark.png" width="160" alt="Splash, dark">
+  <img src="docs/img/boot-after-light.png" width="160" alt="First screen, light">
+  <img src="docs/img/boot-after-dark.png" width="160" alt="First screen, dark">
 </p>
 
-## Android uygulaması
+## Android app
 
-- **Otomatik yakalama:** ilk açılıştaki onay ekranından ya da Ayarlar → Otomatik Algılama'dan açılır. MediaStore + WorkManager içerik tetikleyicileri işletim sistemi izin verdiği anda çalışır (saf Android'de saniyeler, üretici pil yönetimiyle gecikebilir); ayrıca en az 15 dakikalık periyodik tarama (bu bir işletim sistemi alt sınırıdır, gerçek zaman vaadi değil) ve her açılışta kaçırılanları yakalayan tarama vardır. Başarısız analizler dürüstçe "Analiz bekliyor" olarak sıraya alınır ve yeniden denenir.
-- **Paylaşım menüsü:** galeriden, Dosyalar'dan ya da görsel paylaşan herhangi bir uygulamadan bir veya birden çok görsel için **Paylaş → Shotrova**.
-- **Farklı kaydet:** "Orijinali kaydet" ve "Yedeği dışa aktar" Android'in **Farklı kaydet** penceresini (Storage Access Framework) açar.
-- **Telefondan da sil:** uygulama içinde silmek yalnızca uygulamadaki kopyayı siler; onaylarsan sistem silme akışıyla galerideki orijinal de silinir (Android 11+).
-- **Yerel his:** yakınlaştırma kapalı, gerçek açılış ekranı, temayı izleyen durum ve gezinme çubukları; geri tuşu önce pencereleri kapatır, sonra uygulamada geri gider, en son uygulamadan çıkar.
-- **Anahtar güvenliği:** yapay zekâ anahtarı Android Keystore ile şifrelenmiş olarak cihazda saklanır.
+- **Automatic capture:** enabled from the first-run consent screen or Settings → Automatic capture. MediaStore + WorkManager content triggers run as soon as the OS allows background work (seconds on stock Android, possibly delayed by OEM power management), plus a periodic catch-up scan (minimum 15 minutes, an OS floor rather than a real-time promise) and a catch-up on every launch for anything missed. Failed analyses are honestly queued as "Analysis pending" and retried.
+- **Share sheet:** **Share → Shotrova** for one or many images from the gallery, Files or any app that shares images.
+- **Save as:** "Download" (the original image) and the backup exports ("Full backup (ZIP)", "Data only (JSON)") open the Android **Save as** dialog (Storage Access Framework).
+- **Also delete from phone:** deleting inside the app removes only the app's copy; once you confirm, the system delete flow also removes the gallery original (Android 11+).
+- **Native feel:** pinch zoom disabled, a real splash screen, status and navigation bars that follow the theme; the back button closes dialogs first, then walks back through the app, then leaves it.
+- **Key security:** the AI key is stored on the device encrypted with Android Keystore.
 
-### İzinler
+### Permissions
 
-| İzin | Ne zaman | Neden |
+| Permission | When | Why |
 |---|---|---|
-| `INTERNET` | Her zaman | Yalnızca isteğe bağlı yapay zekâ sağlayıcısı ve "Metni web'de ara" için |
-| `READ_MEDIA_IMAGES` (Android 13+, 14+'ta kısmi erişim) | Otomatik yakalama açıksa | Yeni ekran görüntülerini algılamak |
-| `READ_EXTERNAL_STORAGE` (Android 8–12, `maxSdkVersion 32`) | Otomatik yakalama açıksa | Eski sürümlerde aynı amaç |
-| `POST_NOTIFICATIONS` | Otomatik yakalama açıksa | Kaydedilen her görüntü için bildirim |
-| `RECEIVE_BOOT_COMPLETED` | Otomatik yakalama açıksa | Yeniden başlatmadan sonra yakalama işini yeniden kurmak |
+| `INTERNET` | Always | Only for the optional AI provider and "Search this text on the web" |
+| `READ_MEDIA_IMAGES` / `READ_MEDIA_VISUAL_USER_SELECTED` (Android 13+, partial access on 14+) | If automatic capture is on | Detecting new screenshots |
+| `READ_EXTERNAL_STORAGE` (Android 8–12, `maxSdkVersion 32`) | If automatic capture is on | Same purpose on older versions |
+| `POST_NOTIFICATIONS` | If automatic capture is on | A notification for each saved screenshot |
+| `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK` | If automatic capture is on | Re-arming the capture work after a reboot (WorkManager) |
 
-`WAKE_LOCK` arka plan işi (WorkManager) için eklenir. Konum, kamera, mikrofon ya da kişiler izni hiçbir zaman istenmez. Android bulut yedeği kapalıdır (`allowBackup="false"`); uygulama içi yedeklemeyi kullan.
+Location, camera, microphone or contacts permissions are never requested. Android cloud backup is disabled (`allowBackup="false"`); use the in-app backup.
 
-## Kurulum
+## Installation
 
 ### Android
 
-1. [Son sürüm sayfasından](https://github.com/firatnexus/shotrova/releases/latest) `shotrova-<sürüm>.apk` dosyasını telefona indir (imzalı sürüm derlemesi, Android 8.0+ / API 26+).
-2. İstersen aynı sayfadaki `SHA256SUMS.txt` ile dosyayı doğrula.
-3. APK'yı aç; Android sorarsa tarayıcın ya da dosya yöneticin için "Bilinmeyen uygulamaları yükle" iznini ver.
-4. İlk açılışta otomatik yakalamayı açmak ya da atlamak sana kalmış.
+1. Download `shotrova-<version>.apk` to your phone from the [latest release](https://github.com/firatnexus/shotrova/releases/latest) (signed release build, Android 8.0+ / API 26+).
+2. Optionally verify the file against `SHA256SUMS.txt` on the same page.
+3. Open the APK; if Android asks, allow "Install unknown apps" for your browser or file manager.
+4. On first launch, enabling automatic capture is up to you.
 
-Uygulama Google Play'de değildir.
+The app is not on Google Play.
 
 ### Web
 
-[firatnexus.github.io/shotrova](https://firatnexus.github.io/shotrova/) adresini modern bir tarayıcıda aç; tarayıcı menüsünden ana ekrana ekleyerek uygulama gibi kullanabilirsin.
+Open [firatnexus.github.io/shotrova](https://firatnexus.github.io/shotrova/) in a modern browser; add it to your home screen from the browser menu to use it like an app.
 
-## Geliştirme
+## Development
 
-Gereksinimler: Node.js 20+, APK için JDK 21 ve Android SDK 35.
+Requirements: Node.js 20+; for the APK, JDK 21 and Android SDK 35.
 
 ```bash
 npm ci --legacy-peer-deps
-npm run dev                         # geliştirme sunucusu
-npm run build && npm run preview    # üretim derlemesi → http://localhost:4173
-npm test                            # birim testleri (Vitest)
-npm run test:e2e                    # Playwright uçtan uca testleri (önce build)
-npm run icons                       # logo, favicon, PWA ve Android simgelerini üret
+npm run dev                         # development server
+npm run build && npm run preview    # production build → http://localhost:4173
+npm test                            # unit tests (Vitest)
+npm run test:e2e                    # Playwright end-to-end tests (build first)
+npm run icons                       # generate logo, favicon, PWA and Android icons
 npm run apk:debug                   # build + cap sync + gradlew assembleDebug
 ```
 
-İmzalama, CI ve yayın ayrıntıları: [docs/DEPLOY.md](docs/DEPLOY.md). `v*` etiketi gönderildiğinde Android iş akışı imzalı APK'yı ve `SHA256SUMS.txt` dosyasını derleyip sürüm notlarıyla birlikte yayınlar.
+Signing, CI and release details: [docs/DEPLOY.md](docs/DEPLOY.md). Pushing a `v*` tag makes the Android workflow build the signed APK and `SHA256SUMS.txt` and publish them with the release notes.
 
-## Proje yapısı
+## Project structure
 
 ```text
 src/
-  ai/           sağlayıcılar (OpenAI, Anthropic, Gemini, OpenRouter, özel) ve görü
-  auto/         otomatik yakalama senkronizasyonu
-  backup/       ZIP / JSON yedekleme ve doğrulanmış geri yükleme
-  categorize/   anahtar kelime kategorileyici, öğrenilen kurallar, yapay zekâ
-  config/       marka: ad, sürüm, renkler, logo SVG'si
-  db/           IndexedDB şeması (idb)
+  ai/           providers (OpenAI, Anthropic, Gemini, OpenRouter, custom) and vision
+  auto/         automatic capture sync
+  backup/       ZIP / JSON backup and validated restore
+  categorize/   keyword categorizer, learned rules, AI
+  config/       brand: name, version, colors, logo SVG
+  db/           IndexedDB schema (idb)
   i18n/         tr.json, en.json
-  import/       dosya doğrulama ve görsel işleme
-  lib/          eylemler, varlık çıkarma, durum, bildirimler
-  native/       Capacitor köprüsü
-  ocr/          tesseract.js iş kuyruğu
-  search/       metin tabanlı arama ve sorgu ayrıştırma
-  ui/           React ekranları, styles.css, çıkartmalar
-android/        Capacitor Android projesi (Java: yakalama, paylaşım, SAF)
-public/         simgeler, fontlar, OCR dil dosyaları, manifest
-scripts/        simge, ekran görüntüsü ve README görseli üreticileri
-tests/          birim, web E2E ve APK web kabuğu E2E testleri
-docs/           mimari, test, yayın, ad araştırması, ekran görüntüleri
+  import/       file validation and image processing
+  lib/          actions, entity extraction, state, toasts
+  native/       Capacitor bridge
+  ocr/          tesseract.js job queue
+  search/       text-based search and query parsing
+  ui/           React screens, styles.css, stickers
+android/        Capacitor Android project (Java: capture, sharing, SAF)
+public/         icons, fonts, OCR language files, manifest
+scripts/        icon, screenshot and README image generators
+tests/          unit, web E2E and APK web-shell E2E tests
+docs/           architecture, testing, deployment, name research, screenshots
 ```
 
-## Test durumu
+## Test status
 
-| Paket | Sonuç |
+| Suite | Result |
 |---|---|
-| Birim testleri (Vitest) | 83 / 83 |
-| Web E2E, kök yol (Playwright, masaüstü Chromium) | 38 / 38 |
-| APK web kabuğu E2E (simüle Android köprüsü, yerel) | 10 / 11; A1 gerçek APK'daki paketli OCR dosyalarını ister ve Android iş akışında çalışır |
-| TypeScript (`tsc -b`) ve alt yol derlemesi (`/shotrova/`) | temiz |
+| Unit tests (Vitest) | 83 / 83 |
+| Web E2E, root path (Playwright, Pixel 7 + desktop Chromium) | 38 / 38 |
+| Web E2E, `/shotrova/` subpath (GitHub Pages layout) | runs in CI on every push |
+| APK web-shell E2E (simulated Android bridge) | runs against the real built APK in the Android workflow |
+| TypeScript (`tsc -b`) and subpath build | clean |
 
-Tüm sonuçlar gerçekten çalıştırılmıştır; kayıtlar ve elle test adımları [docs/TESTING.md](docs/TESTING.md) içinde.
+Every result was actually executed; logs and manual test steps are in [docs/TESTING.md](docs/TESTING.md).
 
-## Sınırlamalar
+## Limitations
 
-- **Fiziksel Android cihazda ya da emülatörde test edilmedi.** Derleme ortamında KVM/emülatör yok. APK derlenip imzalanıyor ve paketlenmiş web dosyaları simüle bir Android köprüsüyle Chromium'da test ediliyor; ancak Java tarafı (paylaşım, Farklı kaydet, arka plan yakalama zamanlaması, özellikle Xiaomi/HyperOS'ta ekran kapalıyken) yalnızca gerçek cihazda doğrulanabilir.
-- **Arka plan zamanlaması garanti değil:** zorla durdurma, yeniden başlatma ve üretici pil tasarrufu algılamayı geciktirebilir.
-- **Depolama kalıcı değil:** uygulamayı kaldırmak ya da verilerini (web'de tarayıcı verilerini) temizlemek her şeyi siler. Düzenli yedek al.
-- **OCR doğruluğu** görsel kalitesine bağlıdır; el yazısı, çok küçük ya da süslü yazılar yanlış okunabilir. Web sürümü ilk kullanımda yaklaşık 17 MB OCR dosyası indirir; APK bunları içinde taşır.
-- **Görsel anlama isteğe bağlıdır:** yapay zekâ olmadan kategorileme yalnızca okunan yazıya dayanır; yazısız fotoğraflar onay için "Kategorisiz"e düşer.
-- **Arama metin tabanlıdır,** anlamsal değildir.
-- **Yalnızca Android:** iOS derlemesi yok. Web'de paylaşım hedefi yalnızca PWA, Chromium tabanlı bir Android tarayıcıya kurulduğunda çalışır.
-- **Ad için hukuki garanti yok.** Bkz. [docs/NAMING.md](docs/NAMING.md).
+- **Not tested on a physical Android device or emulator.** The build environment has no KVM/emulator. The APK is built, signed and its bundled web files are tested in Chromium with a simulated Android bridge, but the Java side (sharing, Save as, background capture timing, especially on Xiaomi/HyperOS with the screen off) can only be verified on a real device.
+- **Background timing is not guaranteed:** force-stop, reboot and OEM battery savers can delay detection.
+- **Storage is not permanent:** uninstalling the app or clearing its data (browser data for the web version) deletes everything. Make regular backups.
+- **OCR accuracy** depends on image quality; handwriting and very small or decorative text may be misread. The web version downloads about 17 MB of OCR files on first use; the APK bundles them.
+- **Visual understanding is optional:** without AI, categorization relies only on recognized text; photos without text go to "Uncategorized" for review.
+- **Search is text-based,** not semantic.
+- **Android only:** there is no iOS build. On the web, the share target works only after installing the PWA in a Chromium-based Android browser.
+- **No legal guarantee for the name.** See [docs/NAMING.md](docs/NAMING.md).
 
-## Sürüm geçmişi
+## Version history
 
-| Sürüm | Öne çıkan |
+| Version | Highlights |
 |---|---|
-| **1.9.0** | Superr esintili "okul defteri" tasarımı, turuncu polaroid logo, paketlenmiş Fraunces + Geist, yeni README ve ekran görüntüleri |
-| 1.8.0 | Threads esintili sade tasarım, siyah-beyaz polaroid logo |
-| 1.7.0 | Portrait esintili tasarım, yeni polaroid logo |
-| 1.6.0 | Superhuman esintili tasarım, çift açılış ekranı düzeltmesi, koyu yerel açılış |
-| 1.5.0 | Apple esintili arayüz dili |
-| 1.4.0 | Otomatik ekran görüntüsü algılama, durum kartı, Telefondan da sil, HyperOS rehberi |
-| 1.3.x | Çoklu yapay zekâ sağlayıcısı, görsel hakkında soru-cevap, Metni web'de ara |
-| 1.2.x | Yapay zekâ görü, metin düzenleyici, bulunan bilgi çipleri, açılış ekranı |
+| **1.9.1** | English README, release notes and screenshots; "1 result" wording fix |
+| 1.9.0 | Superr-inspired "school notebook" design, orange polaroid logo, bundled Fraunces + Geist |
+| 1.8.0 | Threads-inspired minimal design, black-and-white polaroid logo |
+| 1.7.0 | Portrait-inspired design, new polaroid logo |
+| 1.6.0 | Superhuman-inspired design, double splash fix, dark native splash |
+| 1.5.0 | Apple-inspired visual language |
+| 1.4.0 | Automatic screenshot capture, status card, Also delete from phone, HyperOS guide |
+| 1.3.x | Multi-provider AI, image Q&A, web search for recognized text |
+| 1.2.x | AI vision, text editor, entity chips, splash screen |
 
-Tüm ayrıntılar: [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
+Full details: [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
 
-## Lisans
+## License
 
-MIT, bkz. [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
 
-Üçüncü taraf bileşenler: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract dil modelleri `@tesseract.js-data/tur` ve `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [React](https://react.dev/) (MIT), [idb](https://github.com/jakearchibald/idb) (ISC), [fflate](https://github.com/101arrowz/fflate) (MIT), [Fraunces](https://github.com/undercasetype/Fraunces) ve [Geist](https://github.com/vercel/geist-font) (SIL Open Font License 1.1, lisans metinleri `public/fonts/` içinde).
+Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [React](https://react.dev/) (MIT), [idb](https://github.com/jakearchibald/idb) (ISC), [fflate](https://github.com/101arrowz/fflate) (MIT), [Google ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/android) (Android only, [ML Kit terms](https://developers.google.com/ml-kit/terms)), [Fraunces](https://github.com/undercasetype/Fraunces) and [Geist](https://github.com/vercel/geist-font) (SIL Open Font License 1.1, license texts in `public/fonts/`).
 
 <div align="center">
 <br>
-<sub>shotrova · ekran görüntülerin için sevgiyle tutulmuş bir defter</sub>
+<sub>shotrova · a notebook kept with care for your screenshots</sub>
 </div>

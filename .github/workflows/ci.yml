@@ -1,4 +1,4 @@
-name: CI ve GitHub Pages
+name: CI and GitHub Pages
 
 on:
   push:
