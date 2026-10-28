@@ -242,7 +242,7 @@ test('08 filter by category and date, sort, bulk categorize and bulk delete', as
   await page.getByTestId('sort').selectOption('oldest');
   await expect(page.locator('[data-testid=grid] .tile .title').first()).toHaveText('invoice_tr');
   await page.getByTestId('sort').selectOption('title');
-  const titles = await page.locator('[data-testid=grid] .tile .title').allInnerTexts();
+  const titles = await page.locator('[data-testid=grid] .tile .title').allTextContents();
   expect(titles).toEqual([...titles].sort((a, b) => a.localeCompare(b, 'tr')));
   // Bulk categorize
   await page.getByRole('button', { name: 'Seç', exact: true }).click();
