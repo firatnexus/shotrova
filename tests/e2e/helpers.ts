@@ -115,5 +115,5 @@ export const byName = (list: DbImage[], name: string): DbImage => {
 export async function search(page: Page, q: string): Promise<string[]> {
   await page.getByTestId('search').fill(q);
   await page.waitForTimeout(350);
-  return page.locator('[data-testid=grid] .tile .title').allInnerTexts();
+  return page.locator('[data-testid=grid] .tile .title').allTextContents();
 }
