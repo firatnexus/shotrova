@@ -19,19 +19,21 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.8.0',
+  version: '1.9.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Logo tile and adaptive-icon background (Threads Ink). */
-    ink: '#000000',
-    /** Polaroid frame and text lines on the tile. */
-    paper: '#ffffff',
-    /** System bars / manifest: white top bar (light) and #101010 (dark). */
-    themeLight: '#ffffff',
-    themeDark: '#101010',
+    /** Logo tile and adaptive-icon background (Marker Orange). */
+    ink: '#ff6f1e',
+    /** Polaroid frame and text lines on the tile (Cream Paper). */
+    paper: '#fdfbf9',
+    /** Outline of the polaroid and its text lines (Charcoal). */
+    line: '#171717',
+    /** System bars / manifest: cream paper (light) and warm night cocoa (dark). */
+    themeLight: '#fdfbf9',
+    themeDark: '#17120d',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;
@@ -44,28 +46,28 @@ function rr(x: number, y: number, w: number, h: number, r: number): string {
 }
 
 /**
- * The logo mark: a single polaroid, tilted a few degrees as if pinned to a
- * wall, whose photo window holds two text lines — a screenshot you find by
- * the words inside. Two colours only (ink tile, white paper); the window is
- * cut out with an even-odd path so the monochrome/foreground variants stay a
- * single white glyph. `themed` draws the tile in currentColor and the paper in
- * --logo-paper so the in-app mark inverts with the theme (black on light,
- * near-white on dark), like a monochrome glyph. Original artwork, generated as SVG so every icon size
- * comes from this one source.
+ * The logo mark: a single cream polaroid, tilted a few degrees as if stuck
+ * onto a notebook page, sitting on a Marker Orange tile. The polaroid is
+ * outlined in Charcoal ink like a hand-drawn sticker; its photo window holds
+ * two text lines — the second one in marker orange, like a highlighted word —
+ * i.e. a screenshot you find by the words inside. `monochrome` (Android 13
+ * themed icons) collapses everything into a single white glyph: card minus
+ * window (even-odd) plus the text lines. `foreground` drops the tile for the
+ * adaptive-icon foreground layer (the tile colour becomes the background
+ * layer). The in-app mark (`themed`) is identical in both themes — the orange
+ * tile reads on cream paper and on the dark cocoa canvas alike. Original
+ * artwork, generated as SVG so every icon size comes from this one source.
  */
 export function logoSvg(
   size = 512,
-  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app: tile = currentColor, paper = var(--logo-paper). */ themed?: boolean } = {},
+  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark (kept for call-site compatibility; same artwork in both themes). */ themed?: boolean } = {},
 ): string {
-  const { ink, paper } = BRAND.colors;
+  const { ink, paper, line: lineInk } = BRAND.colors;
   const pad = opts.pad ?? (opts.maskable ? 0.2 : 0.12);
   const tile = opts.maskable ? 0 : 0.23;
   const s = 512;
   const inner = s * (1 - pad * 2);
   const o = s * pad;
-  const fg = opts.monochrome ? '#FFFFFF' : paper;
-  const bg = opts.monochrome ? 'none' : ink;
-  const fill = (c: string, themedVal: string) => (opts.themed ? `style="fill:${themedVal}"` : `fill="${c}"`);
   // Polaroid card: portrait 0.62 × 0.76 of the inner box, centred.
   const cw = inner * 0.62;
   const ch = inner * 0.76;
@@ -77,14 +79,23 @@ export function logoSvg(
   const card = rr(cx, cy, cw, ch, cw * 0.1);
   const win = rr(cx + m, cy + m, ww, wh, cw * 0.05);
   const lh = ww * 0.11;
-  const line = (y: number, w: number) => `<rect x="${cx + m + ww * 0.16}" y="${y}" width="${w}" height="${lh}" rx="${lh / 2}" ${fill(fg, 'var(--logo-paper, #fff)')}/>`;
   const ly = cy + m + wh * 0.4;
+  const lx = cx + m + ww * 0.16;
+  const sw = cw * 0.055; // ink outline weight
+  const bar = (y: number, w: number, color: string) => `<rect x="${lx}" y="${y}" width="${w}" height="${lh}" rx="${lh / 2}" fill="${color}"/>`;
+  const tileRect = opts.monochrome || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" fill="${ink}"/>`;
+  const body = opts.monochrome
+    ? `<path d="${card} ${win}" fill="#FFFFFF" fill-rule="evenodd"/>
+    ${bar(ly, ww * 0.68, '#FFFFFF')}
+    ${bar(ly + lh * 2, ww * 0.46, '#FFFFFF')}`
+    : `<path d="${card}" fill="${paper}" stroke="${lineInk}" stroke-width="${sw}" stroke-linejoin="round"/>
+    <path d="${win}" fill="#f7efe9" stroke="${lineInk}" stroke-width="${sw * 0.7}" stroke-linejoin="round"/>
+    ${bar(ly, ww * 0.68, lineInk)}
+    ${bar(ly + lh * 2, ww * 0.46, ink)}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${s} ${s}">
-  ${bg === 'none' || opts.foreground ? '' : `<rect width="${s}" height="${s}" rx="${s * tile}" ${fill(bg, 'currentColor')}/>`}
+  ${tileRect}
   <g transform="rotate(-8 ${s / 2} ${s / 2})">
-    <path d="${card} ${win}" ${fill(fg, 'var(--logo-paper, #fff)')} fill-rule="evenodd"/>
-    ${line(ly, ww * 0.68)}
-    ${line(ly + lh * 2, ww * 0.46)}
+    ${body}
   </g>
 </svg>`;
 }

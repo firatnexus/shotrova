@@ -1,5 +1,17 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.9.0
+
+- **Yeni tasarım (Superr esintili, "okul defteri"):** öğleden sonra ışığında sıcak bir okul defteri. Zemin krem kâğıt (#fdfbf9), tüm çizgi, düğme çerçevesi ve yapısal kenarlar kömür mürekkebi (#171717), başlıklar kakao mürekkebi (#2b1a07). Tek kromatik vurgu Marker Orange (#ff6f1e) — yalnızca el yazısı notlarda, vurgulanan kelimede ve kapanış bandında. Geçiş (gradient), cam efekti ve neon yok; gölgeler fısıltı kadar hafif (kartlarda %6, düğmelerde 1–2px %25).
+- **Tipografi:** başlıklar, düğmeler ve el yazısı notlar için Fraunces (SOFT 100 ekseniyle yumuşak, yuvarlak serif; gelica'nın yerine), arayüz metinleri için Geist. Her ikisi de değişken, OFL lisanslı, latin + latin-ext (tam Türkçe desteği) ve uygulamayla birlikte paketleniyor — CDN yok. Başlıklar küçük harf ve normal harf aralığıyla, sola hizalı.
+- **Ana ekran:** büyük, küçük harfli bir başlık; bir kelimesi ("düzenli" / "bulunur") turuncu keçeli kalemle ve el çizimi dalgalı alt çizgiyle vurgulanıyor. Başlığın üstünde el yazısı not ("sevgili ekran görüntüleri,") ve ince el çizimi ok. Masaüstünde sağda son üç ekran görüntün eğik bir polaroid yığını olarak duruyor; üstünde okul etiketi gibi bir isim etiketi (başlık / kategori / no.) var. Ana ekran, üst köşeleri 56px yuvarlatılmış turuncu bir marka bandıyla ("ekran görüntülerini ekle") bitiyor.
+- **Çıkartmalar:** şimşek, gözlü kalp, parıltı, hayalet ve yıldız gibi düz, 2px mürekkep çizgili dekoratif çıkartmalar elle yapıştırılmış gibi 5–15° eğik duruyor. Yalnızca süs: ekran okuyuculardan gizli ve hiçbir işlevsel öğede bu renkler kullanılmıyor.
+- **Bileşenler:** krem dolgulu, 1.5px mürekkep çerçeveli, 20px yuvarlak hap düğmeler (dolgulu birincil düğme yok). 12px köşeli kartlar, 8px köşeli giriş alanları, 20px hap etiketler. Görsel kartları polaroid gibi: kâğıt çerçeve, 8px köşeli fotoğraf penceresi; "Son eklenenler" şeridinde hafifçe eğik duruyorlar. Anahtar, kaydırıcı ve ilerleme çubuklarında turuncu vurgu.
+- **Düzen:** sol üstte polaroid marka işareti, sağ üstte tek hap düğme ("Görsel ekle"). Masaüstünde gezinme üst çubuğun ortasında sade bir metin menüsü; içerik 1200px genişliğe kadar çıkıyor, ayarlar ve kategoriler 760px'lik bir defter sütununda kalıyor. Görsel detayında masaüstünde görsel ve metin yan yana. Mobilde simge + etiketli alt sekme çubuğu; etkin sekme mürekkep çerçeveli küçük bir hapın içinde.
+- **Koyu tema:** gece defteri — sıcak kakao zemin (#17120d), krem mürekkep, turuncu kalem aynı. Metin/zemin eşleşmeleri WCAG AA sağlıyor; odak halkası yeşil (Sprout).
+- **Logo ve simgeler:** turuncu kare üzerinde, mürekkeple çizilmiş krem bir polaroid; ikinci yazı satırı turuncu, yani vurgulanmış bir kelime. Uygulama simgesi (adaptive icon ön plan / arka plan / tek renk), favicon, PWA simgeleri, açılış ekranı (açık: krem, koyu: #17120d) ve README logosu yenilendi. Web açılış ekranında kendini çizen turuncu bir dalga var.
+- İşlevlerde değişiklik yok; yalnızca görünüm ve düzen güncellendi. Verilerin olduğu gibi kalır.
+
 ## What's new in 1.8.0
 
 - **Yeni tasarım (Threads esintili):** içeriği öne çıkaran sade bir arayüz. Zemin #fafafa, kartlar beyaz, metin saf siyah. Gölge ve geçiş (gradient) kaldırıldı; yüzeyler 1px gri ince çizgiyle (#d5d5d5) ayrılıyor.
