@@ -211,7 +211,7 @@ npm run icons                       # generate logo, favicon, PWA and Android ic
 npm run apk:debug                   # build + cap sync + gradlew assembleDebug
 ```
 
-Signing, CI and release details: [docs/DEPLOY.md](docs/DEPLOY.md). Pushing a `v*` tag makes the Android workflow build the signed APK and `SHA256SUMS.txt` and publish them with the release notes.
+Signing, CI and release details: [docs/DEPLOY.md](docs/DEPLOY.md). Pushing a `v*` tag makes the Android workflow build the signed APK and `SHA256SUMS.txt` and publish them on a release page that shows only that version's notes.
 
 ## Project structure
 
