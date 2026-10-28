@@ -218,7 +218,7 @@ export function App() {
             </div>
           </div>
         )}
-        <main id="main" tabIndex={-1}>{screen}</main>
+        <main id="main" tabIndex={-1} data-screen={tab || 'home'}>{screen}</main>
       </div>
       <input
         ref={inputRef}

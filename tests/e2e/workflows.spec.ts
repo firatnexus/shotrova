@@ -538,11 +538,13 @@ test('theme: dark and light both render', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe('rgb(16, 16, 16)'); // Threads dark canvas (#101010)
+  expect(bg).toBe('rgb(23, 18, 13)'); // night-notebook cocoa canvas (#17120d)
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.getByTestId('theme-light').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  const light = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  expect(light).toBe('rgb(253, 251, 249)'); // cream paper canvas (#fdfbf9)
 });
 
 test('13 AI vision: consent gates the image upload, AI text merges, editor + entities work', async ({ page }) => {

@@ -2,9 +2,9 @@
 <resources>
 
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="colorPrimary">#000000</item>
-        <item name="colorPrimaryDark">#101010</item>
-        <item name="colorAccent">#385898</item>
+        <item name="colorPrimary">#171717</item>
+        <item name="colorPrimaryDark">#17120d</item>
+        <item name="colorAccent">#ff6f1e</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">

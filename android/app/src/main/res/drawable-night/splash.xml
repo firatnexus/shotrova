@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dark launch screen: #101010 with the white polaroid glyph centred. -->
+<!-- Dark launch screen: night cocoa #17120d with the orange polaroid icon centred. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background_dark" />
-    <item android:width="160dp" android:height="160dp" android:gravity="center" android:drawable="@mipmap/ic_launcher_foreground" />
+    <item android:width="96dp" android:height="96dp" android:gravity="center" android:drawable="@mipmap/ic_launcher" />
 </layer-list>

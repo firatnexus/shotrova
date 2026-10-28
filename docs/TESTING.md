@@ -1,16 +1,17 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Run date: 22 October 2026 (v1.3.1). Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Latest run: 28 October 2026 (v1.9.0, Superr "notebook" redesign); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
 
 ## Summary
 
 | Suite | Command | Result |
 |---|---|---|
 | Unit tests (11 files) | `npm test` | **83 / 83 passed** (v1.3.x additions: `providers.test.ts` — per-provider request contracts, settings migration, error normalisation, image Q&A history; updated `vision.test.ts`, `backup.test.ts` key stripping) |
-| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **38 / 38 passed** (19 scenarios × 2 device profiles, incl. provider key isolation) ([JSON](test-results/e2e-root.json), [log](test-results/e2e-root.log)) |
+| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **38 / 38 passed** on v1.9.0 (19 scenarios × 2 device profiles, incl. provider key isolation; theme check now cream paper `rgb(253, 251, 249)` / night cocoa `rgb(23, 18, 13)`) ([JSON](test-results/e2e-root.json), [log](test-results/e2e-root.log)) |
 | Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **38 / 38 passed** (executed in CI on the v1.3.1 push) ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
 | APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
 | APK web-shell E2E, signed release APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
+| APK web-shell E2E against `dist` with simulated bridge (v1.9.0, local) | `APK_PUBLIC=dist npx playwright test -c playwright.android.config.ts` | **10 / 11 passed**; A1 needs the bundled OCR files of a real APK build and runs in the Android workflow. A8 now expects `#fdfbf9` / `#17120d` system bars |
 | APK build and inspection | `./gradlew assembleDebug` / `assembleRelease`, `aapt2 dump badging`, `apksigner verify` | **Built and verified** (see below) |
 
 Device profiles for web E2E:
