@@ -343,6 +343,8 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
 .hero-copy { display: flex; flex-direction: column; align-items: center; gap: var(--s4); min-width: 0; width: 100%; max-width: 720px; margin: 0 auto; }
 .hero h1 { font-size: var(--text-display); line-height: 1.05; letter-spacing: -0.01em; font-weight: 600; max-width: 18ch; }
 .hero .lead { font-size: var(--text-md); color: #373f51; max-width: 46ch; line-height: 1.5; }
+/* The hero wash stays bright in dark mode, so its type stays ink in both themes. */
+[data-theme='dark'] .hero h1 { color: #14171f; }
 .hero .searchbox { width: 100%; }
 .hero .notice { width: 100%; }
 .hero .chips { justify-content: safe center; max-width: 100%; }
