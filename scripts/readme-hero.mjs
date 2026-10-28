@@ -56,15 +56,15 @@ p { margin: 28px 0 0; font-size: 22px; line-height: 1.5; color: #5c4f43; max-wid
 </style></head><body>
 <div class="copy">
   <div class="brand">${logoSvg(58)}<span>shotrova</span></div>
-  <div class="cap">sevgili ekran görüntüleri, ${arrow}</div>
-  <h1>hepsi <span class="mk">bulunur</span>, hepsi sende.</h1>
-  <p>Ekran görüntülerindeki yazıyı cihazında okur, kategorilere ayırır ve içindeki yazıyla bulur. Türkçe + İngilizce, sunucusuz.</p>
-  <div class="pills"><span class="pill">Android APK</span><span class="pill">Web uygulaması</span><span class="pill">v${BRAND.version}</span></div>
+  <div class="cap">dear screenshots, ${arrow}</div>
+  <h1>all <span class="mk">findable</span>, all yours.</h1>
+  <p>Reads the text in your screenshots on your device, sorts them into categories and finds them by what they say. Turkish + English, no server.</p>
+  <div class="pills"><span class="pill">Android APK</span><span class="pill">Web app</span><span class="pill">v${BRAND.version}</span></div>
 </div>
 <div class="frame desk"><img src="${img('desktop-light-dashboard')}"></div>
 <div class="frame ph1"><img src="${img('mobile-light-detail')}"></div>
 <div class="frame ph2"><img src="${img('mobile-dark-dashboard')}"></div>
-<div class="tag"><div><span>başlık</span><b>Elektrik Faturası</b></div><div><span>kategori</span><b>Belgeler ve Fişler</b></div><div><span>no.</span><b>042</b></div></div>
+<div class="tag"><div><span>title</span><b>Electricity Bill</b></div><div><span>category</span><b>Documents and Receipts</b></div><div><span>no.</span><b>042</b></div></div>
 <span class="st" style="left:600px;top:86px;width:70px;height:70px;transform:rotate(12deg)">${bolt}</span>
 <span class="st" style="left:1490px;top:330px;width:64px;height:64px;transform:rotate(-10deg)">${heart}</span>
 <span class="st" style="left:1180px;top:60px;width:58px;height:58px;transform:rotate(-8deg)">${sparkle}</span>

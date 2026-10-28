@@ -1,73 +1,79 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.9.1
+
+- **Search:** a single match now reads "1 result" instead of "1 results" (Turkish: "1 sonuç").
+- **English documentation:** the README was rewritten from scratch in English with a new hero image, and all README screenshots now show the English UI. Release notes, user flows and the repository description are in English too.
+- No other functional or design changes.
+
 ## What's new in 1.9.0
 
-- **Yeni tasarım (Superr esintili, "okul defteri"):** öğleden sonra ışığında sıcak bir okul defteri. Zemin krem kâğıt (#fdfbf9), tüm çizgi, düğme çerçevesi ve yapısal kenarlar kömür mürekkebi (#171717), başlıklar kakao mürekkebi (#2b1a07). Tek kromatik vurgu Marker Orange (#ff6f1e) — yalnızca el yazısı notlarda, vurgulanan kelimede ve kapanış bandında. Geçiş (gradient), cam efekti ve neon yok; gölgeler fısıltı kadar hafif (kartlarda %6, düğmelerde 1–2px %25).
-- **Tipografi:** başlıklar, düğmeler ve el yazısı notlar için Fraunces (SOFT 100 ekseniyle yumuşak, yuvarlak serif; gelica'nın yerine), arayüz metinleri için Geist. Her ikisi de değişken, OFL lisanslı, latin + latin-ext (tam Türkçe desteği) ve uygulamayla birlikte paketleniyor — CDN yok. Başlıklar küçük harf ve normal harf aralığıyla, sola hizalı.
-- **Ana ekran:** büyük, küçük harfli bir başlık; bir kelimesi ("düzenli" / "bulunur") turuncu keçeli kalemle ve el çizimi dalgalı alt çizgiyle vurgulanıyor. Başlığın üstünde el yazısı not ("sevgili ekran görüntüleri,") ve ince el çizimi ok. Masaüstünde sağda son üç ekran görüntün eğik bir polaroid yığını olarak duruyor; üstünde okul etiketi gibi bir isim etiketi (başlık / kategori / no.) var. Ana ekran, üst köşeleri 56px yuvarlatılmış turuncu bir marka bandıyla ("ekran görüntülerini ekle") bitiyor.
-- **Çıkartmalar:** şimşek, gözlü kalp, parıltı, hayalet ve yıldız gibi düz, 2px mürekkep çizgili dekoratif çıkartmalar elle yapıştırılmış gibi 5–15° eğik duruyor. Yalnızca süs: ekran okuyuculardan gizli ve hiçbir işlevsel öğede bu renkler kullanılmıyor.
-- **Bileşenler:** krem dolgulu, 1.5px mürekkep çerçeveli, 20px yuvarlak hap düğmeler (dolgulu birincil düğme yok). 12px köşeli kartlar, 8px köşeli giriş alanları, 20px hap etiketler. Görsel kartları polaroid gibi: kâğıt çerçeve, 8px köşeli fotoğraf penceresi; "Son eklenenler" şeridinde hafifçe eğik duruyorlar. Anahtar, kaydırıcı ve ilerleme çubuklarında turuncu vurgu.
-- **Düzen:** sol üstte polaroid marka işareti, sağ üstte tek hap düğme ("Görsel ekle"). Masaüstünde gezinme üst çubuğun ortasında sade bir metin menüsü; içerik 1200px genişliğe kadar çıkıyor, ayarlar ve kategoriler 760px'lik bir defter sütununda kalıyor. Görsel detayında masaüstünde görsel ve metin yan yana. Mobilde simge + etiketli alt sekme çubuğu; etkin sekme mürekkep çerçeveli küçük bir hapın içinde.
-- **Koyu tema:** gece defteri — sıcak kakao zemin (#17120d), krem mürekkep, turuncu kalem aynı. Metin/zemin eşleşmeleri WCAG AA sağlıyor; odak halkası yeşil (Sprout).
-- **Logo ve simgeler:** turuncu kare üzerinde, mürekkeple çizilmiş krem bir polaroid; ikinci yazı satırı turuncu, yani vurgulanmış bir kelime. Uygulama simgesi (adaptive icon ön plan / arka plan / tek renk), favicon, PWA simgeleri, açılış ekranı (açık: krem, koyu: #17120d) ve README logosu yenilendi. Web açılış ekranında kendini çizen turuncu bir dalga var.
-- İşlevlerde değişiklik yok; yalnızca görünüm ve düzen güncellendi. Verilerin olduğu gibi kalır.
+- **New design (Superr-inspired "school notebook"):** a warm notebook in afternoon light. Cream paper canvas (#fdfbf9); every line, button outline and structural edge in charcoal ink (#171717); headlines in cocoa ink (#2b1a07). The only chromatic accent is Marker Orange (#ff6f1e), used only for handwritten captions, the highlighted word and the closing band. No gradients, glass or neon; shadows are a whisper (6% on cards, 1–2px at 25% on buttons).
+- **Typography:** Fraunces (soft, rounded serif via its SOFT 100 axis, standing in for gelica) for headlines, buttons and handwritten captions; Geist for UI text. Both are variable, OFL-licensed, latin + latin-ext (full Turkish support) and bundled with the app — no CDN. Headlines are lowercase, normal letter-spacing, left-aligned.
+- **Home:** a large lowercase headline with one word ("organized" / "findable") highlighted in orange marker with a hand-drawn wavy underline, a handwritten caption above it ("dear screenshots,") and a thin hand-drawn arrow. On desktop your three latest screenshots sit on the right as a tilted polaroid stack with a school-style name label (title / category / no.). Home ends with an orange brand band with 56px top corners ("add your screenshots").
+- **Stickers:** flat decorative stickers with a 2px ink outline (bolt, heart with eyes, sparkle, ghost, star), tilted 5–15° as if stuck on by hand. Decoration only: hidden from screen readers, and their colors are never used on functional elements.
+- **Components:** cream-filled pill buttons with a 1.5px ink outline and 20px radius (no filled primary button), 12px cards, 8px inputs, 20px pill tags. Image cards look like polaroids — paper frame, 8px photo window — slightly tilted in the "Recently added" strip. Orange accents on switches, sliders and progress bars.
+- **Layout:** polaroid brand mark top left, a single pill button ("Add images") top right. On desktop navigation is a plain text menu centred in the top bar; content widens to 1200px while settings and categories stay in a 760px notebook column. Image detail shows image and text side by side on desktop. On mobile a bottom tab bar with icons and labels; the active tab sits in a small ink-outlined pill.
+- **Dark theme:** a night notebook — warm cocoa canvas (#17120d), cream ink, the same orange marker. Text/background pairs meet WCAG AA; the focus ring is green (Sprout).
+- **Logo and icons:** an ink-drawn cream polaroid on an orange tile; its second text line is orange, i.e. a highlighted word. App icon (adaptive foreground / background / monochrome), favicon, PWA icons, splash (light: cream, dark: #17120d) and README logo were regenerated. The web splash draws an orange squiggle.
+- No functional changes otherwise; your data stays as it is.
 
 ## What's new in 1.8.0
 
-- **Yeni tasarım (Threads esintili):** içeriği öne çıkaran sade bir arayüz. Zemin #fafafa, kartlar beyaz, metin saf siyah. Gölge ve geçiş (gradient) kaldırıldı; yüzeyler 1px gri ince çizgiyle (#d5d5d5) ayrılıyor.
-- **Renk kullanımı:** Verified Indigo (#385898) yalnızca bağlantı, odak halkası ve rozetlerde; Signal Blue (#0095f6) yalnızca birincil eylemin çerçevesinde. Tek dolgulu düğme üst çubuktaki siyah "Görsel ekle" hapı. Dinlenme hâlindeki simgeler renksiz.
-- **Tipografi:** web fontları (Inter, Plus Jakarta Sans) kaldırıldı, yalnızca sistem fontu kullanılıyor. Hiyerarşi ağırlıkla kuruluyor (400/600/700); metin boyutları 12/13/15px, başlıklar 17/24px. Uygulama paketi küçüldü.
-- **Düzen:** beyaz, 56px yüksekliğinde, alt çizgili ve başlığı ortalı üst çubuk. Masaüstünde 80px genişliğinde, yalnızca simgeli sol menü (en üstte logo, etkin öğede 4px siyah çizgi) ve ortalanmış 600px içerik sütunu. Mobilde yalnızca simgeli alt sekme çubuğu (etiketler ekran okuyucular için korunuyor).
-- **Bileşenler:** 18px köşeli kartlar, 8px köşeli görsel ve giriş alanları, tamamen yuvarlak düğme/etiket/avatarlar. Sıkı boşluk düzeni (4px taban, 16px kart iç boşluğu, 12px aralık).
-- **Koyu tema:** Threads'in kendi koyu paletinden türetildi (#101010 zemin, #181818 yüzeyler, #f3f5f7 metin). Metin/zemin eşleşmeleri WCAG AA sağlıyor.
-- **Logo ve simgeler:** polaroid logo siyah-beyaza geçti ve uygulama içinde temayla birlikte tersine dönüyor. Uygulama simgesi (adaptive icon ön plan / arka plan), favicon, PWA simgeleri, açılış ekranı (açık: beyaz, koyu: #101010 üzerinde beyaz simge) ve README logosu yenilendi.
-- **Akıcılık:** gölge, bulanıklık ve eğik kart çizimi kaldırıldı, uzun listelerde ekran dışındaki kartlar çizilmiyor (`content-visibility`), yükleme iskeleti parıltı yerine hafif opaklık animasyonu kullanıyor.
-- İşlevlerde değişiklik yok; yalnızca görünüm ve düzen güncellendi.
+- **New design (Threads-inspired):** a quiet, content-first interface. #fafafa canvas, white cards, pure black text. Shadows and gradients removed; surfaces are separated by 1px grey hairlines (#d5d5d5).
+- **Color use:** Verified Indigo (#385898) only for links, focus rings and badges; Signal Blue (#0095f6) only as the outline of the primary action. The only filled button is the black "Add images" pill in the top bar. Resting icons are colorless.
+- **Typography:** webfonts (Inter, Plus Jakarta Sans) removed in favour of the system font stack. Hierarchy is weight-driven (400/600/700); text sizes 12/13/15px, headings 17/24px. Smaller app bundle.
+- **Layout:** a white 56px top bar with a hairline and centred title. On desktop an 80px icon-only left rail (logo on top, 4px black marker on the active item) and a centred 600px content column. On mobile an icon-only bottom tab bar (labels kept for screen readers).
+- **Components:** 18px cards, 8px media and inputs, fully rounded buttons/tags/avatars. Tight spacing (4px base, 16px card padding, 12px gaps).
+- **Dark theme:** derived from Threads' own dark palette (#101010 canvas, #181818 surfaces, #f3f5f7 text). Text/background pairs meet WCAG AA.
+- **Logo and icons:** the polaroid logo went black and white and inverts with the theme inside the app. App icon, favicon, PWA icons, splash (light: white, dark: white glyph on #101010) and README logo regenerated.
+- **Smoothness:** shadows, blur and tilted card rendering removed; off-screen cards in long lists are skipped (`content-visibility`); the loading skeleton uses a light opacity pulse instead of a shimmer.
+- No functional changes; only look and layout.
 
 ## What's new in 1.7.0
 
-- **Yeni tasarım (Portrait esintili):** tek beyaz zemin ve renkli bant yok. Metin, ince çizgi ve çerçevelerin hepsi tek mürekkep renginde (#08304c). Tek vurgu rengi Nautical Teal (#084e72); küçük yüzeylerde yumuşak pasteller kullanılıyor (nane #d7ffe2, gök #e8f1ff, şeftali #ffebd6).
-- **Gökkuşağı vurgusu:** yalnızca üç yerde: üst çubuktaki "Görsel ekle" düğmesinin 1.5px çerçevesi, ana başlıktaki tek eğik kelime ("düzenli" / "bulunur") ve açılış ekranındaki ince çizgi.
-- **Bileşenler:** yüzen hap biçimli üst çubuk ve alt menü, 24px köşeli kartlar, 28px hap düğmeler (birincil düğme dolgu yerine mürekkep çerçeveli, ikincil düğme hayalet), 16px köşeli giriş alanları, hap etiketler, polaroid görünümlü görsel kartları (son eklenenler hafif eğik). Gölgeler en fazla %8 siyah, katmanlı ve 1px ince çizgili.
-- **Tipografi:** arayüz metinlerinde Inter, büyük başlıklarda Plus Jakarta Sans (değişken, OFL lisanslı) ve sıkı negatif harf aralığı.
-- **Yeni logo:** mürekkep renkli kare üzerinde hafif eğik, minimal beyaz bir polaroid. Uygulama simgesi (adaptive icon ön plan / arka plan / tek renk), bildirim simgesi, favicon, PWA simgeleri ve README logosu yenilendi.
-- **Açılış ekranı:** açık temada beyaz, koyu temada derin mürekkep (#061f33) zemin; Android sistem çubuğu ve tema renkleri yeni palete uyarlandı.
-- **Koyu tema:** derin mürekkep zemin (#061f33), mürekkep yüzeyler (#08304c), beyaz metin. Metin/zemin eşleşmeleri WCAG AA sağlıyor.
-- İşlevlerde değişiklik yok; yalnızca görünüm ve düzen güncellendi.
+- **New design (Portrait-inspired):** a single white canvas and no colored bands. Text, hairlines and outlines all in one ink color (#08304c). The single accent is Nautical Teal (#084e72), with soft pastels on small surfaces (mint #d7ffe2, sky #e8f1ff, peach #ffebd6).
+- **Rainbow accent:** in only three places — the 1.5px outline of the "Add images" button in the top bar, the one slanted word in the home headline ("organized" / "findable") and the thin line on the splash.
+- **Components:** floating pill top bar and bottom menu, 24px cards, 28px pill buttons (primary outlined in ink instead of filled, secondary ghost), 16px inputs, pill tags, polaroid-style image cards (recently added slightly tilted). Shadows at most 8% black, layered, with a 1px hairline.
+- **Typography:** Inter for UI text, Plus Jakarta Sans (variable, OFL) for large headlines with tight negative tracking.
+- **New logo:** a slightly tilted minimal white polaroid on an ink tile. App icon (adaptive foreground / background / monochrome), notification icon, favicon, PWA icons and README logo regenerated.
+- **Splash:** white in light theme, deep ink (#061f33) in dark theme; Android system bar and theme colors adapted to the new palette.
+- **Dark theme:** deep ink canvas (#061f33), ink surfaces (#08304c), white text. Text/background pairs meet WCAG AA.
+- No functional changes; only look and layout.
 
 ## What's new in 1.6.0
 
-- **Yeni tasarım (Superhuman esintili):** üç zeminli bir arayüz dili. Ana ekran, mor-gök atmosferik geçişli lacivert (#1b1938) bir hero alanıyla açılıyor; beyaz başlık, beyaz arama kutusu, hap biçimli örnek aramalar ve ince çizgilerle ayrılmış istatistik satırı bu alanın içinde. Gövde beyaz (#ffffff / #fafaf8) ve metin saf siyah yerine sıcak koyu gri (#292827). Ana ekran her zaman koyu teal (#0e3030) bir kapanış bandıyla, yani "Ekran görüntülerini ekle" alanıyla bitiyor.
-- **Tipografi:** tek font ailesi (Inter, değişken) ve ara ağırlıklar (460 / 540 / 600), sıkı başlık satır aralığı ve negatif harf aralığı. Bricolage Grotesque ve JetBrains Mono kaldırıldı (paket küçüldü); dosya adları gibi teknik metinler sistem eş aralıklı fontunu kullanıyor.
-- **Bileşenler:** 8px köşeli dikdörtgen düğmeler (lacivert birincil, çerçeveli ikincil), hap biçimli filtre çipleri, 12px köşeli ince çizgili kartlar, 6px köşeli giriş alanları, lacivert bildirimler (toast) ve 16px köşeli diyaloglar. Gölge yalnızca kartlarda hafif, diyalog / bildirim / ürün görselinde belirgin.
-- **Koyu tema:** gece mavisi zemin (#0e0c1f), lacivert yüzeyler, düğme ve bağlantılarda açık mor (#c9b4fa). Tüm metin/zemin eşleşmeleri WCAG AA (≥ 4.5:1) sağlıyor.
-- **Marka:** uygulama simgeleri (web + Android launcher), açılış ekranları (açık: beyaz, koyu: gece mavisi), manifest ve Android sistem çubuğu renkleri yeni paletle yeniden üretildi.
-- **1.5.0'dan bu yana birleşen ve bu sürümle ilk kez yayınlanan düzeltmeler:**
-  - Çift açılış ekranı giderildi: Android'de web açılış ekranı gizleniyor ve yerel açılış ekranı ilk kare çizilene kadar kalıyor.
-  - Koyu tema için karanlık yerel açılış ekranı eklendi; sistem çubukları temayı takip ediyor.
-  - Kaydırma sırasında görünen WebView dikey kaydırma çubuğu gizlendi.
+- **New design (Superhuman-inspired):** a three-canvas visual language. Home opens with a navy (#1b1938) hero with an atmospheric violet-sky gradient; the white headline, white search box, pill-shaped sample searches and a hairline-separated stats row live inside it. The body is white (#ffffff / #fafaf8) and text is a warm dark grey (#292827) instead of pure black. Home always ends with a dark teal (#0e3030) closing band — the "Add your screenshots" area.
+- **Typography:** a single font family (Inter, variable) with in-between weights (460 / 540 / 600), tight heading line-height and negative tracking. Bricolage Grotesque and JetBrains Mono removed (smaller bundle); technical text such as file names uses the system monospace font.
+- **Components:** 8px rectangular buttons (navy primary, outlined secondary), pill filter chips, 12px hairline cards, 6px inputs, navy toasts and 16px dialogs. Shadows are light on cards and pronounced only on dialogs, toasts and product imagery.
+- **Dark theme:** midnight canvas (#0e0c1f), navy surfaces, light violet (#c9b4fa) for buttons and links. All text/background pairs meet WCAG AA (≥ 4.5:1).
+- **Brand:** app icons (web + Android launcher), splash screens (light: white, dark: midnight), manifest and Android system bar colors regenerated with the new palette.
+- **Fixes merged since 1.5.0 and first released with this version:**
+  - Double splash fixed: on Android the web splash is hidden and the native splash stays until the first frame is drawn.
+  - Added a dark native splash for the dark theme; system bars follow the theme.
+  - Hid the WebView vertical scrollbar that appeared while scrolling.
 
 ## What's new in 1.5.0
 
-- **Yeni tasarım:** Apple esintili bir arayüz dili — tek etkileşim rengi olarak Action Blue (#0066cc), parşömen (#f5f5f7) ve siyaha yakın (#1d1d1f) yüzeyler, ince çizgi (hairline) kenarlıklar, hap (pill) biçimli düğmeler ve basınca ölçek küçülmesi (0.95) mikro etkileşimi. Gövde metni 17px'te, başlıklar sistem fontu yığınında (Apple cihazlarda SF Pro) negatif harf aralığıyla akıyor; gölge yalnızca ürün görseline ayrıldı, kartlar, diyaloglar ve bildirimler dahil tüm arayüz düz. Clash Display/Switzer web fontları kaldırıldı (paket küçüldü), iOS tarzı segment kontrolü ve anahtarlar eklendi, dokunmatik genişliklerde kompakt denetimler 44px hedefe büyüdü. Koyu temada düğme dolguları Action Blue kalırken bağlantılar ve odak halkaları daha parlak Sky Link Blue (#2997ff) oldu. Marka renkleri, açılış ekranı, manifest tema renkleri ve tüm uygulama simgeleri (web + Android launcher) yeni paletle yeniden üretildi.
+- **New design:** an Apple-inspired visual language — Action Blue (#0066cc) as the single interaction color, parchment (#f5f5f7) and near-black (#1d1d1f) surfaces, hairline borders, pill buttons and a press-to-scale (0.95) micro-interaction. Body text at 17px and headings in the system font stack (SF Pro on Apple devices) with negative tracking; shadow is reserved for product imagery, while cards, dialogs and toasts are flat. Clash Display/Switzer webfonts removed (smaller bundle), iOS-style segmented controls and switches added, compact controls grow to 44px touch targets on touch widths. In dark theme button fills stay Action Blue while links and focus rings become the brighter Sky Link Blue (#2997ff). Brand colors, splash, manifest theme colors and all app icons (web + Android launcher) regenerated with the new palette.
 
 ## What's new in 1.4.0
 
-- **Otomatik ekran görüntüsü algılama (kullanıcı onayına bağlı):** uygulama, arka plan işi (MediaStore + WorkManager; sürekli bildirim yok) aracılığıyla yeni ekran görüntülerini algılamayı hedefler — uygulama açıkken anında, kapalıyken işletim sisteminin arka plan çalışmaya izin verdiği anda. Görüntüyü kendi deposuna kopyalar (galeriden silsen bile uygulamadaki kopya kalır) ve açık izinle yapay zekâ başlık + kategori önerir. Kaydedilen her görüntü için "Ekran görüntüsü 'Fatura Özeti' başlığıyla Alışveriş kategorisine kaydedildi" gibi bildirim alırsın; bildirime dokununca görüntü açılır. Not: cihaza özgü algılama hızı (ekran kapalıyken, Xiaomi/HyperOS) gerçek cihaz testi gerektirir.
-- **İlk kurulum onay ekranı:** otomatik algılama ilk açılışta onay istemeden hiçbir şey yapmaz. Her izin tek tek açıklanır; yapay zekâya ne gönderileceği (yalnız metin / küçültülmüş görsel) seçilir. İlk açılışta mevcut ekran görüntü geçmişi içe aktarılmaz — yalnızca yeni alınanlar yakalanır.
-- **Dürüst durum kartı:** ana ekranda "Otomatik algılama: Açık / Kapalı / İzin eksik / Pil kısıtı var" gösterilir; her sorun için tek dokunuşla çözüm düğmesi vardır. Kısmi medya erişimi (Android 14+ "Tümüne izin ver" akışı) desteklenir.
-- **Yapay zekâ gizliliği:** anahtar Android Keystore ile şifrelenmiş olarak cihazda saklanır; her görüntü için "Yapay zekaya gönderme" dışlama anahtarı vardır; anahtar/kota/ağ hatasında görüntü dürüstçe "Analiz bekliyor" kuyruğuna alınır ve yeniden denenir.
-- **Telefondan da sil:** görüntü detayında, onayladığında orijinal galeri dosyasını da silen sistem silme akışı (Android 11+).
-- **Xiaomi/HyperOS rehberi:** "Arka plan çalışma ayarları" ekranı pil kısıtlamaları için adım adım Türkçe yönlendirme verir. Zorla durdurma/yeniden başlatma sonrası gecikme olabilir; açılışta ve 15 dakikalık WorkManager taramasıyla kaçan görüntüler yakalanır — bu işletim sistemi sınırıdır, gerçek zamanlı taahhüt değildir.
-- Yeni uçtan uca testler: yakalanan görüntünün analizle birlikte eş zamanlı senkronizasyonu, içerik karmasıyla tekilleştirme, bildirim dokunuşuyla açılış ve yapay zekâ dışlama anahtarı.
+- **Automatic screenshot detection (opt-in):** using background work (MediaStore + WorkManager; no persistent notification) the app aims to detect new screenshots — instantly while open, and as soon as the OS allows background work while closed. It copies the image into its own storage (the app's copy stays even if you delete it from the gallery) and, with explicit permission, the AI suggests a title + category. Each saved screenshot posts a notification like "Saved to Shopping as 'Invoice summary'"; tapping it opens the image. Note: device-specific detection speed (screen off, Xiaomi/HyperOS) needs real-device testing.
+- **First-run consent screen:** automatic detection does nothing on first launch without consent. Each permission is explained one by one, and you choose what is sent to the AI (text only / downscaled image). Your existing screenshot history is never imported on first launch — only new screenshots are captured.
+- **Honest status card:** home shows "Automatic capture: On / Off / Missing permission / Battery restricted" with a one-tap fix for each problem. Partial media access (Android 14+ "Allow all" flow) is supported.
+- **AI privacy:** the key is stored on the device encrypted with Android Keystore; each image has a "Don't send to AI" exclusion switch; on key/quota/network errors the image is honestly queued as "Analysis pending" and retried.
+- **Also delete from phone:** in image detail, a system delete flow that also removes the original gallery file once you confirm (Android 11+).
+- **Xiaomi/HyperOS guide:** a "Background work settings" screen with step-by-step guidance for battery restrictions. Force-stop/reboot can cause delays; missed screenshots are picked up on launch and by the 15-minute WorkManager scan — this is an OS limit, not a real-time promise.
+- New end-to-end tests: simultaneous sync of a captured screenshot with its analysis, content-hash dedupe, opening via notification tap and the AI exclusion switch.
 
 ## What's new in 1.3.1
 
-- **Görsel soru-cevap düzeltmesi:** görsel artık her soruyla birlikte gönderiliyor (sağlayıcı API'leri durum bilgisiz olduğundan takip soruları için gerekli). Görsel değiştiğinde sohbet sıfırlanır; görsel yoksa soru gönderilemez.
-- **Metni web'de ara:** artık düzenlenebilir bir arama kutusu — okunabilir metni olmayan fotoğraflar da başlık/nesne adıyla aranabilir.
-- **Metni kopyala** artık ekranda görünen metni (yapay zekâ sonucu veya elle düzeltilmiş metni) kopyalar, ham cihaz OCR'ını değil.
-- **Anahtarı unut** yalnızca ekrada seçili sağlayıcının anahtarını siler; diğer sağlayıcıların anahtarlarına dokunmaz (arayüz ve eylem artık aynı sağlayıcıya bakıyor).
-- Yeni uçtan uca test: iki sağlayıcıya farklı anahtarlar girilip aralarında geçiş yapıldığında anahtarların karışmadığı, yeniden yükleme sonrası korunduğu ve "unut" işleminin yalnızca birini sildiği doğrulanır.
+- **Image Q&A fix:** the image is now sent with every question (required for follow-ups because provider APIs are stateless). The conversation resets when the image changes; no question can be sent without an image.
+- **Search this text on the web:** now an editable search box — photos without readable text can be searched by title/object name too.
+- **Copy text** now copies the text shown on screen (AI result or hand-corrected text), not the raw device OCR.
+- **Forget key** removes only the key of the provider currently selected on screen and leaves other providers' keys untouched (UI and action now look at the same provider).
+- New end-to-end test: with different keys entered for two providers, switching between them never mixes the keys, they survive a reload, and "forget" removes only one.
 
 ## What's new in 1.3.0
 
@@ -78,8 +84,8 @@ Shotrova for Android: a native APK built from the same code as the web app.
 
 ## What's new in 1.2.2
 
-- A photo shared from Android with a machine-generated file name (UUID) is no longer shown with that UUID as its title — the app shows a clean "Adsız görsel" label until you or the AI set a real title.
-- When the on-device OCR result is low-confidence (hard-to-read photos), the raw garbled text is collapsed behind a "Düşük güvenli OCR sonucu" disclosure with a hint about AI vision, instead of being the main result.
+- A photo shared from Android with a machine-generated file name (UUID) is no longer shown with that UUID as its title — the app shows a clean "Untitled image" label until you or the AI set a real title.
+- When the on-device OCR result is low-confidence (hard-to-read photos), the raw garbled text is collapsed behind a "Low-confidence OCR result" disclosure with a hint about AI vision, instead of being the main result.
 - A text you corrected by hand stays the primary text even after an AI vision result arrives (the AI transcription is kept as its own field).
 
 ## What's new in 1.2.1

@@ -4,6 +4,8 @@ import { chromium } from '@playwright/test';
 
 const OUT = process.env.OUT ?? 'docs/screenshots';
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
+// UI language of the shots (README is English, so default to the English UI).
+const LANG = process.env.LANG_UI ?? 'en';
 const FX = (n) => `tests/fixtures/${n}`;
 const launchBrowser = () => chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const browser = await launchBrowser();
@@ -35,6 +37,12 @@ async function shot(name, { width, height, dark, flow }) {
     await page.waitForTimeout(500);
   };
   await go('/');
+  if (LANG === 'en') {
+    await go('/settings');
+    await page.getByTestId('lang-en').click();
+    await page.waitForTimeout(300);
+    await go('/');
+  }
   const fixtures = FIXTURES_BY_SHOT[name] ?? FIXTURES;
   // Hide the cursor caret so shots are stable.
   await page.addStyleTag({ content: '* { caret-color: transparent !important; }' });
@@ -57,7 +65,7 @@ await shot('mobile-dark-search', {
   width: 390, height: 844, dark: true,
   flow: async (page, go) => {
     await go('/images');
-    await page.fill('input[type="search"]', 'fatura');
+    await page.fill('input[type="search"]', LANG === 'en' ? 'invoice' : 'fatura');
     await page.waitForTimeout(600);
   },
 });
@@ -92,7 +100,7 @@ await shot('desktop-light-search', {
   width: 1280, height: 860, dark: false,
   flow: async (page, go) => {
     await go('/images');
-    await page.fill('input[type="search"]', 'tarif');
+    await page.fill('input[type="search"]', LANG === 'en' ? 'recipe' : 'tarif');
     await page.waitForTimeout(600);
   },
 });

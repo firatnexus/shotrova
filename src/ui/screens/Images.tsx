@@ -295,7 +295,7 @@ ${primaryText(r)}`)
       )}
 
       <p className="faint" aria-live="polite" data-testid="result-count">
-        {images.length === 0 ? '' : t('search.results', { n: hits.length })}
+        {images.length === 0 ? '' : t(hits.length === 1 ? 'search.results_one' : 'search.results', { n: hits.length })}
         {dq && images.length > 0 && <span> · {t('search.text_based')}</span>}
       </p>
 

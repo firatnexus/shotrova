@@ -93,6 +93,7 @@
   "search.label": "Search",
   "search.clear": "Clear search",
   "search.results": "{n} results",
+  "search.results_one": "1 result",
   "search.text_based": "Text-based search (OCR text, title, notes, tags, category, filename)",
   "search.understood": "Understood:",
   "search.date_chip": "Date: {label}",

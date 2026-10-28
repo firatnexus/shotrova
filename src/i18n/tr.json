@@ -93,6 +93,7 @@
   "search.label": "Ara",
   "search.clear": "Aramayı temizle",
   "search.results": "{n} sonuç",
+  "search.results_one": "1 sonuç",
   "search.text_based": "Metin tabanlı arama (OCR yazısı, başlık, not, etiket, kategori, dosya adı)",
   "search.understood": "Algılanan:",
   "search.date_chip": "Tarih: {label}",
