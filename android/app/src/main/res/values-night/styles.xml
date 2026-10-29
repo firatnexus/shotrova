@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark launch: the ink canvas (#14171f) with the white monochrome
+    <!-- Dark launch: the near-black canvas (#0a0a0a) with the white monochrome
          frame mark (the ink launcher icon would disappear on it). -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background_dark</item>

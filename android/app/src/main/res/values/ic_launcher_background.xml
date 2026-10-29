@@ -3,5 +3,5 @@
     <!-- BRAND.colors (src/config/brand.ts) -->
     <color name="ic_launcher_background">#ffffff</color>
     <color name="splash_background">#ffffff</color>
-    <color name="splash_background_dark">#14171f</color>
+    <color name="splash_background_dark">#0a0a0a</color>
 </resources>

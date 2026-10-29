@@ -1,5 +1,16 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.11.0
+
+- **New design (Figma-inspired "white gallery wall"):** a pure white canvas (#ffffff) with black text and hairlines where the only saturated color is Electric Indigo (#4d49fc) — used for the primary action, links and active states. The interface is achromatic on purpose: your screenshots carry every color. Grid cards are flat white with mist hairlines (#e2e2e2) and no shadows; the single floating shadow (0 24px 70px at 10%) lifts only the hero card and overlays.
+- **Radius system:** a strict four-tier curvature language — 2px fine UI (badges, dividers), 8px ghost buttons and inputs, 16px cards, 50px pill buttons and chips.
+- **Buttons:** the default action is a ghost button with a 1px black border; the primary CTA is the one indigo pill per screen; inverse actions are solid black pills.
+- **Hero:** the home screen's display moment is now a floating white card — an ultra-light (weight 340) whisper headline with -0.02em tracking over the single soft shadow, replacing the cyan→violet gradient wash.
+- **Typography:** Inter (variable, OFL, latin + latin-ext with full Turkish support, bundled offline) stands in for figmaSans: 16px minimum body size, weight-driven hierarchy with headings at 520 and the whisper-weight hero at 340.
+- **Dark theme:** the same gallery at night — near-black canvas (#0a0a0a), white type, and a lighter indigo (#8f8cff) for links on dark surfaces so contrast meets AA; the indigo CTA keeps white text.
+- **New logo:** a minimal two-color mark — the ink screenshot frame whose second text line ends in a single indigo dot ("the word you searched for, found inside"). App icon (adaptive foreground/background/monochrome), notification icon, favicon, PWA icons, splash (light: white with ink mark, dark: near-black with white mark), web boot splash and README logo were regenerated from this one source.
+- No functional changes; your data stays as it is.
+
 ## What's new in 1.10.0
 
 - **New design (Contra-inspired "editorial gallery on white"):** a bright white Paper canvas (#ffffff) where almost every element is deep Ink (#14171f) or hairline gray (#e5e7eb). Charcoal (#222834) is the single filled action color, lifted by a soft two-layer shadow instead of borders. Mist (#f5f6f9) is the only secondary surface. Cards are sharp 4px, buttons and tags are 24px pills, inputs 10px.

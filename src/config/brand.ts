@@ -19,21 +19,21 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.10.0',
+  version: '1.11.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
   },
   colors: {
-    /** Mark stroke/fill and adaptive-icon foreground (Ink — the Contra backbone color). */
-    ink: '#14171f',
-    /** Card/canvas surfaces (Paper). */
+    /** Mark stroke/fill and adaptive-icon foreground (Ink Black). */
+    ink: '#000000',
+    /** Card/canvas surfaces (Paper White). */
     paper: '#ffffff',
-    /** Secondary mark color where two tones are needed (Charcoal action color). */
-    line: '#222834',
-    /** System bars / manifest: paper (light) and ink (dark). */
+    /** Secondary mark color — the single indigo spark (Electric Indigo). */
+    line: '#4d49fc',
+    /** System bars / manifest: paper (light) and near-black (dark). */
     themeLight: '#ffffff',
-    themeDark: '#14171f',
+    themeDark: '#0a0a0a',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
 } as const;
@@ -42,19 +42,22 @@ export type BrandConfig = typeof BRAND;
 
 /**
  * The logo mark: a minimal screenshot frame — a rounded rectangle outline —
- * holding two text lines, i.e. "a screenshot you find by the words inside".
- * One color, one weight, no tile: a single Ink stroke system that reads at
- * every size. `monochrome` (Android 13 themed icons, notification) renders
- * the same mark in pure white. `foreground` drops padding for the adaptive
- * icon foreground layer (the background layer is Paper white). `themed` uses
- * `currentColor` so the in-app mark follows the text color in both themes.
- * Original artwork, generated as SVG so every icon size comes from this one source.
+ * holding two text lines, with the second line ending in a single indigo
+ * dot: "the word you searched for, found inside the screenshot".
+ * Two colors, one stroke system that reads at every size: Ink Black for the
+ * frame and text lines, Electric Indigo for the one spark. `monochrome`
+ * (Android 13 themed icons, notification) renders the same mark in pure
+ * white. `foreground` drops padding for the adaptive icon foreground layer
+ * (the background layer is Paper white). `themed` uses `currentColor` so the
+ * in-app mark follows the text color in both themes. Original artwork,
+ * generated as SVG so every icon size comes from this one source.
  */
 export function logoSvg(
   size = 512,
-  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark: follows currentColor. */ themed?: boolean } = {},
+  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark: follows currentColor. */ themed?: boolean; /** Two-color mode: themed ink + fixed spark color. */ sparkColor?: string } = {},
 ): string {
   const ink = opts.monochrome ? '#FFFFFF' : opts.themed ? 'currentColor' : BRAND.colors.ink;
+  const spark = opts.monochrome ? '#FFFFFF' : opts.sparkColor ?? (opts.themed ? 'currentColor' : BRAND.colors.line);
   const s = 512;
   const pad = opts.pad ?? (opts.maskable || opts.foreground ? 0.2 : 0.14);
   const inner = s * (1 - pad * 2);
@@ -66,16 +69,19 @@ export function logoSvg(
   const fy = o + (inner - fh) / 2;
   const sw = Math.max(10, inner * 0.058); // stroke weight
   const r = fw * 0.16;
-  // Two text lines inside the frame: the longer first, the shorter second,
-  // like lines of OCR'd text. Pure geometry — no font needed at render size.
-  const lw = fw * 0.58;
-  const lw2 = fw * 0.38;
+  // Two text lines inside the frame: the longer first, the shorter second
+  // ending in the indigo dot — the search hit. Pure geometry — no font
+  // needed at render size.
   const lh = Math.max(12, fw * 0.085);
+  const dot = lh; // the spark dot matches the line height
+  const lw = fw * 0.58;
+  const lw2 = fw * 0.26;
   const lx = fx + fw * 0.16;
   const ly = fy + fh * 0.42;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${s} ${s}">
   <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="${r}" fill="none" stroke="${ink}" stroke-width="${sw}"/>
   <rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="${lh / 2}" fill="${ink}"/>
   <rect x="${lx}" y="${ly + lh * 2.2}" width="${lw2}" height="${lh}" rx="${lh / 2}" fill="${ink}"/>
+  <circle cx="${lx + lw2 + lh * 1.1}" cy="${ly + lh * 2.2 + lh / 2}" r="${dot / 2}" fill="${spark}"/>
 </svg>`;
 }

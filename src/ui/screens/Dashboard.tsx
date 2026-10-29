@@ -185,7 +185,7 @@ function ImportCard({ compact = false }: { compact?: boolean }) {
       <strong>{t('import.card_title')}</strong>
       <span className="faint">{t('import.card_body')}</span>
       <div className="row" style={{ justifyContent: 'center' }}>
-        <button type="button" className="btn primary" onClick={openPicker}>
+        <button type="button" className="btn" onClick={openPicker}>
           <IconUpload /> {t('import.cta')}
         </button>
         <button type="button" className="btn" onClick={() => void paste()}>

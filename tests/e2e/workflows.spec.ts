@@ -538,7 +538,7 @@ test('theme: dark and light both render', async ({ page }) => {
   await page.getByTestId('theme-dark').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe('rgb(20, 23, 31)'); // ink gallery canvas (#14171f)
+  expect(bg).toBe('rgb(10, 10, 10)'); // near-black gallery canvas (#0a0a0a)
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.getByTestId('theme-light').click();

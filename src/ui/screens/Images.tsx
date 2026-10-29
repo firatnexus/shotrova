@@ -301,7 +301,7 @@ ${primaryText(r)}`)
 
       {images.length === 0 ? (
         <Empty icon={<IconImage />} title={t('images.empty_title')} body={t('images.empty_body')}>
-          <button type="button" className="btn primary" onClick={openPicker}>
+          <button type="button" className="btn" onClick={openPicker}>
             {t('import.cta')}
           </button>
         </Empty>

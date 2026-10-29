@@ -98,7 +98,7 @@ export function CaptureStatusCard() {
       )}
       <div className="row wrap" style={{ gap: 8 }}>
         {ui === 'off' && (
-          <button type="button" className="btn primary" disabled={busy} onClick={() => void fix(() => openSetup())}>
+          <button type="button" className="btn" disabled={busy} onClick={() => void fix(() => openSetup())}>
             {t('cap.fix.enable')}
           </button>
         )}
@@ -108,7 +108,7 @@ export function CaptureStatusCard() {
           </button>
         )}
         {(ui === 'no_media' || ui === 'partial_media') && (
-          <button type="button" className="btn primary" disabled={busy} onClick={() => void fix(() => openSetup())}>
+          <button type="button" className="btn" disabled={busy} onClick={() => void fix(() => openSetup())}>
             {ui === 'partial_media' ? t('cap.fix.grant_full') : t('cap.fix.grant_media')}
           </button>
         )}
@@ -118,7 +118,7 @@ export function CaptureStatusCard() {
           </button>
         )}
         {ui === 'no_notifications' && (
-          <button type="button" className="btn primary" disabled={busy} onClick={() => void fix(() => requestNotificationPermission())}>
+          <button type="button" className="btn" disabled={busy} onClick={() => void fix(() => requestNotificationPermission())}>
             {t('cap.fix.grant_notifications')}
           </button>
         )}

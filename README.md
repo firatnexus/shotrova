@@ -137,22 +137,23 @@ Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · User flows
 
 ## Design language
 
-Since 1.10.0 Shotrova looks like an **editorial gallery on white paper** (Contra-inspired): a white canvas where almost every element is deep ink or hairline gray, and one near-black action color carries all primary interactivity. No illustrations, no decorative stickers — the screenshots are the color.
+Since 1.11.0 Shotrova looks like a **white gallery wall with a single indigo spotlight** (Figma-inspired): a pure white canvas of black text and mist-gray hairlines where the only saturated color is Electric Indigo — reserved for the primary action, links and active states. The interface stays achromatic on purpose; the screenshots are the color.
 
 | Element | Light theme | Dark theme | Used for |
 |---|---|---|---|
-| Paper | `#ffffff` | `#14171f` | The whole canvas |
-| Ink | `#14171f` | `#f5f6f9` | Text, headings, icon strokes |
-| Hairline | `#e5e7eb` | `#373f51` | Card borders, dividers, outlined buttons |
-| Mist | `#f5f6f9` | `#242938` | Secondary surfaces, inputs, chips |
-| Charcoal | `#222834` | `#ffffff` (inverted) | The single filled action color |
-| Hero wash | cyan → sky → violet | same | The dashboard hero gradient only |
+| Paper | `#ffffff` | `#0a0a0a` | The whole canvas |
+| Ink | `#000000` | `#ffffff` | Text, headings, icon strokes |
+| Hairline | `#e2e2e2` | `#262626` | Card borders, dividers |
+| Mist | `#f0f0f1` | `#141414` | Secondary surfaces, inputs, chips |
+| Electric Indigo | `#4d49fc` | `#8f8cff` (links on dark) | The single primary action, links, focus rings |
+| Floating shadow | `0 24px 70px` @ 10% black | 50% black | The hero card and overlays only |
 
-- **Typography:** Inter (variable, tight -0.01em tracking; 58px display moment on the home hero) for everything — a GT Standard stand-in. OFL-licensed and bundled with the app, so it looks the same offline.
-- **Components:** 24px pill buttons (charcoal when primary, hairline-outlined otherwise) lifted by a soft two-layer shadow; 4px cards, 10px inputs, full-bleed image thumbnails.
-- **Layout:** left-aligned editorial rhythm; the home hero is the one centered block. On desktop a plain text menu centred in the top bar and a 1200px content width; on mobile a labelled bottom tab bar. Home ends with the featured dark "add your screenshots" card.
-- **Constraints:** no illustrations, no colored shadows or glows; the gradient appears only on the hero; vivid color appears only inside cards (category tints).
-- **Logo:** a minimal single-color mark — a rounded screenshot frame holding two text lines: "a screenshot you find by the words inside".
+- **Typography:** Inter (variable, OFL, bundled offline with full Turkish support) stands in for figmaSans: 16px minimum body size, weight-driven hierarchy — headings at 520, and an ultra-light whisper headline (weight 340, -0.02em tracking) on the home hero.
+- **Radii:** a strict four-tier curvature language — 2px fine UI (badges, dividers), 8px ghost buttons and inputs, 16px cards, 50px pill buttons and chips.
+- **Components:** the default button is a ghost with a 1px black border; the primary CTA is the one indigo pill per screen (the header's "add screenshots" action); inverse actions are solid black pills. Grid cards are flat white with hairlines — no shadows except the single hero/overlay float.
+- **Layout:** left-aligned rhythm; the home hero is a floating white card — the display moment. On desktop a plain text menu centred in the top bar and a 1200px content width; on mobile a labelled bottom tab bar. Home ends with the featured black "add your screenshots" band.
+- **Constraints:** one indigo CTA per screen; no illustrations, no colored shadows or glows; vivid color appears only inside cards (category tints) and the indigo accent.
+- **Logo:** a minimal two-color mark — a rounded screenshot frame holding two text lines, the second ending in a single indigo dot: "the word you searched for, found inside".
 
 <p>
   <img src="docs/img/boot-light.png" width="160" alt="Splash, light">
@@ -264,7 +265,8 @@ Every result was actually executed; logs and manual test steps are in [docs/TEST
 
 | Version | Highlights |
 |---|---|
-| **1.10.0** | Contra-inspired "editorial gallery" redesign: white paper canvas, ink & hairline system, charcoal pill actions, Inter, hero gradient wash, new frame logo |
+| **1.11.0** | Figma-inspired "white gallery wall" redesign: pure white canvas, ink & mist system, Electric Indigo single CTA, whisper-weight hero, four-tier radii, spark-dot logo |
+| 1.10.0 | Contra-inspired "editorial gallery" redesign: white paper canvas, ink & hairline system, charcoal pill actions, Inter, hero gradient wash, new frame logo |
 | 1.9.1 | English README, release notes and screenshots; "1 result" wording fix |
 | 1.9.0 | Superr-inspired "school notebook" design, orange polaroid logo, bundled Fraunces + Geist |
 | 1.8.0 | Threads-inspired minimal design, black-and-white polaroid logo |
