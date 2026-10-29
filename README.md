@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="public/icons/logo.svg" width="104" height="104" alt="Shotrova logo">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/icons/logo-dark.svg">
+  <img src="public/icons/logo.svg" width="104" height="104" alt="Shotrova logo">
+</picture>
 
 # shotrova
 

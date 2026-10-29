@@ -54,9 +54,9 @@ export type BrandConfig = typeof BRAND;
  */
 export function logoSvg(
   size = 512,
-  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark: follows currentColor. */ themed?: boolean; /** Two-color mode: themed ink + fixed spark color. */ sparkColor?: string } = {},
+  opts: { maskable?: boolean; monochrome?: boolean; /** Android adaptive foreground: no tile, custom padding. */ foreground?: boolean; pad?: number; /** In-app mark: follows currentColor. */ themed?: boolean; /** Two-color mode: themed ink + fixed spark color. */ sparkColor?: string; /** Fixed ink color (e.g. white for dark backgrounds). */ inkColor?: string } = {},
 ): string {
-  const ink = opts.monochrome ? '#FFFFFF' : opts.themed ? 'currentColor' : BRAND.colors.ink;
+  const ink = opts.inkColor ?? (opts.monochrome ? '#FFFFFF' : opts.themed ? 'currentColor' : BRAND.colors.ink);
   const spark = opts.monochrome ? '#FFFFFF' : opts.sparkColor ?? (opts.themed ? 'currentColor' : BRAND.colors.line);
   const s = 512;
   const pad = opts.pad ?? (opts.maskable || opts.foreground ? 0.2 : 0.14);

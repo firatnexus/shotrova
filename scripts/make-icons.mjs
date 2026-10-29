@@ -10,6 +10,9 @@ await vite.close();
 mkdirSync('public/icons', { recursive: true });
 writeFileSync('public/icons/favicon.svg', logoSvg(64));
 writeFileSync('public/icons/logo.svg', logoSvg(512));
+// Dark-background README/favicon variant: white frame + lighter indigo spark.
+writeFileSync('public/icons/logo-dark.svg', logoSvg(512, { inkColor: '#ffffff', sparkColor: '#8f8cff' }));
+writeFileSync('public/icons/favicon-dark.svg', logoSvg(64, { inkColor: '#ffffff', sparkColor: '#8f8cff' }));
 
 const launchBrowser = () => chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const browser = await launchBrowser();
