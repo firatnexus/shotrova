@@ -63,12 +63,16 @@ async function go(hash: string) {
   await page.evaluate((h) => { location.hash = h; }, hash);
   await expect(page.locator('main#main')).toBeVisible();
   await page.waitForTimeout(500);
+  await closeDialogs();
 }
 const hash = () => page.evaluate(() => location.hash.replace(/^#/, '') || '/');
 
 test.beforeAll(async () => {
   try { adb('shell', 'pm', 'grant', PKG, 'android.permission.POST_NOTIFICATIONS'); } catch { /* not requested on this API level */ }
   adb('shell', 'settings', 'put', 'secure', 'show_ime_with_hard_keyboard', '1');
+  // Emulator noise ("Pixel Launcher isn't responding") must not cover the app
+  adb('shell', 'settings', 'put', 'global', 'hide_error_dialogs', '1');
+  adb('shell', 'am', 'broadcast', '-a', 'android.intent.action.CLOSE_SYSTEM_DIALOGS');
   adb('shell', 'am', 'force-stop', PKG);
   adb('shell', 'am', 'start', '-W', '-n', `${PKG}/${ACTIVITY}`);
   const [first] = await android.devices();
@@ -100,6 +104,7 @@ test.afterAll(async () => {
 
 /** First native launch opens the auto-capture setup dialog; it blocks swipes by design, so close it. */
 async function closeDialogs() {
+  try { adb('shell', 'am', 'broadcast', '-a', 'android.intent.action.CLOSE_SYSTEM_DIALOGS'); } catch { /* best effort */ }
   for (let i = 0; i < 3; i++) {
     const later = page.getByRole('button', { name: /Şimdi değil|Not now/ });
     if (!(await later.isVisible().catch(() => false))) return;
