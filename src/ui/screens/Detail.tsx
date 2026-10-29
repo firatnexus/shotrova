@@ -317,7 +317,7 @@ export function DetailScreen({ id }: { id: string }) {
                   <button type="button" className="btn sm" onClick={() => { setText(primaryText(r)); setEditingText(false); }}>
                     <IconX /> {t('common.cancel')}
                   </button>
-                  <button type="button" className="btn sm" onClick={() => { void save(hasAi ? { aiText: text } : { ocrText: text }, t('detail.saved')); setEditingText(false); }}>
+                  <button type="button" className="btn sm inverse" onClick={() => { void save(hasAi ? { aiText: text } : { ocrText: text }, t('detail.saved')); setEditingText(false); }}>
                     <IconCheck /> {t('common.save')}
                   </button>
                 </div>
@@ -486,7 +486,7 @@ export function DetailScreen({ id }: { id: string }) {
                   <button type="button" className="btn sm" onClick={() => setAiPreview(null)}>
                     <IconX /> {t('common.cancel')}
                   </button>
-                  <button type="button" className="btn sm" onClick={() => void applyAiPreview()} data-testid="ai-apply">
+                  <button type="button" className="btn sm inverse" onClick={() => void applyAiPreview()} data-testid="ai-apply">
                     <IconCheck /> {t('detail.ai_apply')}
                   </button>
                 </div>
