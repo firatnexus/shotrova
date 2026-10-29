@@ -26,16 +26,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const screencap = (name: string) => writeFileSync(`${OUT}/${name}.png`, execFileSync('adb', ['exec-out', 'screencap', '-p'], { maxBuffer: 64 * 1024 * 1024 }));
 
 type Box = { l: number; t: number; r: number; b: number };
-function webviewBounds(): Box {
-  for (let i = 0; i < 5; i++) {
-    try {
-      const xml = adb('exec-out', 'uiautomator', 'dump', '/dev/tty');
-      const m = xml.match(/class="android\.webkit\.WebView"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
-      if (m) return { l: +m[1]!, t: +m[2]!, r: +m[3]!, b: +m[4]! };
-    } catch { /* uiautomator can be busy while animating */ }
-    execFileSync('sleep', ['1']);
-  }
-  throw new Error('WebView not found in the window hierarchy');
+/** WebView position on screen (device px), via Playwright's Android driver (uiautomator would conflict with it). */
+async function webviewBounds(): Promise<Box> {
+  const info = await device.info({ clazz: 'android.webkit.WebView', pkg: PKG });
+  const b = info.bounds;
+  return { l: b.x, t: b.y, r: b.x + b.width, b: b.y + b.height };
 }
 function screenSize(): { w: number; h: number } {
   const m = adb('shell', 'wm', 'size').match(/(\d+)x(\d+)\s*$/m)!;
@@ -57,7 +52,7 @@ let dpr = 1;
 /** CSS px inside the WebView → device px on the screen. */
 async function toScreen(loc: Locator): Promise<{ x: number; y: number }> {
   const box = (await loc.boundingBox())!;
-  const wv = webviewBounds();
+  const wv = await webviewBounds();
   return { x: Math.round(wv.l + (box.x + box.width / 2) * dpr), y: Math.round(wv.t + (box.y + box.height / 2) * dpr) };
 }
 async function realTap(loc: Locator) {
@@ -121,7 +116,7 @@ test.beforeEach(async () => {
 
 test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazgeç above the real IME', async () => {
   await go('/categories');
-  const before = webviewBounds();
+  const before = await webviewBounds();
   const h0 = await page.evaluate(() => innerHeight);
   await realTap(page.getByTestId('new-category'));
   const kw = page.locator('#c-kw');
@@ -138,7 +133,7 @@ test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazge
   adb('shell', 'input', 'tap', String(tapAt.x), String(tapAt.y));
   await expect.poll(imeShown, { timeout: 15_000, message: 'soft keyboard opened by a real tap' }).toBe(true);
   await page.waitForTimeout(1200);
-  const after = webviewBounds();
+  const after = await webviewBounds();
   const h1 = await page.evaluate(() => innerHeight);
   const vv = await page.evaluate(() => visualViewport?.height ?? innerHeight);
   screencap('keyboard-category-sheet');
@@ -218,7 +213,7 @@ test('OCR: Japanese pack downloads from GitHub Pages, is verified, and recognize
 test('swipe: real touches move between tabs in order, smoothly, without wrap-around', async () => {
   await go('/');
   screencap('swipe-start');
-  const wv = webviewBounds();
+  const wv = await webviewBounds();
   const y = Math.round(wv.t + (wv.b - wv.t) * 0.55);
   // RIGHT/LEFT = where the finger starts; finger moving left = next tab (LTR)
   const RIGHT = Math.round(wv.l + (wv.r - wv.l) * 0.85);
