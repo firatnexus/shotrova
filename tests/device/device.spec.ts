@@ -26,11 +26,40 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const screencap = (name: string) => writeFileSync(`${OUT}/${name}.png`, execFileSync('adb', ['exec-out', 'screencap', '-p'], { maxBuffer: 64 * 1024 * 1024 }));
 
 type Box = { l: number; t: number; r: number; b: number };
-/** WebView position on screen (device px), via Playwright's Android driver (uiautomator would conflict with it). */
+/**
+ * WebView position on screen (device px). Playwright's Android driver APK is not shipped
+ * with npm, and uiautomator conflicts with it, so the origin is calibrated once with a real
+ * tap on a transparent overlay (screen px − clientX/Y × dpr); size comes from the viewport.
+ */
+let origin: { x: number; y: number } | null = null;
+async function calibrate(): Promise<{ x: number; y: number }> {
+  if (origin) return origin;
+  const s = screenSize();
+  await page.evaluate(() => {
+    const d = document.createElement('div');
+    d.id = '__calib';
+    d.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:transparent;touch-action:none';
+    d.addEventListener('pointerdown', (e) => {
+      (window as unknown as { __calib?: [number, number] }).__calib = [e.clientX, e.clientY];
+      e.preventDefault(); e.stopPropagation();
+    }, { capture: true });
+    document.body.appendChild(d);
+  });
+  const sx = Math.round(s.w / 2), sy = Math.round(s.h / 2);
+  adb('shell', 'input', 'tap', String(sx), String(sy));
+  await expect.poll(() => page.evaluate(() => !!(window as unknown as { __calib?: unknown }).__calib), { timeout: 10_000 }).toBe(true);
+  const [cx, cy] = await page.evaluate(() => {
+    document.getElementById('__calib')?.remove();
+    return (window as unknown as { __calib: [number, number] }).__calib;
+  });
+  origin = { x: Math.round(sx - cx * dpr), y: Math.round(sy - cy * dpr) };
+  record('calibration', { screen: s, tap: [sx, sy], client: [cx, cy], dpr, origin });
+  return origin;
+}
 async function webviewBounds(): Promise<Box> {
-  const info = await device.info({ clazz: 'android.webkit.WebView', pkg: PKG });
-  const b = info.bounds;
-  return { l: b.x, t: b.y, r: b.x + b.width, b: b.y + b.height };
+  const o = await calibrate();
+  const { w, h } = await page.evaluate(() => ({ w: innerWidth, h: innerHeight }));
+  return { l: o.x, t: o.y, r: Math.round(o.x + w * dpr), b: Math.round(o.y + h * dpr) };
 }
 function screenSize(): { w: number; h: number } {
   const m = adb('shell', 'wm', 'size').match(/(\d+)x(\d+)\s*$/m)!;
