@@ -44,7 +44,7 @@ export function CategoriesScreen() {
     <div className="stack" style={{ gap: 16 }}>
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <h1>{t('nav.categories')}</h1>
-        <button type="button" className="btn primary" onClick={() => setEditing('new')} data-testid="new-category">
+        <button type="button" className="btn" onClick={() => setEditing('new')} data-testid="new-category">
           <IconPlus /> {t('cats.new')}
         </button>
       </div>

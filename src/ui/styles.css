@@ -1,16 +1,17 @@
 /* ==========================================================================
    Shotrova — styles
-   Contra-inspired design language: an editorial gallery on white paper.
-   A Paper (#ffffff) canvas with Ink (#14171f) text and hairline (#e5e7eb)
-   structure; Charcoal (#222834) is the single filled action color, lifted
-   by a soft two-layer shadow instead of borders. Mist (#f5f6f9) is the
-   only secondary surface. Shapes: 24px pills for buttons and tags, 16px
-   for nav/segmented, 10px inputs, 4px cards. Type: Inter (standing in for
-   GT Standard) with tight -0.01em tracking; one 58px display moment on
-   the dashboard hero over the cyan→violet hero wash. No illustrations,
-   no gradients outside the hero, no colored shadows.
-   Dark theme: the same gallery at night — Ink canvas, Charcoal cards,
-   graphite hairlines, white primary buttons.
+   Figma-inspired design language: a white gallery wall with one indigo
+   spotlight. An achromatic interface — pure black text on white surfaces,
+   hairlines and mist panels doing all the structure — where the user's
+   screenshots carry every color. Electric Indigo (#4d49fc) is the single
+   saturated fill, reserved for the primary action and active states.
+   Shapes: 50px pill buttons and chips, 16px cards, 8px ghost controls and
+   inputs, 2px fine UI. Elevation is one soft floating shadow (0 24px 70px)
+   on the hero card and overlays; grid cards stay flat with hairlines.
+   Type: Inter (standing in for figmaSans) with tight -0.02em tracking at
+   display sizes and an ultra-light 340 hero weight — the whisper headline.
+   Dark theme: the same gallery at night — near-black canvas, white type,
+   a lighter indigo for links on dark.
    ========================================================================== */
 
 :root {
@@ -18,18 +19,18 @@
   --font: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, monospace;
 
-  --text-xs: 0.75rem;     /* 12 caption */
-  --text-sm: 0.875rem;    /* 14 body-sm */
-  --text-base: 0.9375rem; /* 15 body */
-  --text-md: 1.125rem;    /* 18 lead */
-  --text-lg: 1.5rem;      /* 24 section heading */
+  --text-xs: 0.75rem;     /* 12 caption / annotation */
+  --text-sm: 0.875rem;    /* 14 compact labels */
+  --text-base: 1rem;      /* 16 body-sm — the smallest reading step */
+  --text-md: 1.125rem;    /* 18 body */
+  --text-lg: 1.5rem;      /* 24 heading */
   --text-xl: 2.25rem;     /* 36 page title */
-  --text-display: clamp(2.25rem, 1.4rem + 4vw, 3.625rem); /* 36 → 58 hero */
+  --text-display: clamp(2.5rem, 1.5rem + 4.5vw, 4.5rem); /* 40 → 72 hero */
 
-  /* 4px base, compact density. */
+  /* 4px base, comfortable density. */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s7: 28px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
-  /* Radii: cards 4 · inputs 10 · nav & segmented 16 · buttons & tags 24. */
-  --r-input: 10px; --r-media: 4px; --r-card: 4px; --r-pill: 24px; --r-band: 16px; --r-full: 1000px;
+  /* Radii: fine UI 2 · ghost controls & inputs 8 · cards 16 · pills 50. */
+  --r-fine: 2px; --r-input: 8px; --r-media: 8px; --r-card: 16px; --r-pill: 50px; --r-band: 8px; --r-full: 1000px;
   --line: 1px;
   --tap: 44px;
   --bar-h: 64px;          /* top bar */
@@ -37,70 +38,67 @@
   --page: 1200px;         /* page max-width */
   --narrow: 760px;        /* forms & settings column */
 
-  /* Light — paper, ink, hairlines, one charcoal action. */
-  --bg: #ffffff;          /* Paper */
+  /* Light — white canvas, black type, one indigo action. */
+  --bg: #ffffff;          /* Paper White */
   --surface: #ffffff;
-  --surface-2: #f5f6f9;   /* Mist */
-  --surface-3: #eceef2;   /* hover wash */
+  --surface-2: #f0f0f1;   /* Soft Mist fill (chips, inputs, bands) */
+  --surface-3: #e2e2e2;   /* Soft Mist — hover wash */
   --bar: #ffffff;
-  --border: #e5e7eb;      /* Hairline */
-  --hairline: rgb(20 23 31 / 0.08); /* inner separators */
-  --border-strong: #14171f;
-  --text: #14171f;        /* Ink */
-  --head: #14171f;
-  --text-2: #677084;      /* Slate */
-  --text-3: #9ba2b0;      /* Fog */
-  --icon: #14171f;
-  --icon-off: #677084;
-  --link: #373f51;        /* Graphite */
-  --focus: #14171f;
-  --action: #222834;       /* Charcoal — the only filled action */
+  --border: #e2e2e2;      /* Soft Mist hairline */
+  --hairline: rgb(0 0 0 / 0.08); /* inner separators */
+  --border-strong: #000000; /* Ink Black — ghost button strokes, focus */
+  --text: #000000;        /* Ink Black */
+  --head: #000000;
+  --text-2: #595959;      /* Graphite */
+  --text-3: #8f8f8f;      /* muted graphite */
+  --icon: #000000;
+  --icon-off: #595959;
+  --link: #4d49fc;        /* Electric Indigo — links on white */
+  --focus: #4d49fc;
+  --action: #4d49fc;      /* Electric Indigo — the only saturated fill */
   --on-action: #ffffff;
-  --inverse: #14171f;
-  --accent: #14171f;      /* spinner / legacy inline accents: ink */
+  --inverse: #000000;     /* black pill (inverse action) */
+  --accent: #4d49fc;      /* spinner / active indicators */
   --on-inverse: #ffffff;
   --ok: #1d7a3a; --ok-soft: #e6f4e8;
   --warn: #8a4b00; --warn-soft: #fff1df;
   --danger: #c62828; --danger-soft: #fdecea;
-  --mark: #fef3c7; --mark-text: #14171f;
-  --hero-wash: linear-gradient(90deg, rgb(205 243 253), rgb(157 222 249) 43%, rgb(151 157 241) 95%);
-  --shadow-card: rgb(34 40 52 / 0.05) 0 4px 10px 0, rgb(34 40 52 / 0.04) -2px 18px 18px 0;
-  --shadow-btn: rgb(34 40 52 / 0.05) 0 4px 10px 0, rgb(34 40 52 / 0.04) -2px 18px 18px 0;
-  --shadow-float: rgb(0 0 0 / 0.05) 0 10px 20px 0;
-  --scrim: rgb(20 23 31 / 0.4);
+  --mark: #fef3c7; --mark-text: #000000;
+  --shadow-xl: rgb(0 0 0 / 0.1) 0 24px 70px 0;   /* the one floating shadow */
+  --shadow-float: rgb(0 0 0 / 0.1) 0 24px 70px 0; /* overlays reuse it */
+  --scrim: rgb(0 0 0 / 0.4);
   color-scheme: light;
 }
 
 [data-theme='dark'] {
-  --bg: #14171f;          /* Ink canvas */
-  --surface: #1c202c;     /* elevated card */
-  --surface-2: #242938;   /* mist on ink */
-  --surface-3: #2c3245;
-  --bar: #14171f;
-  --border: #373f51;      /* Graphite */
-  --hairline: rgb(245 246 249 / 0.08);
-  --border-strong: #f5f6f9;
-  --text: #f5f6f9;
+  --bg: #0a0a0a;          /* near-black canvas */
+  --surface: #141414;     /* elevated card */
+  --surface-2: #1d1d1f;   /* mist on black */
+  --surface-3: #262628;
+  --bar: #0a0a0a;
+  --border: #2a2a2c;
+  --hairline: rgb(255 255 255 / 0.09);
+  --border-strong: #ffffff;
+  --text: #ffffff;
   --head: #ffffff;
-  --text-2: #aab2c0;
-  --text-3: #8b93a2;
-  --icon: #f5f6f9;
-  --icon-off: #9ba2b0;
-  --link: #d0d4dc;        /* Pearl */
-  --focus: #f5f6f9;
-  --action: #ffffff;      /* inverted action: white pill on ink */
-  --on-action: #14171f;
-  --inverse: #f5f6f9;
-  --accent: #f5f6f9;
-  --on-inverse: #14171f;
+  --text-2: #a8a8a8;
+  --text-3: #7d7d7d;
+  --icon: #ffffff;
+  --icon-off: #a8a8a8;
+  --link: #8f8cff;        /* lighter indigo for dark surfaces */
+  --focus: #8f8cff;
+  --action: #4d49fc;      /* indigo CTA keeps white text */
+  --on-action: #ffffff;
+  --inverse: #ffffff;     /* inverted: white pill on ink */
+  --accent: #8f8cff;
+  --on-inverse: #0a0a0a;
   --ok: #6fd28a; --ok-soft: #13291a;
   --warn: #ffc27a; --warn-soft: #33240f;
   --danger: #ff8a80; --danger-soft: #3a1714;
   --mark: #3a3413; --mark-text: #fef3c7;
-  --shadow-card: rgb(0 0 0 / 0.35) 0 4px 10px 0, rgb(0 0 0 / 0.25) -2px 18px 18px 0;
-  --shadow-btn: rgb(0 0 0 / 0.35) 0 4px 10px 0, rgb(0 0 0 / 0.25) -2px 18px 18px 0;
-  --shadow-float: rgb(0 0 0 / 0.4) 0 10px 20px 0;
-  --scrim: rgb(0 0 0 / 0.6);
+  --shadow-xl: rgb(0 0 0 / 0.5) 0 24px 70px 0;
+  --shadow-float: rgb(0 0 0 / 0.5) 0 24px 70px 0;
+  --scrim: rgb(0 0 0 / 0.65);
   color-scheme: dark;
 }
 
@@ -130,9 +128,9 @@ strong, b { font-weight: 600; }
    (the hero is the one centered display moment). */
 h1, h2 { margin: 0; font-family: var(--display); color: var(--head); letter-spacing: -0.01em; }
 h3 { margin: 0; font-family: var(--display); color: var(--head); letter-spacing: -0.01em; }
-h1 { font-size: var(--text-xl); font-weight: 600; line-height: 1.1; }
-h2 { font-size: var(--text-lg); font-weight: 600; line-height: 1.2; }
-h3 { font-size: var(--text-md); font-weight: 600; line-height: 1.3; }
+h1 { font-size: var(--text-xl); font-weight: 520; line-height: 1.1; letter-spacing: -0.02em; }
+h2 { font-size: var(--text-lg); font-weight: 520; line-height: 1.2; letter-spacing: -0.02em; }
+h3 { font-size: var(--text-md); font-weight: 520; line-height: 1.3; }
 p { margin: 0; line-height: 1.5; }
 em { font-style: normal; }
 svg { flex-shrink: 0; }
@@ -211,12 +209,13 @@ main[data-screen='settings'], main[data-screen='categories'], main[data-screen='
 @media (max-width: 899px) { .brand > span:last-child { display: none; } }
 
 /* ---------- Primitives ---------- */
-/* Ghost / Outlined Button: transparent fill, 1px hairline, 24px radius.
-   The default action is quiet; primary actions fill with Charcoal. */
+/* Ghost / Outlined Button: transparent fill, 1px ink border, 8px radius —
+   the default action is quiet. Primary actions fill with Electric Indigo
+   (pill); inverse actions are solid black pills. */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
   min-height: 38px; padding: 7px var(--s4);
-  border-radius: var(--r-pill); border: 1px solid var(--border);
+  border-radius: var(--r-input); border: 1px solid var(--border-strong);
   background: var(--surface); color: var(--text);
   font-family: var(--font); font-weight: 500; font-size: 0.9375rem; line-height: 1;
   letter-spacing: -0.01em;
@@ -226,13 +225,19 @@ main[data-screen='settings'], main[data-screen='categories'], main[data-screen='
 .btn:hover { text-decoration: none; background: var(--surface-2); }
 .btn:active:not(:disabled) { background: var(--surface-3); }
 .btn svg { width: 18px; height: 18px; color: currentColor; }
-/* Primary Filled Button: Charcoal, white text, the two-layer charcoal shadow. */
-.btn.primary, .btn.inverse, .btn.secondary {
+/* Primary CTA: Electric Indigo pill — the only saturated fill in the UI. */
+.btn.primary {
   background: var(--action); border-color: var(--action); color: var(--on-action);
-  box-shadow: var(--shadow-btn);
+  border-radius: var(--r-pill);
 }
-.btn.primary:hover, .btn.inverse:hover, .btn.secondary:hover { background: var(--action); filter: brightness(1.08); }
-[data-theme='dark'] .btn.primary:hover, [data-theme='dark'] .btn.inverse:hover, [data-theme='dark'] .btn.secondary:hover { filter: none; background: var(--surface-2); }
+.btn.primary:hover { background: var(--action); filter: brightness(1.08); }
+/* Inverse action: a solid black pill (white pill on the dark canvas). */
+.btn.inverse, .btn.secondary {
+  background: var(--inverse); border-color: var(--inverse); color: var(--on-inverse);
+  border-radius: var(--r-pill);
+}
+.btn.inverse:hover, .btn.secondary:hover { background: var(--inverse); filter: brightness(1.15); }
+[data-theme='dark'] .btn.inverse:hover, [data-theme='dark'] .btn.secondary:hover { filter: none; background: var(--surface-2); }
 .btn.danger { color: var(--danger); border-color: var(--danger); }
 .btn.danger.solid { background: var(--danger-soft); }
 .btn.ghost { background: transparent; border-color: transparent; box-shadow: none; }
@@ -248,8 +253,8 @@ main[data-screen='settings'], main[data-screen='categories'], main[data-screen='
 .small { font-size: var(--text-sm); }
 .xs { font-size: var(--text-xs); }
 
-/* Cards: paper, 4px, a hairline border and the soft charcoal shadow. */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s4) var(--s5); box-shadow: var(--shadow-card); }
+/* Cards: white, 16px radius, a mist hairline — flat, no grid shadows. */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s4) var(--s5); }
 .section { margin-top: var(--s12); }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s4); }
 .section-head a { font-size: var(--text-sm); font-weight: 500; white-space: nowrap; color: var(--link); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
@@ -257,27 +262,27 @@ main[data-screen='settings'], main[data-screen='categories'], main[data-screen='
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .label { font-size: var(--text-xs); font-weight: 600; color: var(--text-2); }
-/* Inputs: mist fill, 10px radius, hairline border; focus ring in ink. */
+/* Inputs: white fill, 8px radius, mist hairline; focus ring in indigo. */
 .input, select.input {
   width: 100%; min-height: 44px; padding: 12px var(--s4);
-  border-radius: var(--r-input); border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: var(--r-input); border: 1px solid var(--border); background: var(--surface); color: var(--text);
   font-size: var(--text-base);
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .input::placeholder { color: var(--text-3); opacity: 1; }
 textarea.input { min-height: 112px; resize: vertical; line-height: 1.5; }
-.input:focus { outline: none; border-color: var(--border-strong); box-shadow: 0 0 0 3px rgb(20 23 31 / 0.08); }
-[data-theme='dark'] .input:focus { box-shadow: 0 0 0 3px rgb(245 246 249 / 0.1); }
+.input:focus { outline: none; border-color: var(--border-strong); box-shadow: 0 0 0 3px rgb(77 73 252 / 0.25); }
+[data-theme='dark'] .input:focus { box-shadow: 0 0 0 3px rgb(143 140 255 / 0.3); }
 
-/* Search: a mist field with a hairline border and a charcoal pill button. */
+/* Search: a white field with a mist hairline and a ghost clear button. */
 .searchbox { position: relative; }
 .searchbox svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-3); pointer-events: none; }
-.searchbox input { padding-left: 44px; padding-right: 50px; min-height: 52px; border-radius: var(--r-pill); font-size: 1rem; box-shadow: none; }
+.searchbox input { padding-left: 44px; padding-right: 50px; min-height: 52px; border-radius: var(--r-input); font-size: 1rem; box-shadow: none; }
 .searchbox input::-webkit-search-cancel-button, .searchbox input::-webkit-search-decoration { display: none; }
 .searchbox .clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
 .searchbox .clear:hover, .searchbox .clear:active:not(:disabled) { transform: translateY(-50%); }
 
-/* Tags: mist pills; the pressed one turns paper with a hairline. */
+/* Tags: mist pills; the pressed one turns paper with an ink hairline. */
 .chip {
   display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 var(--s4);
   border-radius: var(--r-pill); border: 1px solid transparent; background: var(--surface-2);
@@ -285,11 +290,11 @@ textarea.input { min-height: 112px; resize: vertical; line-height: 1.5; }
   transition: background-color 120ms ease, box-shadow 120ms ease;
 }
 .chip:hover { background: var(--surface-3); }
-.chip[aria-pressed='true'] { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-btn); font-weight: 600; }
+.chip[aria-pressed='true'] { background: var(--surface); border-color: var(--border-strong); font-weight: 600; }
 .chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .chips { display: flex; gap: var(--s2); overflow-x: auto; padding: 2px 2px var(--s1); scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: var(--r-pill); font-size: var(--text-xs); font-weight: 600; line-height: 1.4; background: var(--surface-2); color: var(--text); border: 1px solid var(--hairline); }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: var(--r-fine); font-size: var(--text-xs); font-weight: 600; line-height: 1.4; background: var(--surface-2); color: var(--text); border: 1px solid var(--hairline); }
 .badge.warn { background: var(--warn-soft); color: var(--warn); }
 .badge.ok { background: var(--ok-soft); color: var(--ok); }
 .badge.err { background: var(--danger-soft); color: var(--danger); }
@@ -301,12 +306,12 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s2); }
 @media (min-width: 600px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--s2); } }
 @media (min-width: 1200px) { .grid { grid-template-columns: repeat(4, 1fr); } }
-/* Image cards: paper, hairline, full-bleed thumbnail on top, 12px meta below. */
+/* Image cards: white, 16px radius, mist hairline, full-bleed thumbnail on top.
+   Flat in the grid (no shadow) — the screenshots carry the color. */
 .tile {
   position: relative; display: flex; flex-direction: column; text-align: left;
   border-radius: var(--r-card); overflow: hidden; background: var(--surface); border: 1px solid var(--border);
   color: inherit; text-decoration: none;
-  box-shadow: var(--shadow-card);
   transition: transform 160ms ease, box-shadow 160ms ease;
   content-visibility: auto; contain-intrinsic-size: auto 270px;
 }
@@ -321,9 +326,9 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
 .tile .status .badge:not(.warn):not(.ok):not(.err):not(.accent) { background: var(--surface); }
 .tile .check {
   position: absolute; right: 10px; top: 10px; width: 28px; height: 28px; border-radius: var(--r-full);
-  border: 2px solid #ffffff; background: rgb(20 23 31 / 0.4); display: grid; place-items: center; color: #ffffff;
+  border: 2px solid #ffffff; background: rgb(0 0 0 / 0.4); display: grid; place-items: center; color: #ffffff;
 }
-.tile.selected { box-shadow: 0 0 0 2px var(--border-strong), var(--shadow-card); }
+.tile.selected { box-shadow: 0 0 0 2px var(--border-strong); }
 .tile.selected .check { background: var(--action); border-color: var(--action); color: var(--on-action); }
 .tile .check svg { width: 16px; height: 16px; }
 .tile .catline { display: flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--text-2); min-width: 0; }
@@ -337,20 +342,18 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
 .recent > .tile { content-visibility: visible; }
 
 /* ---------- Home ---------- */
-/* Hero: the one display moment — centered stack on the hero gradient wash
-   (the only place the wash is allowed). */
-.hero { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--s4); padding: var(--s8) var(--s4) var(--s6); border-radius: var(--r-band); background: var(--hero-wash); text-align: center; }
+/* Hero: the one floating card — white, 16px radius, lifted by the single
+   soft 24px 70px shadow. The whisper headline sits at an ultra-light 340. */
+.hero { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--s4); padding: var(--s8) var(--s5) var(--s6); border-radius: var(--r-card); background: var(--surface); text-align: center; box-shadow: var(--shadow-xl); }
 .hero-copy { display: flex; flex-direction: column; align-items: center; gap: var(--s4); min-width: 0; width: 100%; max-width: 720px; margin: 0 auto; }
-.hero h1 { font-size: var(--text-display); line-height: 1.05; letter-spacing: -0.01em; font-weight: 600; max-width: 18ch; }
-.hero .lead { font-size: var(--text-md); color: #373f51; max-width: 46ch; line-height: 1.5; }
-/* The hero wash stays bright in dark mode, so its type stays ink in both themes. */
-[data-theme='dark'] .hero h1 { color: #14171f; }
+.hero h1 { font-size: var(--text-display); line-height: 1.1; letter-spacing: -0.02em; font-weight: 340; max-width: 16ch; }
+.hero .lead { font-size: var(--text-md); color: var(--text-2); max-width: 46ch; line-height: 1.5; }
 .hero .searchbox { width: 100%; }
 .hero .notice { width: 100%; }
 .hero .chips { justify-content: safe center; max-width: 100%; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s2); width: 100%; max-width: 720px; margin: 0 auto; }
-.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s3) var(--s4); text-align: left; text-decoration: none; color: inherit; box-shadow: var(--shadow-card); transition: transform 140ms ease; }
-.stat b { display: block; font-family: var(--display); font-size: 1.75rem; font-weight: 600; line-height: 1.1; color: var(--head); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s3) var(--s4); text-align: left; text-decoration: none; color: inherit; transition: transform 140ms ease; }
+.stat b { display: block; font-family: var(--display); font-size: 1.75rem; font-weight: 500; line-height: 1.1; color: var(--head); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .stat span { display: block; font-size: var(--text-xs); font-weight: 500; line-height: 1.35; color: var(--text-2); }
 a.stat:hover { transform: translateY(-1px); text-decoration: none; }
 a.stat b { text-decoration: underline; text-decoration-color: var(--border-strong); text-decoration-thickness: 2px; text-underline-offset: 4px; }
@@ -381,20 +384,17 @@ a.stat b { text-decoration: underline; text-decoration-color: var(--border-stron
 .dropzone.over { border-style: solid; background: var(--surface-2); justify-items: center; text-align: center; }
 .dropzone svg.big { width: 52px; height: 52px; padding: 13px; border-radius: 50%; color: var(--icon); background: var(--surface-2); }
 .dropzone.band {
-  border: 0; border-radius: var(--r-band);
-  background: var(--action); color: var(--on-action); padding: var(--s10) var(--s6) var(--s8); overflow: hidden;
+  border: 0; border-radius: var(--r-card);
+  background: var(--inverse); color: var(--on-inverse); padding: var(--s10) var(--s6) var(--s8); overflow: hidden;
 }
-[data-theme='dark'] .dropzone.band { background: var(--surface-2); color: var(--text); }
+[data-theme='dark'] .dropzone.band { background: var(--inverse); color: var(--on-inverse); }
 @media (min-width: 900px) { .dropzone.band { padding: var(--s12) var(--s16) var(--s10); } }
-.dropzone.band strong { color: var(--on-action); font-size: clamp(1.5rem, 1.1rem + 2vw, 2.5rem); max-width: 18ch; }
-[data-theme='dark'] .dropzone.band strong { color: var(--head); }
-.dropzone.band .faint, .dropzone.band .faint.xs { color: var(--on-action); opacity: 0.75; }
-[data-theme='dark'] .dropzone.band .faint, [data-theme='dark'] .dropzone.band .faint.xs { color: var(--text-2); opacity: 1; }
-.dropzone.band svg.big { background: transparent; color: var(--on-action); }
-.dropzone.band .btn { background: var(--on-action); color: var(--action); border-color: transparent; }
-.dropzone.band .btn.ghost { background: transparent; color: var(--on-action); border-color: var(--on-action); }
-[data-theme='dark'] .dropzone.band .btn { background: var(--action); color: var(--on-action); }
-[data-theme='dark'] .dropzone.band .btn.ghost { background: transparent; color: var(--text); border-color: var(--border-strong); }
+.dropzone.band strong { color: var(--on-inverse); font-size: clamp(1.5rem, 1.1rem + 2vw, 2.5rem); font-weight: 340; letter-spacing: -0.02em; max-width: 18ch; }
+.dropzone.band .faint, .dropzone.band .faint.xs { color: var(--on-inverse); opacity: 0.7; }
+.dropzone.band svg.big { background: transparent; color: var(--on-inverse); }
+.dropzone.band .btn { background: var(--surface); color: var(--text); border-color: transparent; border-radius: var(--r-pill); }
+.dropzone.band .btn.ghost { background: transparent; color: var(--on-inverse); border-color: var(--on-inverse); }
+.dropzone.band .btn.primary { background: var(--action); color: var(--on-action); }
 .steps { display: grid; gap: var(--s5); counter-reset: step; margin: 0; padding: 0; list-style: none; }
 .steps li { display: grid; grid-template-columns: 34px 1fr; gap: var(--s3); align-items: start; }
 .steps li strong { font-weight: 600; font-size: 1rem; color: var(--head); }
@@ -428,7 +428,7 @@ a.stat b { text-decoration: underline; text-decoration-color: var(--border-stron
 .entity .act button:hover { background: var(--surface-2); color: var(--text); }
 .entity .act svg { width: 15px; height: 15px; color: inherit; }
 /* AI panel: a paper card with a charcoal edge. */
-.aipanel { border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--border); box-shadow: inset 4px 0 0 var(--action), var(--shadow-card); padding: var(--s4) var(--s5); display: flex; flex-direction: column; gap: var(--s2); }
+.aipanel { border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--border); box-shadow: inset 4px 0 0 var(--action); padding: var(--s4) var(--s5); display: flex; flex-direction: column; gap: var(--s2); }
 .aipanel .body { white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.6; max-height: 300px; overflow: auto; overflow-wrap: anywhere; }
 
 details.rawocr { border-radius: var(--r-card); background: var(--surface); border: 1px solid var(--border); }
@@ -451,7 +451,7 @@ details.rawocr .body { white-space: pre-wrap; font-size: var(--text-sm); line-he
 .progress > div { height: 100%; background: var(--action); transition: width 200ms linear; }
 
 /* ---------- Lists ---------- */
-.list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--shadow-card); }
+.list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; }
 .list > .item { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4); min-height: 58px; border-top: 1px solid var(--hairline); }
 .list > .item:first-child { border-top: 0; }
 .list .grow { flex: 1; min-width: 0; }
@@ -469,13 +469,13 @@ details.rawocr .body { white-space: pre-wrap; font-size: var(--text-sm); line-he
 .palette button[aria-pressed='true'] { border-color: var(--surface); box-shadow: 0 0 0 2px var(--text); }
 .toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); min-height: 54px; }
 .toggle input[type='checkbox'] { appearance: none; width: 46px; height: 28px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); position: relative; flex-shrink: 0; cursor: pointer; transition: background-color 160ms; }
-.toggle input[type='checkbox']::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow-card); transition: transform 160ms; }
+.toggle input[type='checkbox']::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); transition: transform 160ms; }
 .toggle input[type='checkbox']:checked { background: var(--action); }
 .toggle input[type='checkbox']:checked::after { transform: translateX(18px); background: var(--on-action); }
 input[type='range'] { accent-color: var(--action); appearance: none; -webkit-appearance: none; height: 28px; background: transparent; }
 input[type='range']::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border); }
 input[type='range']::-moz-range-track { height: 8px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border); }
-input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: var(--action); box-shadow: var(--shadow-card); }
+input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: var(--action); }
 input[type='range']::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--action); }
 /* Segmented control: mist track, paper active segment with an inset shadow. */
 .segmented { display: inline-grid; grid-auto-flow: column; background: var(--surface-2); border-radius: var(--r-band); padding: 3px; gap: 2px; }

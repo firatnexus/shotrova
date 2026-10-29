@@ -263,7 +263,7 @@ export function DetailScreen({ id }: { id: string }) {
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <span className="small">{r.categorySource === 'none' ? t('review.none') : t('review.question')}</span>
                 {r.categorySource !== 'none' && (
-                  <button type="button" className="btn sm primary" onClick={() => void confirmCategory([r.id]).then(() => toast(t('review.confirmed'), 'success'))}>
+                  <button type="button" className="btn sm" onClick={() => void confirmCategory([r.id]).then(() => toast(t('review.confirmed'), 'success'))}>
                     <IconCheck /> {t('review.yes')}
                   </button>
                 )}
@@ -317,7 +317,7 @@ export function DetailScreen({ id }: { id: string }) {
                   <button type="button" className="btn sm" onClick={() => { setText(primaryText(r)); setEditingText(false); }}>
                     <IconX /> {t('common.cancel')}
                   </button>
-                  <button type="button" className="btn sm primary" onClick={() => { void save(hasAi ? { aiText: text } : { ocrText: text }, t('detail.saved')); setEditingText(false); }}>
+                  <button type="button" className="btn sm" onClick={() => { void save(hasAi ? { aiText: text } : { ocrText: text }, t('detail.saved')); setEditingText(false); }}>
                     <IconCheck /> {t('common.save')}
                   </button>
                 </div>
@@ -389,7 +389,7 @@ export function DetailScreen({ id }: { id: string }) {
                         disabled={askBusy || !blob}
                         data-testid="ask-input"
                       />
-                      <button type="submit" className="btn primary" disabled={!askInput.trim() || askBusy || !blob} data-testid="ask-send">
+                      <button type="submit" className="btn" disabled={!askInput.trim() || askBusy || !blob} data-testid="ask-send">
                         {t('detail.ask_send')}
                       </button>
                     </form>
@@ -486,7 +486,7 @@ export function DetailScreen({ id }: { id: string }) {
                   <button type="button" className="btn sm" onClick={() => setAiPreview(null)}>
                     <IconX /> {t('common.cancel')}
                   </button>
-                  <button type="button" className="btn sm primary" onClick={() => void applyAiPreview()} data-testid="ai-apply">
+                  <button type="button" className="btn sm" onClick={() => void applyAiPreview()} data-testid="ai-apply">
                     <IconCheck /> {t('detail.ai_apply')}
                   </button>
                 </div>

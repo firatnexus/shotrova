@@ -1,17 +1,17 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Latest run: 28 October 2026 (v1.10.0, Contra-inspired "editorial gallery" redesign); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Latest run: 29 October 2026 (v1.11.0, Figma-inspired "white gallery wall" redesign); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
 
 ## Summary
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit tests (12 files) | `npm test` | **89 / 89 passed** on v1.10.0 (12 files: brand, categorizer, vision, search, display-title, normalize, release-notes, providers, backup, settings-migration…) |
-| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **38 / 38 passed** on v1.10.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(20, 23, 31)`) |
+| Unit tests (12 files) | `npm test` | **89 / 89 passed** on v1.11.0 (12 files: brand, categorizer, vision, search, display-title, normalize, release-notes, providers, backup, settings-migration…) |
+| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **38 / 38 passed** on v1.11.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)`) |
 | Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **38 / 38 passed** (executed in CI on the v1.3.1 push) ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
 | APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
 | APK web-shell E2E, signed release APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
-| APK web-shell E2E against `dist` with simulated bridge (v1.10.0, local) | `APK_PUBLIC=dist npx playwright test -c playwright.android.config.ts` | **10 / 11 passed**; A1 needs the bundled OCR files of a real APK build and runs in the Android workflow. A8 now expects `#ffffff` / `#14171f` system bars |
+| APK web-shell E2E against `dist` with simulated bridge (v1.11.0, local) | `APK_PUBLIC=dist npx playwright test -c playwright.android.config.ts` | **10 / 11 passed**; A1 needs the bundled OCR files of a real APK build and runs in the Android workflow. A8 now expects `#0a0a0a` system bars |
 | APK web-shell E2E against the real built APK (v1.9.0, CI) | Android workflow on PR #7 and tag `v1.9.0` | **Passed** (job "Build and test APK") |
 | APK build and inspection | `./gradlew assembleDebug` / `assembleRelease`, `aapt2 dump badging`, `apksigner verify` | **Built and verified** (see below) |
 

@@ -476,7 +476,7 @@ export function SettingsScreen() {
       <Section id="backup" title={t('set.backup')}>
         <p className="small">{s.lastBackupAt ? t('set.last_backup', { date: formatDate(s.lastBackupAt, s.lang, true) }) : t('set.never_backed_up')}</p>
         <div className="row">
-          <button type="button" className="btn primary" onClick={() => void doExport('zip')} disabled={!!busy} data-testid="export-zip">
+          <button type="button" className="btn" onClick={() => void doExport('zip')} disabled={!!busy} data-testid="export-zip">
             <IconDownload /> {busy === 'zip' ? t('common.working') : t('set.export_zip')}
           </button>
           <button type="button" className="btn" onClick={() => void doExport('json')} disabled={!!busy} data-testid="export-json">
