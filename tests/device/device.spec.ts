@@ -37,6 +37,13 @@ function screenSize(): { w: number; h: number } {
   return { w: +m[1]!, h: +m[2]! };
 }
 const imeShown = () => /mInputShown=true|isInputViewShown=true/.test(adb('shell', 'dumpsys', 'input_method'));
+/** Closes the soft keyboard (BACK only while it is open, so the app never sees it) and blurs the page. */
+async function hideIme() {
+  if (imeShown()) adb('shell', 'input', 'keyevent', '4');
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur?.());
+  await expect.poll(imeShown, { timeout: 10_000 }).toBe(false);
+  await page.waitForTimeout(600);
+}
 
 let device: AndroidDevice;
 let page: Page;
@@ -91,14 +98,22 @@ test.afterAll(async () => {
   await device?.close().catch(() => undefined);
 });
 
+test.beforeEach(async () => {
+  if (page) await hideIme().catch(() => undefined);
+});
+
 test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazgeç above the real IME', async () => {
   await go('/categories');
   const before = webviewBounds();
   const h0 = await page.evaluate(() => innerHeight);
-  await page.getByTestId('new-category').click();
+  await realTap(page.getByTestId('new-category'));
   const kw = page.locator('#c-kw');
   await expect(kw).toBeVisible();
+  // The name field autofocuses and may already have opened the keyboard: let the layout settle first
+  await page.waitForTimeout(1500);
+  results.imeOpenedByAutofocus = imeShown();
   await kw.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
   await realTap(kw);
   await expect.poll(imeShown, { timeout: 15_000, message: 'soft keyboard opened by a real tap' }).toBe(true);
   await page.waitForTimeout(1200);
@@ -123,11 +138,11 @@ test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazge
   // Typing through the real IME lands in the field
   adb('shell', 'input', 'text', 'antrenman');
   await expect(kw).toHaveValue(/antrenman/);
+  screencap('keyboard-category-sheet-typed');
   // Save is tappable while the keyboard is open
   await page.locator('#c-name, .sheet input[type=text]').first().fill('Spor');
   await realTap(page.getByTestId('save-category'));
   await expect(page.getByTestId('category-list').locator('.item', { hasText: 'Spor' })).toBeVisible();
-  adb('shell', 'input', 'keyevent', '111'); // ESC: make sure no IME stays open
 });
 
 test('OCR: Japanese pack downloads from GitHub Pages, is verified, and recognizes a real screenshot on the device', async () => {
@@ -181,6 +196,7 @@ test('OCR: Japanese pack downloads from GitHub Pages, is verified, and recognize
 
 test('swipe: real touches move between tabs in order, smoothly, without wrap-around', async () => {
   await go('/');
+  screencap('swipe-start');
   const wv = webviewBounds();
   const y = Math.round(wv.t + (wv.b - wv.t) * 0.55);
   // RIGHT/LEFT = where the finger starts; finger moving left = next tab (LTR)
@@ -224,7 +240,7 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
   adb('shell', 'input', 'swipe', String(RIGHT), String(y), String(LEFT), String(y), '220');
   await page.waitForTimeout(600);
   expect(await hash()).toBe('/');
-  adb('shell', 'input', 'keyevent', '111');
+  await hideIme();
   // No leftover transforms once everything settled
   expect(await page.locator('main#main').evaluate((m) => getComputedStyle(m.firstElementChild!).transform)).toMatch(/none|matrix\(1, 0, 0, 1, 0, 0\)/);
   results.swipe = swipes;
