@@ -110,7 +110,8 @@ function cap(): CapacitorGlobal | undefined {
 
 /**
  * Tell the native side that the web layer has painted its first usable frame.
- * The Android launch splash stays on screen until this fires (or a 3s safety
+ * The Android launch splash stays on screen until this fires AND the native
+ * side confirms the frame is composited (or a safety
  * timeout), so startup shows a single splash — no PWA boot screen on top of
  * the native one. No-op on the web.
  */

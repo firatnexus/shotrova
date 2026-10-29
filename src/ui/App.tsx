@@ -31,13 +31,13 @@ export function App() {
   const fatal = useAppState((s) => s.fatal);
 
   // Hand the native Android launch splash off only once the launch screen
-  // has actually been composited on screen. The page's first contentful
-  // paint IS the launch screen (static HTML in index.html), so waiting for
-  // it keeps the native splash up until a real frame exists — but FCP alone
-  // is not proof that Android has composited the WebView into the window
-  // yet, so the native side (MainActivity) gates the hand-off on
-  // WebView.postVisualStateCallback, which fires only once the frame is
-  // actually visible. Falls back to the double-rAF signal where the paint
+  // has both painted and been composited on screen. The page's first
+  // contentful paint IS the launch screen (static HTML in index.html), so
+  // waiting for it keeps the native splash up until a real frame exists —
+  // but FCP alone is not proof that Android has composited the WebView
+  // into the window yet, so markFirstFrame also asks the native side to
+  // confirm composition via WebView.postVisualStateCallback before the
+  // splash is released. Falls back to the double-rAF signal where the paint
   // timing API is unavailable. markFirstFrame is idempotent.
   useEffect(() => {
     let cancelled = false;
