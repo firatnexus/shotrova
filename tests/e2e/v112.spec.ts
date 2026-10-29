@@ -3,7 +3,7 @@
  * language dropdowns (UI + OCR with downloadable packs), RTL, tab swipe.
  */
 import type { Page } from '@playwright/test';
-import { dbImages, expect, importFixtures, openApp, test } from './helpers';
+import { dbImages, expect, importFixtures, openApp, test, waitForOcr } from './helpers';
 
 const SHOTS = 'test-reports/screens';
 const shot = (page: Page, name: string) => page.screenshot({ path: `${SHOTS}/${test.info().project.name}-${name}.png` });
@@ -295,6 +295,111 @@ test('dark theme renders the new menus with readable contrast', async ({ page })
   await shot(page, 'ocr-menu-dark');
   await page.keyboard.press('Escape');
   await page.getByTestId('theme-light').click();
+});
+
+test('every date and sort option applies through the dropdown menus', async ({ page }) => {
+  await openApp(page);
+  await importFixtures(page, ['recipe_tr.png', 'invoice_tr.png', 'address_tr.png', 'phone_settings_en.webp', 'settings_en.png']);
+  const imgs = await waitForOcr(page, 5);
+  const idOf = (n: string) => imgs.find((i) => i.fileName === n)!.id;
+
+  // Deterministic dates, relative to today so the month/year presets stay
+  // meaningful whatever day the test runs on.
+  const DAY = 86_400_000;
+  const noon = new Date(); noon.setHours(12, 0, 0, 0);
+  const t0 = noon.getTime();
+  const files: Record<string, string> = {
+    recipe_tr: 'recipe_tr.png',
+    phone_settings_en: 'phone_settings_en.webp',
+    address_tr: 'address_tr.png',
+    settings_en: 'settings_en.png',
+    invoice_tr: 'invoice_tr.png',
+  };
+  const dates: Record<string, number> = {
+    recipe_tr: t0,                              // today
+    phone_settings_en: t0 - 3 * DAY,            // 3 days ago
+    address_tr: t0 - 10 * DAY,                  // 10 days ago
+    settings_en: t0 - 45 * DAY,                 // 45 days ago
+    invoice_tr: new Date(2024, 4, 10, 12).getTime(), // fixed 2024-05-10
+  };
+  for (const [name, ts] of Object.entries(dates)) {
+    await page.evaluate(async ({ id, ts }) => {
+      const db = await new Promise<IDBDatabase>((r) => { const q = indexedDB.open('shotrova-db'); q.onsuccess = () => r(q.result); });
+      const tx = db.transaction('images', 'readwrite');
+      const s = tx.objectStore('images');
+      const rec = await new Promise<Record<string, unknown>>((r) => { const q = s.get(id); q.onsuccess = () => r(q.result); });
+      rec.createdAt = ts;
+      s.put(rec);
+      await new Promise((r) => (tx.oncomplete = r));
+    }, { id: idOf(files[name]), ts });
+  }
+  await page.reload();
+  await openApp(page, '/images');
+
+  const titles = async () => (await page.locator('[data-testid=grid] .tile .title').allTextContents());
+  const select = async (menu: string, value: string) => {
+    await page.getByTestId(menu).click();
+    await page.getByTestId(`${menu}-opt-${value}`).click();
+  };
+
+  // Every date option yields exactly its expected set of images.
+  const now = new Date();
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 15);
+  const inMonth = (ts: number, y: number, m: number) => new Date(ts).getFullYear() === y && new Date(ts).getMonth() === m;
+  const expected: Record<string, string[]> = {
+    '': ['recipe_tr', 'phone_settings_en', 'address_tr', 'settings_en', 'invoice_tr'],
+    '7d': ['recipe_tr', 'phone_settings_en'],
+    '30d': ['recipe_tr', 'phone_settings_en', 'address_tr'],
+    this_month: Object.entries(dates).filter(([, ts]) => inMonth(ts, now.getFullYear(), now.getMonth())).map(([n]) => n),
+    last_month: Object.entries(dates).filter(([, ts]) => inMonth(ts, prev.getFullYear(), prev.getMonth())).map(([n]) => n),
+    this_year: Object.entries(dates).filter(([, ts]) => new Date(ts).getFullYear() === now.getFullYear()).map(([n]) => n),
+  };
+  for (const [value, want] of Object.entries(expected)) {
+    await select('date-filter', value);
+    expect(await titles(), `date ${value}`).toEqual(want);
+  }
+  // Custom range: 2024-05-01..31 covers only the invoice.
+  await select('date-filter', 'custom');
+  await page.getByLabel('Başlangıç').fill('2024-05-01');
+  await page.getByLabel('Bitiş').fill('2024-05-31');
+  await expect(page.locator('[data-testid=grid] .tile .title')).toHaveCount(1);
+  expect(await titles()).toEqual(['invoice_tr']);
+  await select('date-filter', '');
+
+  // Every sort option orders the grid as specified.
+  const byNewest = ['recipe_tr', 'phone_settings_en', 'address_tr', 'settings_en', 'invoice_tr'];
+  await select('sort', 'newest');
+  expect(await titles()).toEqual(byNewest);
+  await select('sort', 'oldest');
+  expect(await titles()).toEqual([...byNewest].reverse());
+  await select('sort', 'title');
+  expect(await titles()).toEqual([...byNewest].sort((a, b) => a.localeCompare(b, 'tr')));
+  // Relevance with no query falls back to newest.
+  await select('sort', 'relevance');
+  expect(await titles()).toEqual(byNewest);
+  // Relevance with a query ranks the strong match first.
+  await page.getByTestId('search').fill('fatura');
+  await select('sort', 'relevance');
+  expect((await titles())[0]).toBe('invoice_tr');
+  await page.getByTestId('search').fill('');
+
+  // Direct menu switching: tapping the other trigger closes the open menu.
+  await page.getByTestId('date-filter').click();
+  await expect(page.getByTestId('date-filter-menu')).toBeVisible();
+  await page.getByTestId('sort').click();
+  await expect(page.getByTestId('date-filter-menu')).not.toBeVisible();
+  await expect(page.getByTestId('sort-menu')).toBeVisible();
+  await page.keyboard.press('Escape');
+});
+
+test('launch screen: reduced motion skips the animations and still dismisses', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await openApp(page, '/images');
+  // #boot is gone (no fade needed) and the app behind is fully usable.
+  await expect(page.getByTestId('date-filter')).toBeVisible();
+  await page.getByTestId('date-filter').click();
+  await expect(page.getByTestId('date-filter-menu')).toBeVisible();
+  await page.keyboard.press('Escape');
 });
 
 test('images date and sort filters use the attached dropdown menus', async ({ page }) => {

@@ -289,7 +289,11 @@ function dismissBootScreen() {
     return;
   }
   el.classList.add('is-done');
-  el.addEventListener('animationend', remove, { once: true });
+  // animationend bubbles from the child entrance animation — only the
+  // overlay's own exit fade may remove it.
+  el.addEventListener('animationend', (e) => {
+    if (e.target === el && e.animationName === 'boot-out') remove();
+  });
   // Safety: the CSS fade may be disabled or interrupted — never leave it up.
   setTimeout(remove, 400);
 }
