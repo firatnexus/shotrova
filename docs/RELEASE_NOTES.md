@@ -1,5 +1,16 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.10.0
+
+- **New design (Contra-inspired "editorial gallery on white"):** a bright white Paper canvas (#ffffff) where almost every element is deep Ink (#14171f) or hairline gray (#e5e7eb). Charcoal (#222834) is the single filled action color, lifted by a soft two-layer shadow instead of borders. Mist (#f5f6f9) is the only secondary surface. Cards are sharp 4px, buttons and tags are 24px pills, inputs 10px.
+- **Hero wash:** the home screen's display moment — a 58px tight-tracked headline over the cyan→violet hero gradient wash (the only gradient on any screen), centered like a magazine cover.
+- **Typography:** Inter (variable, OFL, latin + latin-ext with full Turkish support, bundled offline) stands in for GT Standard: 15px body with -0.01em tracking, uppercase-free sentence case, weight-driven hierarchy. Fraunces/Geist removed.
+- **Decorations removed:** stickers, handwritten captions, marker underlines, tilted polaroid stacks and the orange brand band are gone — the gallery look carries itself. Image cards are now sharp paper cards with full-bleed thumbnails; the category cards carry a soft tint of the user's own category color.
+- **Import card:** the closing band is now the featured dark card — Charcoal with a white display headline.
+- **Dark theme:** the same gallery at night — Ink canvas (#14171f), graphite hairlines, white primary buttons (the inverse action).
+- **New logo:** a minimal single-color mark — a rounded screenshot frame holding two text lines ("a screenshot you find by the words inside"). App icon (adaptive foreground/background/monochrome), notification icon, favicon, PWA icons, splash (light: white with ink mark, dark: ink with white mark), web boot splash and README logo were regenerated from this one source.
+- No functional changes; your data stays as it is.
+
 ## What's new in 1.9.1
 
 - **Search:** a single match now reads "1 result" instead of "1 results" (Turkish: "1 sonuç").

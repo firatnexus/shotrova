@@ -1,7 +1,7 @@
 {
   "name": "shotrova",
   "private": true,
-  "version": "1.9.1",
+  "version": "1.10.0",
   "type": "module",
   "description": "Shotrova — local-first screenshot organizer PWA with on-device OCR (Turkish & English)",
   "license": "MIT",

@@ -9,12 +9,12 @@
 Shotrova reads the Turkish and English text in your screenshots on your device, sorts them into categories<br>
 and finds them in seconds by what they say. No server, no account, no tracking.
 
-[![Release](https://img.shields.io/github/v/release/firatnexus/shotrova?label=release&color=ff6f1e&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/releases/latest)
-[![CI](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/ci.yml?branch=main&label=web%20ci&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/ci.yml)
-[![Android](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/android.yml?label=android%20apk&labelColor=171717&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/android.yml)
-[![License](https://img.shields.io/github/license/firatnexus/shotrova?label=license&color=22c55e&labelColor=171717&style=flat-square)](LICENSE)
-![Android 8.0+](https://img.shields.io/badge/android-8.0%2B-3b82f6?labelColor=171717&style=flat-square)
-![Languages](https://img.shields.io/badge/languages-TR%20%2B%20EN-ff66cf?labelColor=171717&style=flat-square)
+[![Release](https://img.shields.io/github/v/release/firatnexus/shotrova?label=release&color=222834&labelColor=14171f&style=flat-square)](https://github.com/firatnexus/shotrova/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/ci.yml?branch=main&label=web%20ci&color=373f51&labelColor=14171f&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/ci.yml)
+[![Android](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/android.yml?label=android%20apk&color=222834&labelColor=14171f&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/android.yml)
+[![License](https://img.shields.io/github/license/firatnexus/shotrova?label=license&color=1d7a3a&labelColor=14171f&style=flat-square)](LICENSE)
+![Android 8.0+](https://img.shields.io/badge/android-8.0%2B-677084?labelColor=14171f&style=flat-square)
+![Languages](https://img.shields.io/badge/languages-TR%20%2B%20EN-677084?labelColor=14171f&style=flat-square)
 
 [**Download the Android APK**](https://github.com/firatnexus/shotrova/releases/latest) &nbsp;·&nbsp;
 [**Open the web app**](https://firatnexus.github.io/shotrova/) &nbsp;·&nbsp;
@@ -137,22 +137,22 @@ Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · User flows
 
 ## Design language
 
-Since 1.9.0 Shotrova looks like a **warm school notebook in afternoon light**: cream paper, charcoal ink, a single orange marker and a few stickers stuck on the edges.
+Since 1.10.0 Shotrova looks like an **editorial gallery on white paper** (Contra-inspired): a white canvas where almost every element is deep ink or hairline gray, and one near-black action color carries all primary interactivity. No illustrations, no decorative stickers — the screenshots are the color.
 
 | Element | Light theme | Dark theme | Used for |
 |---|---|---|---|
-| Paper | `#fdfbf9` | `#17120d` | The whole canvas |
-| Ink | `#171717` | `#f6efe7` | Lines, button outlines, edges |
-| Cocoa | `#2b1a07` | `#f6efe7` | Large headlines |
-| Marker | `#ff6f1e` | `#ff6f1e` | Only handwritten captions, the highlighted word, the footer band |
-| Dew drop | `#f7efe9` | `#1e1711` | Active tab, soft surfaces |
-| Stickers | `#3b82f6` · `#ff66cf` · `#22c55e` | same | Decoration only |
+| Paper | `#ffffff` | `#14171f` | The whole canvas |
+| Ink | `#14171f` | `#f5f6f9` | Text, headings, icon strokes |
+| Hairline | `#e5e7eb` | `#373f51` | Card borders, dividers, outlined buttons |
+| Mist | `#f5f6f9` | `#242938` | Secondary surfaces, inputs, chips |
+| Charcoal | `#222834` | `#ffffff` (inverted) | The single filled action color |
+| Hero wash | cyan → sky → violet | same | The dashboard hero gradient only |
 
-- **Typography:** Fraunces (soft, rounded serif via its SOFT axis, lowercase) for headlines and buttons; Geist for UI text. Both are variable, OFL-licensed and bundled with the app, so it looks the same offline.
-- **Components:** cream-filled pill buttons with a 1.5px ink outline and 20px radius; no filled primary button. 12px cards, 8px inputs, polaroid image cards.
-- **Layout:** left-aligned and generously spaced. On desktop a plain text menu centred in the top bar and a 1200px content width; on mobile a labelled bottom tab bar. Home ends with an orange "add your screenshots" band with 56px top corners.
-- **Constraints:** no gradients, glass or neon; card shadows at most 0.06 opacity.
-- **Logo:** a slightly tilted, ink-drawn cream polaroid on an orange tile; its second text line is orange, i.e. a highlighted word.
+- **Typography:** Inter (variable, tight -0.01em tracking; 58px display moment on the home hero) for everything — a GT Standard stand-in. OFL-licensed and bundled with the app, so it looks the same offline.
+- **Components:** 24px pill buttons (charcoal when primary, hairline-outlined otherwise) lifted by a soft two-layer shadow; 4px cards, 10px inputs, full-bleed image thumbnails.
+- **Layout:** left-aligned editorial rhythm; the home hero is the one centered block. On desktop a plain text menu centred in the top bar and a 1200px content width; on mobile a labelled bottom tab bar. Home ends with the featured dark "add your screenshots" card.
+- **Constraints:** no illustrations, no colored shadows or glows; the gradient appears only on the hero; vivid color appears only inside cards (category tints).
+- **Logo:** a minimal single-color mark — a rounded screenshot frame holding two text lines: "a screenshot you find by the words inside".
 
 <p>
   <img src="docs/img/boot-light.png" width="160" alt="Splash, light">
@@ -264,7 +264,8 @@ Every result was actually executed; logs and manual test steps are in [docs/TEST
 
 | Version | Highlights |
 |---|---|
-| **1.9.1** | English README, release notes and screenshots; "1 result" wording fix |
+| **1.10.0** | Contra-inspired "editorial gallery" redesign: white paper canvas, ink & hairline system, charcoal pill actions, Inter, hero gradient wash, new frame logo |
+| 1.9.1 | English README, release notes and screenshots; "1 result" wording fix |
 | 1.9.0 | Superr-inspired "school notebook" design, orange polaroid logo, bundled Fraunces + Geist |
 | 1.8.0 | Threads-inspired minimal design, black-and-white polaroid logo |
 | 1.7.0 | Portrait-inspired design, new polaroid logo |
@@ -280,9 +281,9 @@ Full details: [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
 
 MIT, see [LICENSE](LICENSE).
 
-Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [React](https://react.dev/) (MIT), [idb](https://github.com/jakearchibald/idb) (ISC), [fflate](https://github.com/101arrowz/fflate) (MIT), [Google ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/android) (Android only, [ML Kit terms](https://developers.google.com/ml-kit/terms)), [Fraunces](https://github.com/undercasetype/Fraunces) and [Geist](https://github.com/vercel/geist-font) (SIL Open Font License 1.1, license texts in `public/fonts/`).
+Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [React](https://react.dev/) (MIT), [idb](https://github.com/jakearchibald/idb) (ISC), [fflate](https://github.com/101arrowz/fflate) (MIT), [Google ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/android) (Android only, [ML Kit terms](https://developers.google.com/ml-kit/terms)), [Inter](https://github.com/rsms/inter) (SIL Open Font License 1.1, license text in `public/fonts/OFL-Inter.txt`).
 
 <div align="center">
 <br>
-<sub>shotrova · a notebook kept with care for your screenshots</sub>
+<sub>shotrova · an editorial wall for your screenshots</sub>
 </div>

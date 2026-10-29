@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark launch: the warm night-cocoa canvas (#17120d) with the full
-         launcher icon — the Marker Orange tile reads on it as well as on the
-         cream paper of values/styles.xml. -->
+    <!-- Dark launch: the ink canvas (#14171f) with the white monochrome
+         frame mark (the ink launcher icon would disappear on it). -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background_dark</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_monochrome</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
         <item name="android:windowSplashScreenAnimationDuration">250</item>
     </style>
