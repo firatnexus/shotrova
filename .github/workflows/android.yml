@@ -19,7 +19,10 @@ jobs:
     name: Build and test APK
     runs-on: ubuntu-latest
     env:
-      HAS_KEYSTORE: ${{ secrets.SH_KEYSTORE_BASE64 != '' }}
+      # Signing credentials are only ever restored for trusted refs (push to
+      # main / version tags). Pull requests always build the debug APK,
+      # so PR code can never run with the release keystore.
+      HAS_KEYSTORE: ${{ secrets.SH_KEYSTORE_BASE64 != '' && github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
