@@ -258,6 +258,13 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
       const w = window as unknown as { __f: number[]; __on: boolean };
       w.__f = [];
       w.__on = true;
+      const lw = window as unknown as { __lt: number[]; __po?: PerformanceObserver };
+      lw.__lt = [];
+      lw.__po?.disconnect();
+      try {
+        lw.__po = new PerformanceObserver((l) => { for (const e of l.getEntries()) lw.__lt.push(Math.round(e.duration)); });
+        lw.__po.observe({ type: 'longtask' });
+      } catch { /* longtask not supported */ }
       const tick = (t: number) => { if (!w.__on) return; w.__f.push(t); requestAnimationFrame(tick); };
       requestAnimationFrame(tick);
     });
@@ -265,7 +272,8 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
     await page.waitForTimeout(700);
     const f: number[] = await page.evaluate(() => { const w = window as unknown as { __f: number[]; __on: boolean }; w.__on = false; return w.__f; });
     const gaps = f.slice(1).map((t, i) => t - f[i]!);
-    const s = { landedOn: await hash(), frames: f.length, worstGapMs: Math.round(Math.max(0, ...gaps)), dropped: gaps.reduce((a, g) => a + Math.max(0, Math.round(g / 16.7) - 1), 0) };
+    const longTasksMs: number[] = await page.evaluate(() => (window as unknown as { __lt: number[] }).__lt);
+    const s = { landedOn: await hash(), longTasksMs, frames: f.length, worstGapMs: Math.round(Math.max(0, ...gaps)), dropped: gaps.reduce((a, g) => a + Math.max(0, Math.round(g / 16.7) - 1), 0) };
     swipes.push(s);
     record('swipe', swipes);
     return s.landedOn;

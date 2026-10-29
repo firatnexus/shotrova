@@ -6,6 +6,15 @@ name: Device test (Android emulator)
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      app_ref:
+        description: 'Build the app sources (src/) from this ref instead, e.g. v1.12.0 for a before/after comparison'
+        required: false
+        default: ''
+      grep:
+        description: 'Only run tests matching this pattern'
+        required: false
+        default: ''
 
 concurrency:
   group: device-${{ github.ref }}
@@ -30,6 +39,11 @@ jobs:
         with:
           packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
       - run: npm ci --legacy-peer-deps
+      - name: Use app sources from another ref (comparison runs only)
+        if: ${{ inputs.app_ref != '' }}
+        run: |
+          git fetch --depth=1 origin "refs/tags/${{ inputs.app_ref }}:refs/tags/${{ inputs.app_ref }}" || git fetch --depth=1 origin "${{ inputs.app_ref }}"
+          git checkout "${{ inputs.app_ref }}" -- src index.html
 
       - name: Build debug APK with WebView debugging (test build only)
         run: |
@@ -61,7 +75,7 @@ jobs:
             adb shell am start -W -n io.github.firatnexus.shotrova.debug/io.github.firatnexus.shotrova.MainActivity
             sleep 8
             adb shell cat /proc/net/unix | grep -i devtools || echo "no devtools socket"
-            npx playwright test -c playwright.device.config.ts
+            npx playwright test -c playwright.device.config.ts ${{ inputs.grep != '' && format('-g "{0}"', inputs.grep) || '' }}
 
       - uses: actions/upload-artifact@v4
         if: always()
