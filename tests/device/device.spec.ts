@@ -289,6 +289,21 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
         lw.__po = new PerformanceObserver((l) => { for (const e of l.getEntries()) lw.__lt.push(Math.round(e.duration)); });
         lw.__po.observe({ type: 'longtask' });
       } catch { /* longtask not supported */ }
+      const tw = window as unknown as { __t: Record<string, number>; __tt?: string; __tl?: boolean };
+      tw.__t = {};
+      tw.__tt = undefined;
+      if (!tw.__tl) {
+        tw.__tl = true;
+        for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'pointercancel']) {
+          document.addEventListener(type, (e) => {
+            tw.__t[type] = (tw.__t[type] ?? 0) + 1;
+            if (type === 'touchstart') {
+              const el = e.target as Element;
+              tw.__tt = `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}.${String(el.className).split(' ')[0]} @${Math.round((e as TouchEvent).touches[0]?.clientY ?? -1)}`;
+            }
+          }, { capture: true, passive: true });
+        }
+      }
       const tick = (t: number) => { if (!w.__on) return; w.__f.push(t); requestAnimationFrame(tick); };
       requestAnimationFrame(tick);
     });
@@ -298,7 +313,8 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
     const f: number[] = await page.evaluate(() => { const w = window as unknown as { __f: number[]; __on: boolean }; w.__on = false; return w.__f; });
     const gaps = f.slice(1).map((t, i) => t - f[i]!);
     const longTasksMs: number[] = await page.evaluate(() => (window as unknown as { __lt: number[] }).__lt);
-    const s = { landedOn: await hash(), longTasksMs, frames: f.length, worstGapMs: Math.round(Math.max(0, ...gaps)), dropped: gaps.reduce((a, g) => a + Math.max(0, Math.round(g / 16.7) - 1), 0) };
+    const touches = await page.evaluate(() => { const w = window as unknown as { __t: Record<string, number>; __tt?: string }; return { ...w.__t, target: w.__tt }; });
+    const s = { landedOn: await hash(), y: sy, touches, longTasksMs, frames: f.length, worstGapMs: Math.round(Math.max(0, ...gaps)), dropped: gaps.reduce((a, g) => a + Math.max(0, Math.round(g / 16.7) - 1), 0) };
     swipes.push(s);
     record('swipe', swipes);
     return s.landedOn;
