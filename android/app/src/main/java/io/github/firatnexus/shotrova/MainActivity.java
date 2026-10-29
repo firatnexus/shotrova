@@ -29,6 +29,7 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());
         ShotrovaBridgePlugin.handleLaunchIntent(getIntent());
+        matchWebViewBackgroundToLaunch();
         installKeyboardAwareInsets();
 
         // Back button: let the web app close dialogs and walk its own history
@@ -52,6 +53,24 @@ public class MainActivity extends BridgeActivity {
                 setEnabled(true);
             }
         });
+    }
+
+    /**
+     * The WebView draws its own (white) background before the page has
+     * painted anything. Match it to the launch background so the frames
+     * between the native splash handing off and the web launch screen
+     * painting are the same color — no white flash in the dark theme, and
+     * in light mode only the mark is briefly absent instead of the whole
+     * screen flashing. (The page itself paints over this immediately.)
+     */
+    private void matchWebViewBackgroundToLaunch() {
+        WebView wv = getBridge() == null ? null : getBridge().getWebView();
+        if (wv == null) return;
+        int mask = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        boolean night = mask == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        wv.setBackgroundColor(night
+            ? androidx.core.content.ContextCompat.getColor(this, R.color.splash_background_dark)
+            : androidx.core.content.ContextCompat.getColor(this, R.color.splash_background));
     }
 
     /**

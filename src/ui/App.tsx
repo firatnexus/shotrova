@@ -30,16 +30,42 @@ export function App() {
   const ready = useAppState((s) => s.ready);
   const fatal = useAppState((s) => s.fatal);
 
-  // Hand the native Android launch splash off as soon as the app shell has
-  // painted its first frame — the static launch screen (index.html #boot)
-  // is already up behind it, so the handoff never shows a blank frame.
-  // markFirstFrame is idempotent (safe under StrictMode's double effect).
+  // Hand the native Android launch splash off only once the launch screen
+  // has actually painted: the page's first contentful paint IS the launch
+  // screen (static HTML in index.html), so waiting for it keeps the native
+  // splash up until a real frame exists. On slow renderers React mounting
+  // alone is not proof of a painted frame (the splash then handed off into
+  // a blank window). Falls back to the double-rAF signal where the paint
+  // timing API is unavailable. markFirstFrame is idempotent.
   useEffect(() => {
+    let cancelled = false;
+    let raf1 = 0;
     let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => markFirstFrame());
+    const signal = () => {
+      if (cancelled) return;
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => markFirstFrame());
+      });
+    };
+    const painted = performance.getEntriesByType('paint').some((e) => e.name === 'first-contentful-paint');
+    if (painted || typeof PerformanceObserver === 'undefined') {
+      signal();
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    const po = new PerformanceObserver((list) => {
+      if (list.getEntries().some((e) => e.name === 'first-contentful-paint')) {
+        po.disconnect();
+        signal();
+      }
     });
+    po.observe({ type: 'paint', buffered: true });
     return () => {
+      cancelled = true;
+      po.disconnect();
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };

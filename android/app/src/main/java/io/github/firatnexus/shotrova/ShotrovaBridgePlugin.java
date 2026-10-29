@@ -71,8 +71,11 @@ public class ShotrovaBridgePlugin extends Plugin {
     /** Set when the web layer has painted its first usable frame (splash hand-off). */
     private static volatile boolean firstFrameReady = false;
     private static long LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
-    /** Safety cap: never hold the launch splash longer than this, even if JS fails. */
-    private static final long MAX_SPLASH_MS = 3000;
+    /** Safety cap: never hold the launch splash longer than this, even if JS
+     *  fails. Generous because the web layer now waits for its first real
+     *  contentful paint, which on slow renderers (software GPUs, cold
+     *  WebViews) can legitimately take several seconds. */
+    private static final long MAX_SPLASH_MS = 8000;
 
     /** True while the native launch splash should stay on screen (first frame + timeout guard). */
     static boolean isFirstFrameReady() {
