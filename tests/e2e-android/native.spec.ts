@@ -80,7 +80,7 @@ test('A4 Save original and export backup through the Android "Save as" dialog', 
   expect(zip.slice(0, 2)).toBe('PK');
   expect(zip.length).toBeGreaterThan(readFileSync(FX('recipe_tr.png')).length);
   // Native-only settings copy
-  await expect(page.getByText('OCR dosyaları uygulamanın içinde geliyor')).toBeVisible();
+  await expect(page.getByText(/Türkçe ve İngilizce uygulamanın içinde gelir/)).toBeVisible();
   await expect(page.getByText(/Android uygulaması \(APK\) olarak kullanıyorsun/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Çevrimdışı için indir' })).toHaveCount(0);
 });

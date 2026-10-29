@@ -1,17 +1,18 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Latest run: 29 October 2026 (v1.11.0, Figma-inspired "white gallery wall" redesign); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Latest run: 29 October 2026 (v1.12.0: animated search hint, keyboard fix, 12 UI/OCR languages, swipe navigation); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
 
 ## Summary
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit tests (12 files) | `npm test` | **89 / 89 passed** on v1.11.0 (12 files: brand, categorizer, vision, search, display-title, normalize, release-notes, providers, backup, settings-migration…) |
-| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **38 / 38 passed** on v1.11.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)`) |
+| Unit tests (19 files) | `npm test` | **126 / 126 passed** on v1.12.0 (new: typewriter, swipe, dropdown placement, OCR packs, settings sanitize, 12-language i18n parity incl. Android strings, CJK/Devanagari/Arabic/Cyrillic search) |
+| Real OCR recognition | `npm run test:ocr` | **13 / 13 passed** on v1.12.0: tesseract.js recognizes rendered text in all 12 languages at 100 % character similarity (confidence 90–96), plus one worker switching jpn+eng → ara+eng → chi_sim+eng → tur+eng. Fixtures: `scripts/make-ocr-fixtures.py` (Noto fonts, HarfBuzz shaping) |
+| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **52 passed, 2 skipped** on v1.12.0 (the 2 skipped are mobile-only checks on the desktop profile). New `tests/e2e/v112.spec.ts`: placeholder animation/stop/resume, category sheet at 520/440/380 px viewport heights (keyboard simulation), 12-option language menu, Arabic RTL after reload, OCR pack download + real Japanese OCR import, failed download keeps Türkçe, CDP touch swipes (order, no wrap, vertical rejection, edge guard, text fields, RTL), dark menu contrast. Previously **38 / 38 passed** on v1.11.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)`) |
 | Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **38 / 38 passed** (executed in CI on the v1.3.1 push) ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
 | APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
 | APK web-shell E2E, signed release APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
-| APK web-shell E2E against `dist` with simulated bridge (v1.11.0, local) | `APK_PUBLIC=dist npx playwright test -c playwright.android.config.ts` | **10 / 11 passed**; A1 needs the bundled OCR files of a real APK build and runs in the Android workflow. A8 now expects `#0a0a0a` system bars |
+| APK web-shell E2E against `dist` with simulated bridge (v1.12.0, local) | `APK_PUBLIC=dist npx playwright test -c playwright.android.config.ts` | **10 / 11 passed** (A4 assertion updated to the new OCR copy); A1 needs the bundled OCR files of a real APK build and runs in the Android workflow. A8 now expects `#0a0a0a` system bars |
 | APK web-shell E2E against the real built APK (v1.9.0, CI) | Android workflow on PR #7 and tag `v1.9.0` | **Passed** (job "Build and test APK") |
 | APK build and inspection | `./gradlew assembleDebug` / `assembleRelease`, `aapt2 dump badging`, `apksigner verify` | **Built and verified** (see below) |
 
@@ -75,6 +76,8 @@ OCR tests never use fake data. Test images (`scripts/make-fixtures.mjs`) are PNG
 
 ### What could NOT be tested here (honest note)
 
+- **v1.12.0 on a real keyboard.** The keyboard was simulated by shrinking the viewport; the native inset handling in `MainActivity` was not run on a device. Translations other than TR/EN were not reviewed by native speakers.
+
 - **Real Android device or emulator.** There is no KVM or emulator in this environment. The Java plugin (`ShotrovaBridgePlugin.java`) and `MainActivity.java` compile, but intent handling, the Save as dialog, FileProvider sharing, clipboard reading, the back button and the WebView itself were **not run on Android**.
 - **Web install flow on a device.** "Install app", the home screen icon and Shotrova appearing in the share sheet for the PWA were not tried on a real device. The web share target was tested by sending the same POST to the service worker.
 - **Safari / iOS and Firefox.** Only Chromium was run. iOS Safari does not support Web Share Target.
@@ -124,6 +127,10 @@ npx playwright test -c playwright.android.config.ts
 ```
 
 ## Bugs found and fixed during testing
+
+- **v1.12.0 — downloaded OCR languages never loaded.** tesseract.js 7.0.0 builds the language string from `l.data` instead of `l.code` for in-memory languages, so every pack failed with "Tesseract couldn't load any languages!". Found by `npm run test:ocr`; fixed by `scripts/tesseract-fix.mjs`, which patches the shipped worker and is checked by a unit test.
+- **v1.12.0 — swipe hijacked by the browser.** Horizontal overscroll triggered history navigation instead of the tab swipe; fixed with `overscroll-behavior-x: none` on touch devices (E2E swipe tests).
+- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, web fallback in `ui/keyboard.ts`; the web side is tested with shrunken viewports, the native side only compiles in CI (no emulator here).
 
 - **OCR hung forever.** When a language model could not be downloaded, tesseract.js did not reject `createWorker` and reported the error only through `errorHandler`. The engine now listens to that signal too (`src/ocr/engine.ts`).
 - **Uncaught AbortError.** When an IndexedDB transaction was aborted, sibling requests were left as unhandled rejections. Fixed with the `txAll` helper (`src/db/db.ts`).

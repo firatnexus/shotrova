@@ -27,6 +27,8 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npm test
       - run: npm run build
+      - name: Real OCR recognition (12 languages)
+        run: npm run test:ocr
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: Subpath build (GitHub Pages)

@@ -86,7 +86,7 @@ function brandPwa(): Plugin {
     closeBundle() {
       const files = walk(outDir)
         .map((f) => relative(outDir, f).split('\\').join('/'))
-        .filter((f) => !f.startsWith('ocr/') && f !== 'sw.js' && !f.endsWith('.map') && f !== '404.html');
+        .filter((f) => !f.startsWith('ocr/') && !f.startsWith('ocr-packs/') && f !== 'sw.js' && !f.endsWith('.map') && f !== '404.html');
       const hash = createHash('sha256');
       for (const f of files.sort()) hash.update(f).update(readFileSync(join(outDir, f)));
       const version = `${BRAND.version}-${hash.digest('hex').slice(0, 10)}`;

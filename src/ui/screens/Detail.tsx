@@ -6,6 +6,7 @@ import { aiAskAboutImage, type ChatTurn } from '../../ai/vision';
 import { categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { displayTitle, primaryText } from '../../search/search';
 import { safeFileName } from '../../import/validate';
+import { ocrTextLang, packErrorMessage } from '../../ocr/packs';
 import { extractEntities } from '../../lib/entities';
 import { toast } from '../../lib/toast';
 import { href, navigate } from '../router';
@@ -185,7 +186,7 @@ export function DetailScreen({ id }: { id: string }) {
     <div className="stack" style={{ gap: 16 }}>
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <button type="button" className="btn ghost sm" onClick={() => (history.length > 1 ? history.back() : navigate('/images'))}>
-          <IconBack /> {t('common.back')}
+          <IconBack className="icon-dir" /> {t('common.back')}
         </button>
         <div className="row">
           {isNativeApp() && r.source === 'auto' && r.msId && androidVersion >= 30 && (
@@ -334,7 +335,7 @@ export function DetailScreen({ id }: { id: string }) {
                 </div>
               ) : (
                 <div className="textpanel">
-                  <div className={`body ${hasAi ? 'ai' : 'raw'}`} data-testid="ocr-text" lang={r.ocrLanguage === 'eng' && !hasAi ? 'en' : undefined}>{display}</div>
+                  <div className={`body ${hasAi ? 'ai' : 'raw'}`} data-testid="ocr-text" {...(hasAi ? { dir: 'auto' } : ocrTextLang(r.ocrLanguage))}>{display}</div>
                   {!hasAi && r.ocrConfidence > 0 && r.ocrConfidence < 55 && <p className="faint xs">{t('detail.ocr_low')}</p>}
                   {hasAi && r.ocrText && (
                     <details className="rawocr">
@@ -346,7 +347,7 @@ export function DetailScreen({ id }: { id: string }) {
               )
             ) : (
               <p className="faint">
-                {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: r.ocrError ?? '' }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy || aiBusy ? t('detail.ocr_wait') : t('detail.no_text')}
+                {r.ocrStatus === 'empty' ? t('detail.no_text') : r.ocrStatus === 'error' ? t('detail.ocr_error', { msg: ((e) => (e ? t(e.key, e.params) : (r.ocrError ?? '')))(packErrorMessage(r.ocrError)) }) : r.ocrStatus === 'skipped' ? t('detail.ocr_skipped') : busy || aiBusy ? t('detail.ocr_wait') : t('detail.no_text')}
               </p>
             )}
             {aiOn && aiCfg.vision && !editingText && !r.noAi && (

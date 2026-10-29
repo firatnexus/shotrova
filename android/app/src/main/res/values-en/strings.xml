@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Screenshot saved</string>
+    <string name="capture_notif_channel_desc">Notifies you when the app keeps a copy of a new screenshot</string>
+    <string name="errors_notif_channel">Errors</string>
+    <string name="errors_notif_channel_desc">Problems with automatic saving and analysis</string>
+    <string name="capture_notif_saved_title">Screenshot saved</string>
+    <string name="capture_notif_saved">Saved as \'%1$s\' in %2$s</string>
+    <string name="capture_notif_saved_nocat">Saved as \'%1$s\'</string>
+    <string name="capture_notif_pending_title">Screenshot saved</string>
+    <string name="capture_notif_pending_text">Copy saved — waiting for title/category analysis</string>
+    <string name="capture_notif_failed_title">Analysis couldn\'t finish</string>
+    <string name="capture_notif_failed_text">Screenshot saved; the title/category analysis failed. It will be retried when you open the app.</string>
+    <string name="capture_notif_mixed_title">Screenshots saved</string>
+    <string name="capture_notif_mixed_text">%1$d analysed, %2$d pending, %3$d failed</string>
+    <string name="capture_notif_summary_text">%1$d new screenshots saved</string>
+    <string name="capture_notif_change_cat">Change category</string>
+    <string name="capture_notif_open">Open</string>
+</resources>

@@ -1,16 +1,41 @@
-// Copies the Tesseract worker, WASM cores and Turkish/English language data
-// into public/ocr so OCR runs fully from our own origin (no CDN requests).
-import { cpSync, mkdirSync, existsSync } from 'node:fs';
+// Copies the Tesseract worker, WASM cores and language data into public/ so
+// OCR runs fully from our own origin (no CDN requests).
+//
+//  - public/ocr/lang/     Turkish + English: bundled everywhere (web precache-able, APK assets).
+//  - public/ocr-packs/    The ten optional languages. Served by the web build and
+//                         GitHub Pages, excluded from the APK (see
+//                         android/app/build.gradle ignoreAssetsPattern) and
+//                         installed on demand into local storage (src/ocr/packs.ts).
+//
+// It also (re)writes src/ocr/packs.manifest.json with the size and SHA-256 of
+// every pack, which the app uses to verify a download before storing it.
+import { cpSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { patchInitializeLangs } from './tesseract-fix.mjs';
+import { createHash } from 'node:crypto';
+
+export const BUNDLED = ['tur', 'eng'];
+export const PACKS = ['spa', 'fra', 'deu', 'por', 'ita', 'hin', 'ara', 'chi_sim', 'jpn', 'rus'];
+
 const out = 'public/ocr';
 mkdirSync(`${out}/core`, { recursive: true });
 mkdirSync(`${out}/lang`, { recursive: true });
-cpSync('node_modules/tesseract.js/dist/worker.min.js', `${out}/worker.min.js`);
+mkdirSync('public/ocr-packs', { recursive: true });
+// Shipped with a one-expression fix so downloaded language packs ({ code, data }) load — see tesseract-fix.mjs.
+writeFileSync(`${out}/worker.min.js`, patchInitializeLangs(readFileSync('node_modules/tesseract.js/dist/worker.min.js', 'utf8')));
 for (const f of ['tesseract-core-lstm.wasm.js', 'tesseract-core-simd-lstm.wasm.js', 'tesseract-core-relaxedsimd-lstm.wasm.js']) {
   cpSync(`node_modules/tesseract.js-core/${f}`, `${out}/core/${f}`);
 }
-for (const l of ['tur', 'eng']) {
-  const src = `node_modules/@tesseract.js-data/${l}/4.0.0_best_int/${l}.traineddata.gz`;
-  if (!existsSync(src)) throw new Error(`Missing language data: ${src}`);
-  cpSync(src, `${out}/lang/${l}.traineddata.gz`);
+
+const src = (l) => `node_modules/@tesseract.js-data/${l}/4.0.0_best_int/${l}.traineddata.gz`;
+const manifest = {};
+for (const l of [...BUNDLED, ...PACKS]) {
+  if (!existsSync(src(l))) throw new Error(`Missing language data: ${src(l)}`);
+  const dest = BUNDLED.includes(l) ? `${out}/lang/${l}.traineddata.gz` : `public/ocr-packs/${l}.traineddata.gz`;
+  cpSync(src(l), dest);
+  const bytes = readFileSync(src(l));
+  manifest[l] = { size: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 }
-console.log('OCR assets copied to', out);
+const manifestPath = 'src/ocr/packs.manifest.json';
+const json = `${JSON.stringify(manifest, null, 2)}\n`;
+if (!existsSync(manifestPath) || readFileSync(manifestPath, 'utf8') !== json) writeFileSync(manifestPath, json);
+console.log('OCR assets copied to', out, 'and public/ocr-packs');

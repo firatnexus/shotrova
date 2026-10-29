@@ -8,13 +8,15 @@ import { BRAND } from '../../config/brand';
 import { LANGS, categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { toast } from '../../lib/toast';
 import { href, useRoute } from '../router';
-import { Sheet, confirmDialog } from '../components';
+import { Sheet, Toggle, confirmDialog } from '../components';
 import { saveBlob } from '../blobs';
 import { isNativeApp, purgeNativeStaging, setNativeAutoCapture } from '../../native/bridge';
 import type { CaptureSettings } from '../../db/types';
 import { IconAlert, IconDownload, IconInfo, IconShield, IconTrash, IconUpload } from '../icons';
 import { activeProviderConfig, providerDef, PROVIDERS } from '../../ai/providers';
-import type { Lang, OcrLanguage, ThemePref } from '../../db/types';
+import type { Lang, ThemePref } from '../../db/types';
+import { Dropdown } from '../Dropdown';
+import { OcrLanguageField } from '../OcrLanguageField';
 
 function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
@@ -22,18 +24,6 @@ function Section({ id, title, children }: { id?: string; title: string; children
       <h2 id={`${id ?? title}-h`}>{title}</h2>
       <div className="card stack" style={{ gap: 12 }}>{children}</div>
     </section>
-  );
-}
-
-function Toggle({ label, desc, checked, onChange, testId }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; testId?: string }) {
-  return (
-    <label className="toggle">
-      <span>
-        <span style={{ fontWeight: 500 }}>{label}</span>
-        {desc && <span className="faint" style={{ display: 'block' }}>{desc}</span>}
-      </span>
-      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} data-testid={testId} />
-    </label>
   );
 }
 
@@ -194,13 +184,13 @@ export function SettingsScreen() {
         </div>
         <div className="field">
           <span className="label" id="lang-l">{t('set.language')}</span>
-          <div className="segmented" role="group" aria-labelledby="lang-l">
-            {LANGS.map((l) => (
-              <button key={l.code} type="button" aria-pressed={s.lang === l.code} lang={l.code} onClick={() => void updateSettings({ lang: l.code as Lang })} data-testid={`lang-${l.code}`}>
-                {l.label}
-              </button>
-            ))}
-          </div>
+          <Dropdown
+            value={s.lang}
+            labelledBy="lang-l"
+            testId="app-lang"
+            options={LANGS.map((l) => ({ value: l.code, label: l.label, lang: l.code }))}
+            onChange={(v: Lang) => void updateSettings({ lang: v }).catch(() => toast(t('set.language_failed'), 'error'))}
+          />
         </div>
       </Section>
 
@@ -252,14 +242,7 @@ export function SettingsScreen() {
 
       <Section id="ocr" title={t('set.ocr')}>
         <Toggle label={t('set.ocr_enabled')} desc={t('set.ocr_enabled_d')} checked={s.ocrEnabled} onChange={(v) => void updateSettings({ ocrEnabled: v })} />
-        <div className="field">
-          <label htmlFor="ocr-lang">{t('set.ocr_lang')}</label>
-          <select id="ocr-lang" className="input" value={s.ocrLanguage} onChange={(e) => void updateSettings({ ocrLanguage: e.target.value as OcrLanguage })}>
-            <option value="tur+eng">{t('set.ocr_both')}</option>
-            <option value="tur">{t('set.ocr_tur')}</option>
-            <option value="eng">{t('set.ocr_eng')}</option>
-          </select>
-        </div>
+        <OcrLanguageField />
         {native ? (
           <p className="small">{t('set.ocr_bundled')}</p>
         ) : (
@@ -542,7 +525,7 @@ export function SettingsScreen() {
         <div className="notice">
           <IconInfo />
           <span>
-            {BRAND.name} {BRAND.version} — {BRAND.description[s.lang]}
+            {BRAND.name} {BRAND.version} — {t('brand.description')}
           </span>
         </div>
         <p className="small">

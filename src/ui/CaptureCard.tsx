@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAppState, setState, getState } from '../lib/store';
-import { useT } from '../i18n';
+import { formatBytes, locale, useT } from '../i18n';
+import type { Lang } from '../db/types';
+
+const fmtBytes = (n: number, lang: string): string => (n ? formatBytes(n, lang as Lang) : '0');
 import { toast } from '../lib/toast';
 import {
   openBatterySettings,
@@ -13,18 +16,6 @@ import { deriveCaptureUiState, refreshCaptureStatus } from '../auto/capture';
 import { updateSettings } from '../lib/actions';
 import { href } from './router';
 
-/** Formats bytes like "12,4 MB" in the current locale. */
-function fmtBytes(n: number, lang: string): string {
-  if (!n) return '0';
-  const units = lang === 'tr' ? ['B', 'KB', 'MB', 'GB'] : ['B', 'KB', 'MB', 'GB'];
-  let i = 0;
-  let v = n;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i++;
-  }
-  return `${v.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', { maximumFractionDigits: 1 })} ${units[i]}`;
-}
 
 /**
  * Home screen status card: "Otomatik algılama: Açık / Kapalı / İzin eksik /
@@ -132,7 +123,7 @@ export function CaptureStatusCard() {
       <span className="faint xs">
         {storage && storage.quota > 0 ? `${t('cap.storage_line', { used: fmtBytes(storage.used, lang), total: fmtBytes(storage.quota, lang) })} · ` : ''}
         {status && status.lastScanAt > 0
-          ? t('cap.last_scan', { time: new Date(status.lastScanAt).toLocaleTimeString(lang === 'tr' ? 'tr-TR' : 'en-US', { hour: '2-digit', minute: '2-digit' }) })
+          ? t('cap.last_scan', { time: new Date(status.lastScanAt).toLocaleTimeString(locale(lang as Lang), { hour: '2-digit', minute: '2-digit' }) })
           : ''}
         {status && status.stagedBytes > 0 ? ` · ${t('cap.staged_bytes', { size: fmtBytes(status.stagedBytes, lang) })}` : ''}
       </span>

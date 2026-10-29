@@ -78,9 +78,13 @@ export function Sheet({ title, onClose, children, actions, labelledBy }: { title
   }, []);
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      {/* Header and actions stay put; only the body scrolls. With the keyboard
+          up the sheet is limited to the visible height (see keyboard.ts), so
+          the focused field is scrolled into view inside .sheet-body and
+          Save/Cancel remain reachable. */}
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={tid} ref={ref}>
         <h2 id={tid}>{title}</h2>
-        {children}
+        <div className="sheet-body">{children}</div>
         {actions && <div className="actions">{actions}</div>}
       </div>
     </div>
@@ -235,4 +239,17 @@ export function useDebounced<T>(v: T, ms = 150): T {
     return () => clearTimeout(h);
   }, [v, ms]);
   return d;
+}
+
+/** Labelled on/off switch used across Settings. */
+export function Toggle({ label, desc, checked, onChange, testId }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; testId?: string }) {
+  return (
+    <label className="toggle">
+      <span>
+        <span style={{ fontWeight: 500 }}>{label}</span>
+        {desc && <span className="faint" style={{ display: 'block' }}>{desc}</span>}
+      </span>
+      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} data-testid={testId} />
+    </label>
+  );
 }

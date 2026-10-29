@@ -1,4 +1,5 @@
-import type { AiProviderSettings } from '../db/types';
+import type { AiProviderSettings, Lang } from '../db/types';
+import { LANG_ENGLISH_NAME } from '../i18n';
 import { providerChat, parseJson, type ChatTurn } from './providers';
 
 export type { ChatTurn };
@@ -46,7 +47,7 @@ export async function aiVisionAnalyze(
   imageDataUrl: string,
   categories: VisionCategory[],
   cfg: AiProviderSettings,
-  uiLang: 'tr' | 'en',
+  uiLang: Lang,
   signal?: AbortSignal,
 ): Promise<VisionAnalysis> {
   const list = categories.map((c) => `- ${c.id}: ${c.name}`).join('\n');
@@ -55,7 +56,7 @@ export async function aiVisionAnalyze(
     'You also classify the image and propose a short title. ' +
     'Reply with JSON {"text": string, "title": string, "category_id": string|null, "confidence": number}. ' +
     'Rules: "text" = the exact text visible in the image (empty string if there is no readable text; never invent text); ' +
-    `"title" = a concise title in ${uiLang === 'tr' ? 'Turkish' : 'English'} (empty string if you cannot tell); ` +
+    `"title" = a concise title in ${LANG_ENGLISH_NAME[uiLang] ?? 'English'} (empty string if you cannot tell); ` +
     '"category_id" = exactly one id from the provided list, or null if nothing fits; ' +
     '"confidence" = your certainty from 0 to 1.';
   const out = parseJson(
@@ -93,7 +94,7 @@ export async function aiEditText(
   text: string,
   mode: AiEditMode,
   cfg: AiProviderSettings,
-  uiLang: 'tr' | 'en',
+  uiLang: Lang,
   signal?: AbortSignal,
 ): Promise<string> {
   const clean =
@@ -110,7 +111,7 @@ export async function aiEditText(
       {
         system: mode === 'clean' ? clean : emoji,
         json: true,
-        user: `${uiLang === 'tr' ? 'Arayüz dili Türkçe; başlıklar Türkçe olabilir.' : 'UI language is English.'}\n\nText:\n${text.slice(0, 6000)}`,
+        user: `UI language is ${LANG_ENGLISH_NAME[uiLang] ?? 'English'}.\n\nText:\n${text.slice(0, 6000)}`,
       },
       [],
       signal,
@@ -132,13 +133,13 @@ export async function aiAskAboutImage(
   question: string,
   history: ChatTurn[],
   cfg: AiProviderSettings,
-  uiLang: 'tr' | 'en',
+  uiLang: Lang,
   signal?: AbortSignal,
 ): Promise<string> {
   const system =
     'You are a helpful visual assistant inside an image library app. Answer questions about the given image ' +
     'concisely and factually; say clearly when something cannot be determined from the image. ' +
-    `Reply in ${uiLang === 'tr' ? 'Turkish' : 'English'}.`;
+    `Reply in ${LANG_ENGLISH_NAME[uiLang] ?? 'English'}.`;
   return providerChat(
     cfg,
     { system, user: question.slice(0, 2000), ...(imageDataUrl ? { imageDataUrl } : {}) },

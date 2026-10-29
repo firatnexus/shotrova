@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">スクリーンショットが保存されました</string>
+    <string name="capture_notif_channel_desc">アプリが新しいスクリーンショットのコピーを保存すると通知します</string>
+    <string name="errors_notif_channel">エラー</string>
+    <string name="errors_notif_channel_desc">自動保存と分析の問題</string>
+    <string name="capture_notif_saved_title">スクリーンショットが保存されました</string>
+    <string name="capture_notif_saved">%2$s に「%1$s」として保存されました</string>
+    <string name="capture_notif_saved_nocat">「%1$s」として保存されました</string>
+    <string name="capture_notif_pending_title">スクリーンショットが保存されました</string>
+    <string name="capture_notif_pending_text">コピーが保存されました — タイトル/カテゴリの分析を待っています</string>
+    <string name="capture_notif_failed_title">分析を完了できませんでした</string>
+    <string name="capture_notif_failed_text">スクリーンショットが保存されました。タイトル/カテゴリの分析に失敗しました。アプリを開いたときに再試行されます。</string>
+    <string name="capture_notif_mixed_title">保存されたスクリーンショット</string>
+    <string name="capture_notif_mixed_text">%1$d 分析済み、%2$d 保留中、%3$d 失敗</string>
+    <string name="capture_notif_summary_text">%1$d 件の新しいスクリーンショットが保存されました</string>
+    <string name="capture_notif_change_cat">カテゴリを変更する</string>
+    <string name="capture_notif_open">開く</string>
+</resources>

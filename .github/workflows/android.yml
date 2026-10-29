@@ -75,6 +75,16 @@ jobs:
           (cd dist-apk && sha256sum *.apk > SHA256SUMS.txt)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Check OCR packaging (TR/EN bundled, downloadable packs excluded)
+        run: |
+          set -e
+          APK=$(ls dist-apk/*.apk)
+          unzip -l "$APK" > /tmp/apk-list.txt
+          grep -q 'assets/public/ocr/lang/tur' /tmp/apk-list.txt
+          grep -q 'assets/public/ocr/lang/eng' /tmp/apk-list.txt
+          if grep -q 'ocr-packs/' /tmp/apk-list.txt; then echo "::error::ocr-packs must not be inside the APK"; exit 1; fi
+          ls -l "$APK"
+
       - name: Verify signing certificate matches the last published release
         if: env.HAS_KEYSTORE == 'true'
         env:

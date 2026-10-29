@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Capture d\'écran enregistrée</string>
+    <string name="capture_notif_channel_desc">Vous avertit lorsque l\'application conserve une copie d\'une nouvelle capture d\'écran</string>
+    <string name="errors_notif_channel">Erreurs</string>
+    <string name="errors_notif_channel_desc">Problèmes de sauvegarde et d\'analyse automatiques</string>
+    <string name="capture_notif_saved_title">Capture d\'écran enregistrée</string>
+    <string name="capture_notif_saved">Enregistré sous « %1$s » dans %2$s</string>
+    <string name="capture_notif_saved_nocat">Enregistré sous \'%1$s\'</string>
+    <string name="capture_notif_pending_title">Capture d\'écran enregistrée</string>
+    <string name="capture_notif_pending_text">Copie enregistrée — en attente de l\'analyse du titre/catégorie</string>
+    <string name="capture_notif_failed_title">L\'analyse n\'a pas pu se terminer</string>
+    <string name="capture_notif_failed_text">Capture d\'écran enregistrée ; l\'analyse du titre/catégorie a échoué. Il sera réessayé lorsque vous ouvrirez l’application.</string>
+    <string name="capture_notif_mixed_title">Captures d\'écran enregistrées</string>
+    <string name="capture_notif_mixed_text">%1$d analysé, %2$d en attente, %3$d échoué</string>
+    <string name="capture_notif_summary_text">%1$d nouvelles captures d\'écran enregistrées</string>
+    <string name="capture_notif_change_cat">Changer de catégorie</string>
+    <string name="capture_notif_open">Ouvert</string>
+</resources>

@@ -5,6 +5,8 @@
  *  - Navigations: network-first with a 3 s timeout, falling back to cached index.html.
  *  - OCR engine + language data (/ocr/*): cache-first runtime cache, downloaded on
  *    first OCR or when the user taps "Prepare OCR for offline use".
+ *  - Optional OCR language packs (/ocr-packs/*): never intercepted; the app
+ *    verifies each download and keeps it in its own `-ocrpacks-v1` cache.
  *  - Web Share Target: POST /share-target is intercepted, shared files are put in a
  *    local Cache Storage inbox and the app is opened at #/import?shared=1.
  *  - Cross-origin requests are never intercepted.
@@ -16,6 +18,8 @@ const SHELL_CACHE = `${PREFIX}-shell-${VERSION}`;
 const OCR_CACHE = `${PREFIX}-ocr-v1`;
 const RUNTIME_CACHE = `${PREFIX}-runtime-v1`;
 const INBOX_CACHE = `${PREFIX}-share-inbox`;
+// Owned by the page (src/ocr/packs.ts); listed here only so updates never delete it.
+const OCR_PACKS_CACHE = `${PREFIX}-ocrpacks-v1`;
 const BASE = new URL('./', self.location.href).pathname;
 
 self.addEventListener('install', (event) => {
@@ -31,7 +35,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      const keep = new Set([SHELL_CACHE, OCR_CACHE, RUNTIME_CACHE, INBOX_CACHE]);
+      const keep = new Set([SHELL_CACHE, OCR_CACHE, RUNTIME_CACHE, INBOX_CACHE, OCR_PACKS_CACHE]);
       for (const key of await caches.keys()) {
         if (key.startsWith(PREFIX) && !keep.has(key)) await caches.delete(key);
       }
@@ -115,6 +119,7 @@ self.addEventListener('fetch', (event) => {
   }
   if (request.method !== 'GET') return;
   if (url.pathname.startsWith(`${BASE}__inbox__/`)) return;
+  if (url.pathname.startsWith(`${BASE}ocr-packs/`)) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));

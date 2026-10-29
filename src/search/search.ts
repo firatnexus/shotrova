@@ -9,6 +9,8 @@ export interface SearchOptions {
   dateTo?: number;
   ocrStatus?: ImageRecord['ocrStatus'];
   sort?: 'relevance' | 'newest' | 'oldest' | 'title';
+  /** BCP-47 locale for title sorting (defaults to Turkish collation). */
+  locale?: string;
   /** Resolves a category id to its display names (all languages), folded. */
   categoryLabel?: (id: string) => string;
 }
@@ -105,7 +107,7 @@ export function search(items: ImageRecord[], q: ParsedQuery, opts: SearchOptions
   hits.sort((a, b) => {
     if (sort === 'relevance') return b.score - a.score || b.item.createdAt - a.item.createdAt;
     if (sort === 'oldest') return a.item.createdAt - b.item.createdAt;
-    if (sort === 'title') return displayTitle(a.item).localeCompare(displayTitle(b.item), 'tr', { sensitivity: 'base' });
+    if (sort === 'title') return displayTitle(a.item).localeCompare(displayTitle(b.item), opts.locale ?? 'tr', { sensitivity: 'base' });
     return b.item.createdAt - a.item.createdAt;
   });
   return hits;

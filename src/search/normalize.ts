@@ -38,9 +38,14 @@ export function fold(text: string): string {
   return out;
 }
 
-const WORD_RE = /[\p{L}\p{N}]+/gu;
+// Combining marks (\p{M}) are part of words in Devanagari, Arabic and Thai —
+// without them "नमस्ते" would be cut into fragments at every vowel sign.
+const WORD_RE = /[\p{L}\p{N}\p{M}]+/gu;
+// Chinese/Japanese are written without spaces, so a "token" is a whole phrase;
+// queries in these scripts match anywhere inside a token.
+const CJK_RE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 
-/** Splits folded text into word tokens (letters and digits). */
+/** Splits folded text into word tokens (letters, digits and their marks). */
 export function tokenize(text: string): string[] {
   return fold(text).match(WORD_RE) ?? [];
 }
@@ -59,6 +64,7 @@ export function indexTokens(text: string, min = 2): string[] {
 export function termMatchesToken(term: string, token: string): boolean {
   if (token === term) return true;
   if (term.length >= 2 && token.startsWith(term)) return true;
+  if (CJK_RE.test(term) && token.includes(term)) return true;
   if (token.length >= 4 && term.startsWith(token) && term.length - token.length <= 5) return true;
   return false;
 }
@@ -78,8 +84,9 @@ export function findMatches(text: string, terms: string[]): Range[] {
     const start = m.index ?? 0;
     for (const term of terms) {
       if (termMatchesToken(term, token)) {
-        const len = token.startsWith(term) ? term.length : token.length;
-        ranges.push({ start, end: start + Math.min(len, token.length) });
+        const at = token.startsWith(term) ? 0 : CJK_RE.test(term) ? Math.max(0, token.indexOf(term)) : 0;
+        const len = token.startsWith(term) || at > 0 ? term.length : token.length;
+        ranges.push({ start: start + at, end: start + at + Math.min(len, token.length - at) });
         break;
       }
     }

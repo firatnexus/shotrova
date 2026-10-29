@@ -1,0 +1,62 @@
+{
+  "eng": [
+    "Flight confirmation",
+    "Booking code: KX4821",
+    "Departure 10:45 Gate B12"
+  ],
+  "tur": [
+    "Kremalı makarna tarifi",
+    "Malzemeler: süt, şeker, ığdır",
+    "Fatura toplamı 1.250 TL"
+  ],
+  "spa": [
+    "Receta de paella",
+    "Añadir el azúcar y la sal",
+    "Reserva confirmada mañana"
+  ],
+  "fra": [
+    "Réservation confirmée",
+    "Hôtel près de la gare",
+    "Numéro de facture 2045"
+  ],
+  "deu": [
+    "Rechnung für März",
+    "Größe: mittel, Straße 12",
+    "Öffnungszeiten täglich"
+  ],
+  "por": [
+    "Confirmação da reserva",
+    "Lista de compras: pão, maçã",
+    "Ação válida até junho"
+  ],
+  "ita": [
+    "Ricetta della nonna",
+    "Città: Firenze, perché no",
+    "Prenotazione confermata"
+  ],
+  "rus": [
+    "Расписание поездов",
+    "Москва Казань",
+    "Номер заказа 4821"
+  ],
+  "hin": [
+    "नमस्ते दुनिया",
+    "बैठक का समय",
+    "आज का मौसम"
+  ],
+  "ara": [
+    "موعد الاجتماع غدا",
+    "رقم الحجز",
+    "قائمة التسوق"
+  ],
+  "chi_sim": [
+    "会议时间下午三点",
+    "北京市朝阳区",
+    "购物清单"
+  ],
+  "jpn": [
+    "東京タワーの予約",
+    "チケット番号",
+    "ありがとうございます"
+  ]
+}

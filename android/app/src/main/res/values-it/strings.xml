@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Schermata salvata</string>
+    <string name="capture_notif_channel_desc">Ti avvisa quando l\'app conserva una copia di un nuovo screenshot</string>
+    <string name="errors_notif_channel">Errori</string>
+    <string name="errors_notif_channel_desc">Problemi con il salvataggio e l\'analisi automatici</string>
+    <string name="capture_notif_saved_title">Schermata salvata</string>
+    <string name="capture_notif_saved">Salvato come \'%1$s\' in %2$s</string>
+    <string name="capture_notif_saved_nocat">Salvato come \'%1$s\'</string>
+    <string name="capture_notif_pending_title">Schermata salvata</string>
+    <string name="capture_notif_pending_text">Copia salvata: in attesa dell\'analisi del titolo/categoria</string>
+    <string name="capture_notif_failed_title">Impossibile terminare l\'analisi</string>
+    <string name="capture_notif_failed_text">Schermata salvata; l\'analisi del titolo/categoria non è riuscita. L\'operazione verrà riprovata all\'apertura dell\'app.</string>
+    <string name="capture_notif_mixed_title">Schermate salvate</string>
+    <string name="capture_notif_mixed_text">%1$d analizzato, %2$d in sospeso, %3$d non riuscito</string>
+    <string name="capture_notif_summary_text">%1$d nuovi screenshot salvati</string>
+    <string name="capture_notif_change_cat">Cambia categoria</string>
+    <string name="capture_notif_open">Aperto</string>
+</resources>

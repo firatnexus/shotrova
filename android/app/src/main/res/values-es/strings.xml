@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Captura de pantalla guardada</string>
+    <string name="capture_notif_channel_desc">Le notifica cuando la aplicación guarda una copia de una nueva captura de pantalla</string>
+    <string name="errors_notif_channel">Errores</string>
+    <string name="errors_notif_channel_desc">Problemas con el guardado y análisis automático</string>
+    <string name="capture_notif_saved_title">Captura de pantalla guardada</string>
+    <string name="capture_notif_saved">Guardado como \'%1$s\' en %2$s</string>
+    <string name="capture_notif_saved_nocat">Guardado como \'%1$s\'</string>
+    <string name="capture_notif_pending_title">Captura de pantalla guardada</string>
+    <string name="capture_notif_pending_text">Copia guardada: esperando análisis de título/categoría</string>
+    <string name="capture_notif_failed_title">El análisis no pudo terminar</string>
+    <string name="capture_notif_failed_text">Captura de pantalla guardada; el análisis de título/categoría falló. Se volverá a intentar cuando abras la aplicación.</string>
+    <string name="capture_notif_mixed_title">Capturas de pantalla guardadas</string>
+    <string name="capture_notif_mixed_text">%1$d analizado, %2$d pendiente, %3$d fallido</string>
+    <string name="capture_notif_summary_text">%1$d nuevas capturas de pantalla guardadas</string>
+    <string name="capture_notif_change_cat">Cambiar categoría</string>
+    <string name="capture_notif_open">Abierto</string>
+</resources>

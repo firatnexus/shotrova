@@ -1,5 +1,15 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.12.0
+
+- **Animated search hint:** the Home and Images search fields no longer show a static placeholder. A typewriter animation cycles through 25 example searches in the app language ("Pasta recipe", "Wi-Fi password", "Flight ticket and PNR"…). It stops the moment you tap the field, never touches what you type, resumes only when the field is empty again and pauses while the app is in the background.
+- **Keyboard no longer covers forms:** on Android 15 the keyboard could hide the "Extra keywords" field and the Save/Cancel buttons of the category sheet. The app now resizes around the keyboard on every device (native inset handling plus a web fallback), the sheet body scrolls and its buttons stay pinned above the keyboard.
+- **12 app languages:** English, Türkçe, Español, Français, Deutsch, Português, Italiano, हिन्दी, العربية, 中文, 日本語 and Русский, chosen from a new menu. Arabic switches the whole layout to right-to-left; Hindi, Chinese, Japanese and Arabic use matching system fonts. Translations other than Turkish and English were machine-assisted and may contain awkward wording.
+- **12 OCR languages:** the same 12 languages for text recognition, optionally combined with English. Turkish and English are built in; the other 10 language files (0.7–2.7 MB each) are downloaded once when you pick them, checked with SHA-256 and stored on the device. Recognition always runs on your device; images are never uploaded. If a download fails, the previous language stays active.
+- **Swipe between tabs:** swipe left or right to move between Home, Images, Categories and Settings. Swipes on chips, carousels, sliders, dialogs and text fields are left alone, there is no wrap-around, and the direction follows right-to-left layouts.
+- **Fix:** an upstream tesseract.js bug that made every downloaded OCR language fail to load is patched in the bundled worker.
+- Your data, categories and settings stay as they are.
+
 ## What's new in 1.11.0
 
 - **New design (Figma-inspired "white gallery wall"):** a pure white canvas (#ffffff) with black text and hairlines where the only saturated color is Electric Indigo (#4d49fc) — used for the primary action, links and active states. The interface is achromatic on purpose: your screenshots carry every color. Grid cards are flat white with mist hairlines (#e2e2e2) and no shadows; the single floating shadow (0 24px 70px at 10%) lifts only the hero card and overlays.

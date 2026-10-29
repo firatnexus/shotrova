@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">स्क्रीनशॉट सहेजा गया</string>
+    <string name="capture_notif_channel_desc">जब ऐप किसी नए स्क्रीनशॉट की कॉपी रखता है तो आपको सूचित करता है</string>
+    <string name="errors_notif_channel">त्रुटियाँ</string>
+    <string name="errors_notif_channel_desc">स्वचालित बचत और विश्लेषण में समस्याएँ</string>
+    <string name="capture_notif_saved_title">स्क्रीनशॉट सहेजा गया</string>
+    <string name="capture_notif_saved">%2$s में \'%1$s\' के रूप में सहेजा गया</string>
+    <string name="capture_notif_saved_nocat">\'%1$s\' के रूप में सहेजा गया</string>
+    <string name="capture_notif_pending_title">स्क्रीनशॉट सहेजा गया</string>
+    <string name="capture_notif_pending_text">प्रतिलिपि सहेजी गई - शीर्षक/श्रेणी विश्लेषण की प्रतीक्षा है</string>
+    <string name="capture_notif_failed_title">विश्लेषण ख़त्म नहीं हो सका</string>
+    <string name="capture_notif_failed_text">स्क्रीनशॉट सहेजा गया; शीर्षक/श्रेणी विश्लेषण विफल रहा. जब आप ऐप खोलेंगे तो इसका पुन: प्रयास किया जाएगा।</string>
+    <string name="capture_notif_mixed_title">स्क्रीनशॉट सहेजे गए</string>
+    <string name="capture_notif_mixed_text">%1$d विश्लेषण किया गया, %2$d लंबित, %3$d विफल</string>
+    <string name="capture_notif_summary_text">%1$d नए स्क्रीनशॉट सहेजे गए</string>
+    <string name="capture_notif_change_cat">श्रेणी बदलें</string>
+    <string name="capture_notif_open">खुला</string>
+</resources>

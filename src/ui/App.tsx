@@ -7,6 +7,8 @@ import { useT } from '../i18n';
 import { BRAND, logoSvg } from '../config/brand';
 import { ACCEPT_ATTR } from '../import/validate';
 import { href, navigate, useRoute } from './router';
+import { useTabSwipe } from './swipe';
+import { installKeyboardTracking } from './keyboard';
 import { ConfirmHost, Skeleton, Toasts } from './components';
 import { filesFromClipboard, registerPicker, runImport, useImportState } from './importer';
 import { IconFolder, IconGrid, IconHome, IconOffline, IconScan, IconSettings } from './icons';
@@ -152,7 +154,11 @@ export function App() {
     window.scrollTo(0, 0);
   }, [route.path]);
 
+  useEffect(() => installKeyboardTracking(), []);
+
   const tab = route.parts[0] ?? '';
+  // Swipes call navigate() like a tap would; the route stays the only tab state.
+  const swipeRef = useTabSwipe(tab, ready && !fatal);
   const nav = [
     { to: '/', key: '', label: t('nav.home'), icon: <IconHome /> },
     { to: '/images', key: 'images', label: t('nav.images'), icon: <IconGrid /> },
@@ -218,7 +224,17 @@ export function App() {
             </div>
           </div>
         )}
-        <main id="main" tabIndex={-1} data-screen={tab || 'home'}>{screen}</main>
+        <main
+          id="main"
+          tabIndex={-1}
+          data-screen={tab || 'home'}
+          ref={swipeRef}
+          onAnimationEnd={(e) => {
+            if (e.target === e.currentTarget.firstElementChild) delete e.currentTarget.dataset.enter;
+          }}
+        >
+          {screen}
+        </main>
       </div>
       <input
         ref={inputRef}

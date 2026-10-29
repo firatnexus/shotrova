@@ -20,9 +20,11 @@ test('01 launch: dashboard is useful before the first import', async ({ page, er
   // Language switch to English works and Turkish is the default
   await expect(page.locator('html')).toHaveAttribute('lang', 'tr');
   await openApp(page, '/settings');
-  await page.getByTestId('lang-en').click();
+  await page.getByTestId('app-lang').click();
+  await page.getByTestId('app-lang-opt-en').click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Settings');
-  await page.getByTestId('lang-tr').click();
+  await page.getByTestId('app-lang').click();
+  await page.getByTestId('app-lang-opt-tr').click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ayarlar');
   expect(errors).toEqual([]);
 });
