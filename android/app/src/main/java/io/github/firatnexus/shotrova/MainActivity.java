@@ -20,14 +20,17 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Branded launch screen (background + icon, see AppTheme.NoActionBarLaunch).
         // Must run before super.onCreate; swaps to AppTheme.NoActionBar afterwards.
-        // Kept on screen until the web layer has BOTH painted its launch frame
-        // and had that painted state submitted to the compositor (or a safety
-        // timeout), so the hand-off is seamless — the PWA boot screen never
-        // stacks on top of the native splash. Both halves of the signal are
-        // gated in ShotrovaBridgePlugin (FCP + WebView.postVisualStateCallback;
-        // the trace is logged under the ShotrovaLaunch logcat tag).
+        // The exit listener keeps the splash VIEW alive after the app starts
+        // drawing (unlike setKeepOnScreenCondition, which blocks every app
+        // pre-draw — the WebView could not even begin presenting until the
+        // splash let go). The web layer draws and presents underneath, and
+        // ShotrovaBridgePlugin removes the retained view once the launch
+        // frame is painted and submitted to the compositor (or a safety
+        // timeout), then notifies the web layer so the boot screen's exit
+        // starts only after the reveal.
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-        splashScreen.setKeepOnScreenCondition(() -> !ShotrovaBridgePlugin.isFirstFrameReady());
+        splashScreen.setOnExitAnimationListener(viewProvider ->
+            ShotrovaBridgePlugin.handleSplashExit(viewProvider));
         registerPlugin(ShotrovaBridgePlugin.class);
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());

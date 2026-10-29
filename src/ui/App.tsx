@@ -1,4 +1,4 @@
-import { isNativeApp, markFirstFrame, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
+import { isNativeApp, markFirstFrame, nativeSplashRemoved, onNativeShare, onNativeSplashRemoved, takeNativeSharedFiles } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
 import { useAppState, setState } from '../lib/store';
 import { consumeShareInbox } from '../lib/actions';
@@ -78,16 +78,42 @@ export function App() {
 
   // Fade the launch screen out only after the ready (or fatal) screen has
   // actually committed and painted — one frame after commit, so the app never
-  // reveals stale skeletons underneath. dismissBootScreen is idempotent.
+  // reveals stale skeletons underneath. Inside the Android app the exit also
+  // waits for the native splash's splashRemoved event: the retained splash
+  // view covers the composition until the launch frame has been submitted,
+  // and starting the boot screen's own fade before that reveal would fade the
+  // composition away while it is still hidden. A safety timeout (longer than
+  // the native one) keeps a lost event from pinning the boot screen forever.
+  // dismissBootScreen is idempotent.
   useEffect(() => {
     if (!ready && !fatal) return;
-    let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => dismissBootScreen());
-    });
+    let dismissed = false;
+    const stop: Array<() => void> = [];
+    const go = () => {
+      if (dismissed) return;
+      dismissed = true;
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => dismissBootScreen());
+      });
+      stop.push(() => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      });
+    };
+    if (isNativeApp()) {
+      const timer = window.setTimeout(go, 10000);
+      stop.push(() => window.clearTimeout(timer));
+      stop.push(onNativeSplashRemoved(go));
+      // The event may have fired before this listener registered.
+      void nativeSplashRemoved().then((r) => {
+        if (r) go();
+      });
+    } else {
+      go();
+    }
     return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
+      stop.forEach((fn) => fn());
     };
   }, [ready, fatal]);
   const online = useAppState((s) => s.online);

@@ -76,16 +76,21 @@ public class ShotrovaBridgePlugin extends Plugin {
      *  WebView API offers. */
     private static volatile boolean frameComposited = false;
     private static long LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
-    /** Safety cap: never hold the launch splash longer than this, even if JS
-     *  fails. Generous because the web layer now waits for its first real
+    /** Safety cap: never hold the retained splash view longer than this, even
+     *  if JS fails. Generous because the web layer now waits for its first real
      *  contentful paint, which on slow renderers (software GPUs, cold
      *  WebViews) can legitimately take several seconds. */
     private static final long MAX_SPLASH_MS = 8000;
     /** Launch hand-off trace tag; see also scripts/record-launch.sh which
      *  captures these lines into the device-test artifact. */
     static final String LAUNCH_TAG = "ShotrovaLaunch";
-    private static final java.util.concurrent.atomic.AtomicBoolean RELEASE_LOGGED =
+    /** The retained splash view, handed over by the exit listener; removed once
+     *  the launch frame is painted and submitted (or the timeout fires). */
+    private static volatile androidx.core.splashscreen.SplashScreenViewProvider splashProvider;
+    private static final java.util.concurrent.atomic.AtomicBoolean SPLASH_REMOVED =
         new java.util.concurrent.atomic.AtomicBoolean(false);
+    private static final android.os.Handler MAIN = new android.os.Handler(android.os.Looper.getMainLooper());
+    private static final Runnable SPLASH_TIMEOUT = () -> removeRetainedSplash("timeout");
 
     /** Elapsed ms since the plugin class loaded (process start, roughly). */
     private static long elapsedMs() {
@@ -93,32 +98,64 @@ public class ShotrovaBridgePlugin extends Plugin {
     }
 
     /**
-     * True while the native launch splash should stay on screen. Requires BOTH
-     * halves of the hand-off signal: the web layer's first contentful paint
-     * (markFirstFrame, set from the PerformanceObserver/FCP path) AND the
-     * WebView visual-state callback reporting that the painted state was
-     * submitted to the compositor. FCP alone fires before the frame reaches
-     * the compositor (recorded cold launches showed a ~1s blank window); the
-     * visual-state callback alone fires on the WebView's plain background
-     * frame before any page content exists. Neither signal proves the frame
-     * is on the display — no WebView API does — so the timeout bounds the
-     * wait and the WebView background is matched to the splash background.
+     * Called from MainActivity's splash exit listener. The system has handed the
+     * splash VIEW over to the app: unlike setKeepOnScreenCondition (which
+     * blocked every app pre-draw), the app now draws and the WebView presents
+     * its content underneath the retained view. We keep the view on screen
+     * until the web layer's launch frame is painted and submitted to the
+     * compositor, so removing it reveals an already-presented composition
+     * instead of a blank WebView background.
      */
-    static boolean isFirstFrameReady() {
-        boolean timedOut = elapsedMs() >= MAX_SPLASH_MS;
-        boolean ready = (webPainted && frameComposited) || timedOut;
-        if (ready && RELEASE_LOGGED.compareAndSet(false, true)) {
-            android.util.Log.i(LAUNCH_TAG, "splash release: reason=" + (timedOut ? "timeout" : "signals")
-                + " webPainted=" + webPainted + " frameComposited=" + frameComposited
-                + " elapsedMs=" + elapsedMs());
+    static void handleSplashExit(androidx.core.splashscreen.SplashScreenViewProvider provider) {
+        android.util.Log.i(LAUNCH_TAG, "splash view retained by exit listener elapsedMs=" + elapsedMs());
+        splashProvider = provider;
+        // The gate may already have opened before the listener fired.
+        if (webPainted && frameComposited) removeRetainedSplash("signals-late-listener");
+    }
+
+    /**
+     * Removes the retained splash view (once) and notifies the web layer via the
+     * splashRemoved event, so the boot screen's exit animation starts only
+     * after the reveal instead of racing it.
+     */
+    private static void removeRetainedSplash(String reason) {
+        if (!SPLASH_REMOVED.compareAndSet(false, true)) return;
+        androidx.core.splashscreen.SplashScreenViewProvider provider = splashProvider;
+        android.util.Log.i(LAUNCH_TAG, "splash removed: reason=" + reason + " webPainted=" + webPainted
+            + " frameComposited=" + frameComposited + " elapsedMs=" + elapsedMs());
+        MAIN.removeCallbacks(SPLASH_TIMEOUT);
+        ShotrovaBridgePlugin plugin = instance;
+        if (provider != null) {
+            MAIN.post(() -> {
+                try {
+                    provider.remove();
+                } catch (RuntimeException e) {
+                    android.util.Log.w(LAUNCH_TAG, "splash view removal failed: " + e);
+                }
+                if (plugin != null) plugin.notifyListeners("splashRemoved", new JSObject());
+            });
+        } else if (plugin != null) {
+            plugin.notifyListeners("splashRemoved", new JSObject());
         }
-        return ready;
+    }
+
+    /**
+     * Whether the retained splash view has already been removed. The web layer
+     * checks this when it starts listening for the splashRemoved event, so a
+     * removal that happened before the listener registered is not missed.
+     */
+    @PluginMethod
+    public void isSplashRemoved(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("removed", SPLASH_REMOVED.get());
+        call.resolve(r);
     }
 
     /**
      * Called by the web layer once its first contentful paint has committed.
-     * Arms the WebView visual-state callback so the splash is released only
-     * after that painted state has been submitted to the compositor.
+     * Arms the WebView visual-state callback so the retained splash view is
+     * removed only after that painted state has been submitted to the
+     * compositor.
      */
     @PluginMethod
     public void markFirstFrame(PluginCall call) {
@@ -143,6 +180,7 @@ public class ShotrovaBridgePlugin extends Plugin {
                 public void onComplete(long requestId) {
                     frameComposited = true;
                     android.util.Log.i(LAUNCH_TAG, "visual-state callback: frameComposited=true elapsedMs=" + elapsedMs());
+                    removeRetainedSplash("signals");
                 }
             });
         });
@@ -498,9 +536,12 @@ public class ShotrovaBridgePlugin extends Plugin {
         // expired launch deadline from the previous instance.
         webPainted = false;
         frameComposited = false;
-        RELEASE_LOGGED.set(false);
+        splashProvider = null;
+        SPLASH_REMOVED.set(false);
         android.util.Log.i(LAUNCH_TAG, "plugin load: hand-off gates reset");
         LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
+        MAIN.removeCallbacks(SPLASH_TIMEOUT);
+        MAIN.postDelayed(SPLASH_TIMEOUT, MAX_SPLASH_MS);
         try {
             deleteLauncher = getBridge().registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),
