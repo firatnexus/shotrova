@@ -76,10 +76,7 @@ jobs:
             # so the splash hand-off can be inspected frame by frame afterwards.
             # Best effort: a missing recording must never fail the device tests.
             adb shell screenrecord --time-limit 25 /sdcard/shotrova-launch.mp4 &
-            for i in $(seq 1 10); do
-              if adb shell test -s /sdcard/shotrova-launch.mp4; then break; fi
-              sleep 1
-            done
+            for i in $(seq 1 10); do if adb shell test -s /sdcard/shotrova-launch.mp4; then break; fi; sleep 1; done
             adb shell am start -W -n io.github.firatnexus.shotrova.debug/io.github.firatnexus.shotrova.MainActivity
             sleep 8
             adb shell 'kill -INT $(pidof screenrecord) 2>/dev/null' || true
