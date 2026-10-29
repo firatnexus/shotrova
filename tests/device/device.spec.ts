@@ -258,23 +258,38 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
    * (horizontal scroller), a field or a control. Layout depends on the library contents,
    * so a fixed height would sometimes land on the suggestion chips, which correctly keep the drag.
    */
-  const swipeY = async () => {
+  const swipeY = async (): Promise<number> => {
+    // Let closing sheets/scrims and the tab enter animation finish first
+    await expect.poll(() => page.locator('.scrim, .sheet').count(), { timeout: 10_000 }).toBe(0);
+    await page.waitForTimeout(300);
     const cssY = await page.evaluate(() => {
-      const bad = (el: Element | null): boolean => {
-        for (let e = el; e && e !== document.body; e = e.parentElement) {
-          if (e.matches('input,textarea,select,button,a,[contenteditable],[role=dialog],[data-no-swipe],video,input[type=range]')) return true;
-          const cs = getComputedStyle(e);
-          if (/(auto|scroll)/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1) return true;
+      // Rows covered by fields, controls or horizontal scrollers anywhere across the width
+      const rows = (sel: string) => {
+        const r: [number, number][] = [];
+        for (const e of document.querySelectorAll(sel)) {
+          const b = e.getBoundingClientRect();
+          if (b.width && b.height) r.push([b.top - 10, b.bottom + 10]);
         }
-        return false;
+        for (const e of document.querySelectorAll('main#main *')) {
+          const cs = getComputedStyle(e);
+          if (/(auto|scroll)/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1) {
+            const b = e.getBoundingClientRect();
+            r.push([b.top - 10, b.bottom + 10]);
+          }
+        }
+        return r;
       };
-      const xs = [0.5, 0.15, 0.85].map((f) => innerWidth * f);
-      for (let f = 0.45; f <= 0.85; f += 0.02) {
-        const yy = innerHeight * f;
-        if (xs.every((x) => !bad(document.elementFromPoint(x, yy)))) return yy;
+      const strict = rows('main#main :is(input,textarea,select,button,a,[contenteditable],[data-no-swipe],video)');
+      const loose = rows('main#main :is(input,textarea,select,[contenteditable],[data-no-swipe],video)');
+      for (const blocked of [strict, loose]) {
+        for (let f = 0.45; f <= 0.85; f += 0.01) {
+          const yy = innerHeight * f;
+          if (!blocked.some(([t, b]) => yy >= t && yy <= b)) return yy;
+        }
       }
-      return innerHeight * 0.55;
+      return null;
     });
+    if (cssY === null) throw new Error('no free row to swipe on');
     return Math.round(wv.t + cssY * dpr);
   };
   const swipe = async (from: number, to: number, dy = 0) => {
