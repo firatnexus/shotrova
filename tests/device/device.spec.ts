@@ -1,0 +1,240 @@
+/**
+ * On-device checks for 1.12.x: keyboard vs. the category sheet, OCR language
+ * pack download + real recognition, and tab swiping with real touches.
+ *
+ *   adb install -r app-debug.apk   # built with webContentsDebuggingEnabled
+ *   npx playwright test -c playwright.device.config.ts
+ */
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chromium, expect, test, type Browser, type Locator, type Page } from '@playwright/test';
+
+const PKG = process.env.APP_ID ?? 'io.github.firatnexus.shotrova.debug';
+const ACTIVITY = 'io.github.firatnexus.shotrova.MainActivity';
+const OUT = 'test-reports/device';
+mkdirSync(OUT, { recursive: true });
+const results: Record<string, unknown> = {};
+
+const adb = (...args: string[]) => execFileSync('adb', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const screencap = (name: string) => writeFileSync(`${OUT}/${name}.png`, execFileSync('adb', ['exec-out', 'screencap', '-p'], { maxBuffer: 64 * 1024 * 1024 }));
+
+type Box = { l: number; t: number; r: number; b: number };
+function webviewBounds(): Box {
+  for (let i = 0; i < 5; i++) {
+    try {
+      const xml = adb('exec-out', 'uiautomator', 'dump', '/dev/tty');
+      const m = xml.match(/class="android\.webkit\.WebView"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+      if (m) return { l: +m[1]!, t: +m[2]!, r: +m[3]!, b: +m[4]! };
+    } catch { /* uiautomator can be busy while animating */ }
+    execFileSync('sleep', ['1']);
+  }
+  throw new Error('WebView not found in the window hierarchy');
+}
+function screenSize(): { w: number; h: number } {
+  const m = adb('shell', 'wm', 'size').match(/(\d+)x(\d+)\s*$/m)!;
+  return { w: +m[1]!, h: +m[2]! };
+}
+const imeShown = () => /mInputShown=true|isInputViewShown=true/.test(adb('shell', 'dumpsys', 'input_method'));
+
+let browser: Browser;
+let page: Page;
+let dpr = 1;
+
+/** CSS px inside the WebView → device px on the screen. */
+async function toScreen(loc: Locator): Promise<{ x: number; y: number }> {
+  const box = (await loc.boundingBox())!;
+  const wv = webviewBounds();
+  return { x: Math.round(wv.l + (box.x + box.width / 2) * dpr), y: Math.round(wv.t + (box.y + box.height / 2) * dpr) };
+}
+async function realTap(loc: Locator) {
+  const p = await toScreen(loc);
+  adb('shell', 'input', 'tap', String(p.x), String(p.y));
+}
+async function go(hash: string) {
+  await page.evaluate((h) => { location.hash = h; }, hash);
+  await expect(page.locator('main#main')).toBeVisible();
+  await page.waitForTimeout(500);
+}
+const hash = () => page.evaluate(() => location.hash.replace(/^#/, '') || '/');
+
+test.beforeAll(async () => {
+  try { adb('shell', 'pm', 'grant', PKG, 'android.permission.POST_NOTIFICATIONS'); } catch { /* not requested on this API level */ }
+  adb('shell', 'settings', 'put', 'secure', 'show_ime_with_hard_keyboard', '1');
+  adb('shell', 'am', 'force-stop', PKG);
+  adb('shell', 'am', 'start', '-W', '-n', `${PKG}/${ACTIVITY}`);
+  let pid = '';
+  for (let i = 0; i < 30 && !pid; i++) {
+    pid = adb('shell', 'pidof', PKG).trim();
+    if (!pid) await sleep(1000);
+  }
+  const sockets = (): string[] => [...(adb('shell', 'cat', '/proc/net/unix').match(/webview_devtools_remote_\d+/g) ?? [])];
+  for (let i = 0; i < 30 && !sockets().includes(`webview_devtools_remote_${pid}`); i++) await sleep(1000);
+  adb('forward', 'tcp:9222', `localabstract:webview_devtools_remote_${pid}`);
+  for (let i = 0; i < 20; i++) {
+    try { browser = await chromium.connectOverCDP('http://127.0.0.1:9222'); break; } catch { await sleep(1000); }
+  }
+  const ctx = browser.contexts()[0]!;
+  for (let i = 0; i < 20 && !page; i++) {
+    page = ctx.pages().find((p) => /localhost/.test(p.url()))!;
+    if (!page) await sleep(1000);
+  }
+  await expect(page.locator('main#main')).toBeVisible();
+  dpr = await page.evaluate(() => devicePixelRatio);
+  // Deterministic copy for the selectors below
+  await go('/settings');
+  await page.getByTestId('app-lang').click();
+  await page.getByTestId('app-lang-opt-tr').click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'tr');
+  results.device = {
+    model: adb('shell', 'getprop', 'ro.product.model').trim(),
+    sdk: adb('shell', 'getprop', 'ro.build.version.sdk').trim(),
+    webview: await page.evaluate(() => navigator.userAgent),
+    screen: screenSize(),
+    dpr,
+  };
+});
+
+test.afterAll(async () => {
+  writeFileSync(`${OUT}/device-results.json`, JSON.stringify(results, null, 2));
+  await browser?.close().catch(() => undefined);
+});
+
+test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazgeç above the real IME', async () => {
+  await go('/categories');
+  const before = webviewBounds();
+  const h0 = await page.evaluate(() => innerHeight);
+  await page.getByTestId('new-category').click();
+  const kw = page.locator('#c-kw');
+  await expect(kw).toBeVisible();
+  await kw.scrollIntoViewIfNeeded();
+  await realTap(kw);
+  await expect.poll(imeShown, { timeout: 15_000, message: 'soft keyboard opened by a real tap' }).toBe(true);
+  await page.waitForTimeout(1200);
+  const after = webviewBounds();
+  const h1 = await page.evaluate(() => innerHeight);
+  const vv = await page.evaluate(() => visualViewport?.height ?? innerHeight);
+  screencap('keyboard-category-sheet');
+  const focused = await kw.evaluate((el) => el === document.activeElement);
+  const kwBox = (await kw.boundingBox())!;
+  const save = (await page.getByTestId('save-category').boundingBox())!;
+  const cancel = (await page.locator('.sheet').getByRole('button', { name: 'Vazgeç' }).boundingBox())!;
+  results.keyboard = { webviewBefore: before, webviewWithIme: after, innerHeightBefore: h0, innerHeightWithIme: h1, visualViewport: vv, keywords: kwBox, save, cancel, focused };
+  expect(focused).toBe(true);
+  // The WebView itself is resized above the keyboard (native inset fix) …
+  expect(after.b, 'WebView bottom moves up when the IME opens').toBeLessThan(before.b - 300);
+  expect(h1).toBeLessThan(h0 - 150);
+  // … and the field plus both actions are inside what is left
+  for (const [name, b] of [['keywords', kwBox], ['save', save], ['cancel', cancel]] as const) {
+    expect(b.y, `${name} top on screen`).toBeGreaterThanOrEqual(0);
+    expect(b.y + b.height, `${name} above the keyboard`).toBeLessThanOrEqual(vv + 1);
+  }
+  // Typing through the real IME lands in the field
+  adb('shell', 'input', 'text', 'antrenman');
+  await expect(kw).toHaveValue(/antrenman/);
+  // Save is tappable while the keyboard is open
+  await page.locator('#c-name, .sheet input[type=text]').first().fill('Spor');
+  await realTap(page.getByTestId('save-category'));
+  await expect(page.getByTestId('category-list').locator('.item', { hasText: 'Spor' })).toBeVisible();
+  adb('shell', 'input', 'keyevent', '111'); // ESC: make sure no IME stays open
+});
+
+test('OCR: Japanese pack downloads from GitHub Pages, is verified, and recognizes a real screenshot on the device', async () => {
+  await go('/settings');
+  await page.getByTestId('ocr-lang').click();
+  await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(12);
+  const t0 = Date.now();
+  await page.getByTestId('ocr-lang-opt-jpn').click();
+  await expect(page.getByTestId('ocr-pack-progress')).toBeHidden({ timeout: 180_000 });
+  await expect(page.getByTestId('ocr-lang')).toContainText('日本語');
+  await expect(page.getByTestId('ocr-pack-missing')).toHaveCount(0);
+  const downloadMs = Date.now() - t0;
+  screencap('ocr-japanese-selected');
+  const fetched = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => e.name).filter((n) => n.includes('ocr-packs')));
+  const stored = await page.evaluate(async () => (await caches.keys()).filter((k) => k.includes('ocrpacks')));
+  expect(fetched.some((u) => u.startsWith('https://firatnexus.github.io/shotrova/ocr-packs/jpn'))).toBe(true);
+  expect(stored.length).toBe(1);
+
+  await go('/');
+  const b64 = readFileSync('tests/fixtures/ocr/jpn.png').toString('base64');
+  const t1 = Date.now();
+  await page.evaluate((data) => {
+    const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+    const dt = new DataTransfer();
+    dt.items.add(new File([bytes], 'jpn-device.png', { type: 'image/png' }));
+    window.dispatchEvent(new DragEvent('dragenter', { dataTransfer: dt, bubbles: true }));
+    window.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+  }, b64);
+  const read = () =>
+    page.evaluate(
+      () =>
+        new Promise<{ ocrStatus?: string; ocrText?: string; ocrLanguage?: string } | undefined>((resolve) => {
+          const req = indexedDB.open('shotrova-db');
+          req.onsuccess = () => {
+            const q = req.result.transaction('images').objectStore('images').getAll();
+            q.onsuccess = () => resolve((q.result as { fileName: string }[]).find((r) => r.fileName === 'jpn-device.png') as never);
+          };
+        }),
+    );
+  await expect.poll(async () => (await read())?.ocrStatus, { timeout: 240_000 }).toBe('done');
+  const img = (await read())!;
+  results.ocr = { downloadMs, fetched, recognitionMs: Date.now() - t1, ocrLanguage: img.ocrLanguage, text: img.ocrText };
+  expect(img.ocrLanguage).toBe('jpn+eng');
+  expect(img.ocrText).toContain('東京タワー');
+  expect(img.ocrText).toContain('チケット番号');
+  await go('/settings');
+  await page.getByTestId('ocr-lang').click();
+  await page.getByTestId('ocr-lang-opt-tur').click();
+  await expect(page.getByTestId('ocr-lang')).toContainText('Türkçe');
+});
+
+test('swipe: real touches move between tabs in order, smoothly, without wrap-around', async () => {
+  await go('/');
+  const wv = webviewBounds();
+  const y = Math.round(wv.t + (wv.b - wv.t) * 0.55);
+  // RIGHT/LEFT = where the finger starts; finger moving left = next tab (LTR)
+  const RIGHT = Math.round(wv.l + (wv.r - wv.l) * 0.85);
+  const LEFT = Math.round(wv.l + (wv.r - wv.l) * 0.15);
+  const swipes: unknown[] = [];
+  const swipe = async (from: number, to: number, dy = 0) => {
+    await page.evaluate(() => {
+      const w = window as unknown as { __f: number[]; __on: boolean };
+      w.__f = [];
+      w.__on = true;
+      const tick = (t: number) => { if (!w.__on) return; w.__f.push(t); requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
+    adb('shell', 'input', 'swipe', String(from), String(y), String(to), String(y + dy), '220');
+    await page.waitForTimeout(700);
+    const f: number[] = await page.evaluate(() => { const w = window as unknown as { __f: number[]; __on: boolean }; w.__on = false; return w.__f; });
+    const gaps = f.slice(1).map((t, i) => t - f[i]!);
+    const s = { landedOn: await hash(), frames: f.length, worstGapMs: Math.round(Math.max(0, ...gaps)), dropped: gaps.reduce((a, g) => a + Math.max(0, Math.round(g / 16.7) - 1), 0) };
+    swipes.push(s);
+    return s.landedOn;
+  };
+  expect(await swipe(RIGHT, LEFT)).toBe('/images');
+  expect(await swipe(RIGHT, LEFT)).toBe('/categories');
+  expect(await swipe(RIGHT, LEFT)).toBe('/settings');
+  screencap('swipe-settings');
+  expect(await swipe(RIGHT, LEFT), 'no wrap-around after Settings').toBe('/settings');
+  expect(await swipe(LEFT, RIGHT)).toBe('/categories');
+  expect(await swipe(LEFT, RIGHT)).toBe('/images');
+  expect(await swipe(LEFT, RIGHT)).toBe('/');
+  expect(await swipe(LEFT, RIGHT), 'no wrap-around before Home').toBe('/');
+  // A vertical drag scrolls, it never switches tabs
+  adb('shell', 'input', 'swipe', String(Math.round((RIGHT + LEFT) / 2)), String(y + 300), String(Math.round((RIGHT + LEFT) / 2) - 40), String(y - 300), '300');
+  await page.waitForTimeout(600);
+  expect(await hash()).toBe('/');
+  // While typing in search, horizontal drags stay in the field
+  const search = page.getByTestId('home-search');
+  await realTap(search);
+  await expect.poll(imeShown, { timeout: 15_000 }).toBe(true);
+  adb('shell', 'input', 'text', 'fatura');
+  adb('shell', 'input', 'swipe', String(RIGHT), String(y), String(LEFT), String(y), '220');
+  await page.waitForTimeout(600);
+  expect(await hash()).toBe('/');
+  adb('shell', 'input', 'keyevent', '111');
+  // No leftover transforms once everything settled
+  expect(await page.locator('main#main').evaluate((m) => getComputedStyle(m.firstElementChild!).transform)).toMatch(/none|matrix\(1, 0, 0, 1, 0, 0\)/);
+  results.swipe = swipes;
+});

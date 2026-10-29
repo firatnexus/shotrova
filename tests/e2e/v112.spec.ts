@@ -223,6 +223,64 @@ test('swipe between tabs: order, no wrap-around, tab bar in sync, text fields no
   await shot(page, 'categories-ar');
 });
 
+test('swipe feel: page tracks the finger, next tab slides in continuously, controls that only need taps do not block', async ({ page }, info) => {
+  test.skip(info.project.name !== 'android-pixel7', 'touch only');
+  await openApp(page, '/images');
+  const w = page.viewportSize()!.width;
+  expect(await page.locator('main#main').evaluate((m) => getComputedStyle(m).touchAction)).toBe('pan-y pinch-zoom');
+  const cdp = await page.context().newCDPSession(page);
+  const tx = () => page.locator('main#main').evaluate((m) => new DOMMatrix(getComputedStyle(m.firstElementChild!).transform).m41);
+  // Mid-drag: the page sits exactly under the finger (written once per frame)
+  const y = 420;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: w - 60, y }] });
+  for (let i = 1; i <= 6; i++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: w - 60 - i * 25, y }] });
+    await page.waitForTimeout(16);
+  }
+  await page.waitForTimeout(40);
+  expect(Math.round(await tx())).toBe(-150);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  // The incoming tab is animating in from the right, then rests at 0 with no leftover styles
+  await page.waitForTimeout(30);
+  expect(await hash(page)).toBe('/categories');
+  const enter = await tx();
+  expect(enter).toBeGreaterThan(0);
+  expect(enter).toBeLessThanOrEqual(w - 150 + 1);
+  await page.waitForTimeout(400);
+  expect(await tx()).toBe(0);
+  expect(await page.locator('main#main').evaluate((m) => { const st = (m.firstElementChild as HTMLElement).style; return st.transform + st.willChange; })).toBe('');
+  // A short, slow drag springs back and leaves nothing behind
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 200, y }] });
+  for (let i = 1; i <= 4; i++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 200 - i * 8, y }] });
+    await page.waitForTimeout(60);
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.waitForTimeout(400);
+  expect(await hash(page)).toBe('/categories');
+  expect(await tx()).toBe(0);
+  // First tab: rubber band only
+  await openApp(page, '/');
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 60, y }] });
+  for (let i = 1; i <= 6; i++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 60 + i * 40, y }] });
+    await page.waitForTimeout(16);
+  }
+  await page.waitForTimeout(40);
+  const band = await tx();
+  expect(band).toBeGreaterThan(0);
+  expect(band).toBeLessThanOrEqual(w * 0.12 + 1);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.waitForTimeout(400);
+  expect(await hash(page)).toBe('/');
+  await cdp.detach();
+  // Selects only react to taps: a swipe that starts on the date filter still switches tabs
+  await openApp(page, '/images');
+  const sel = (await page.getByTestId('date-filter').boundingBox())!;
+  await swipe(page, Math.min(w - 60, sel.x + sel.width - 10), 40, sel.y + sel.height / 2);
+  expect(await hash(page)).toBe('/categories');
+});
+
 test('dark theme renders the new menus with readable contrast', async ({ page }) => {
   await openApp(page, '/settings');
   await page.getByTestId('theme-dark').click();

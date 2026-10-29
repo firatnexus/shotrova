@@ -229,9 +229,6 @@ export function App() {
           tabIndex={-1}
           data-screen={tab || 'home'}
           ref={swipeRef}
-          onAnimationEnd={(e) => {
-            if (e.target === e.currentTarget.firstElementChild) delete e.currentTarget.dataset.enter;
-          }}
         >
           {screen}
         </main>
