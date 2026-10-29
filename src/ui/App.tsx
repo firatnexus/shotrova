@@ -31,14 +31,17 @@ export function App() {
   const fatal = useAppState((s) => s.fatal);
 
   // Hand the native Android launch splash off only once the launch screen
-  // has both painted and been composited on screen. The page's first
-  // contentful paint IS the launch screen (static HTML in index.html), so
-  // waiting for it keeps the native splash up until a real frame exists —
-  // but FCP alone is not proof that Android has composited the WebView
-  // into the window yet, so markFirstFrame also asks the native side to
-  // confirm composition via WebView.postVisualStateCallback before the
-  // splash is released. Falls back to the double-rAF signal where the paint
-  // timing API is unavailable. markFirstFrame is idempotent.
+  // has painted AND that painted state has been submitted to the compositor.
+  // The page's first contentful paint IS the launch screen (static HTML in
+  // index.html), so waiting for it keeps the native splash up until a real
+  // frame exists — but FCP alone is not proof the frame reached the
+  // compositor, so markFirstFrame also asks the native side for a
+  // WebView.postVisualStateCallback confirmation (submitted-to-compositor;
+  // per the Android docs this still does not prove presentation on the
+  // display — no WebView API does). Falls back to the double-rAF signal
+  // where the paint timing API is unavailable. markFirstFrame is idempotent.
+  // The native trace (ShotrovaLaunch logcat tag) records the timing of
+  // these events; see scripts/record-launch.sh.
   useEffect(() => {
     let cancelled = false;
     let raf1 = 0;
@@ -311,6 +314,7 @@ export function App() {
 function dismissBootScreen() {
   const el = document.getElementById('boot');
   if (!el || el.classList.contains('is-done')) return;
+  console.info('[boot] dismissed');
   const remove = () => el.remove();
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     remove();

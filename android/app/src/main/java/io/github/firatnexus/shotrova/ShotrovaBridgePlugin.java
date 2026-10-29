@@ -70,7 +70,10 @@ public class ShotrovaBridgePlugin extends Plugin {
 
     /** Set when the web layer has painted its first usable frame (splash hand-off). */
     private static volatile boolean webPainted = false;
-    /** Set when WebView.postVisualStateCallback confirms that frame is on screen. */
+    /** Set when WebView.postVisualStateCallback reports the painted state was
+     *  submitted to the compositor. Per the Android docs this does NOT prove
+     *  the frame was presented to the display — it is the strongest signal the
+     *  WebView API offers. */
     private static volatile boolean frameComposited = false;
     private static long LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
     /** Safety cap: never hold the launch splash longer than this, even if JS
@@ -78,45 +81,71 @@ public class ShotrovaBridgePlugin extends Plugin {
      *  contentful paint, which on slow renderers (software GPUs, cold
      *  WebViews) can legitimately take several seconds. */
     private static final long MAX_SPLASH_MS = 8000;
+    /** Launch hand-off trace tag; see also scripts/record-launch.sh which
+     *  captures these lines into the device-test artifact. */
+    static final String LAUNCH_TAG = "ShotrovaLaunch";
+    private static final java.util.concurrent.atomic.AtomicBoolean RELEASE_LOGGED =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    /** Elapsed ms since the plugin class loaded (process start, roughly). */
+    private static long elapsedMs() {
+        return android.os.SystemClock.uptimeMillis() - LAUNCHED_AT;
+    }
 
     /**
      * True while the native launch splash should stay on screen. Requires BOTH
      * halves of the hand-off signal: the web layer's first contentful paint
      * (markFirstFrame, set from the PerformanceObserver/FCP path) AND the
-     * WebView visual-state callback confirming the frame has actually been
-     * composited on screen. FCP alone fires before Android has composited
-     * the frame (recorded cold launches showed a ~1s blank window); the
+     * WebView visual-state callback reporting that the painted state was
+     * submitted to the compositor. FCP alone fires before the frame reaches
+     * the compositor (recorded cold launches showed a ~1s blank window); the
      * visual-state callback alone fires on the WebView's plain background
-     * frame before any page content exists. The timeout bounds the wait.
+     * frame before any page content exists. Neither signal proves the frame
+     * is on the display — no WebView API does — so the timeout bounds the
+     * wait and the WebView background is matched to the splash background.
      */
     static boolean isFirstFrameReady() {
-        return (webPainted && frameComposited)
-            || (android.os.SystemClock.uptimeMillis() - LAUNCHED_AT) >= MAX_SPLASH_MS;
+        boolean timedOut = elapsedMs() >= MAX_SPLASH_MS;
+        boolean ready = (webPainted && frameComposited) || timedOut;
+        if (ready && RELEASE_LOGGED.compareAndSet(false, true)) {
+            android.util.Log.i(LAUNCH_TAG, "splash release: reason=" + (timedOut ? "timeout" : "signals")
+                + " webPainted=" + webPainted + " frameComposited=" + frameComposited
+                + " elapsedMs=" + elapsedMs());
+        }
+        return ready;
     }
 
     /**
      * Called by the web layer once its first contentful paint has committed.
      * Arms the WebView visual-state callback so the splash is released only
-     * when that painted content is actually composited on screen.
+     * after that painted state has been submitted to the compositor.
      */
     @PluginMethod
     public void markFirstFrame(PluginCall call) {
         webPainted = true;
+        android.util.Log.i(LAUNCH_TAG, "markFirstFrame: webPainted=true elapsedMs=" + elapsedMs());
         armVisualStateCallback();
         call.resolve();
     }
 
-    /** Requests the composited-frame confirmation from the WebView (UI thread). */
+    /** Requests the compositor-submission confirmation from the WebView (UI thread). */
     private void armVisualStateCallback() {
         android.app.Activity activity = getActivity();
         android.webkit.WebView wv = getBridge() == null ? null : getBridge().getWebView();
-        if (activity == null || wv == null) return;
-        activity.runOnUiThread(() -> wv.postVisualStateCallback(-1, new android.webkit.WebView.VisualStateCallback() {
-            @Override
-            public void onComplete(long requestId) {
-                frameComposited = true;
-            }
-        }));
+        if (activity == null || wv == null) {
+            android.util.Log.w(LAUNCH_TAG, "visual-state callback not armed: no activity/webview");
+            return;
+        }
+        activity.runOnUiThread(() -> {
+            android.util.Log.i(LAUNCH_TAG, "arming visual-state callback elapsedMs=" + elapsedMs());
+            wv.postVisualStateCallback(-1, new android.webkit.WebView.VisualStateCallback() {
+                @Override
+                public void onComplete(long requestId) {
+                    frameComposited = true;
+                    android.util.Log.i(LAUNCH_TAG, "visual-state callback: frameComposited=true elapsedMs=" + elapsedMs());
+                }
+            });
+        });
     }
 
     @Override
@@ -469,6 +498,8 @@ public class ShotrovaBridgePlugin extends Plugin {
         // expired launch deadline from the previous instance.
         webPainted = false;
         frameComposited = false;
+        RELEASE_LOGGED.set(false);
+        android.util.Log.i(LAUNCH_TAG, "plugin load: hand-off gates reset");
         LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
         try {
             deleteLauncher = getBridge().registerForActivityResult(
