@@ -17,7 +17,7 @@ on:
         default: ''
 
 concurrency:
-  group: device-${{ github.ref }}
+  group: device-${{ github.ref }}-${{ inputs.app_ref }}
   cancel-in-progress: true
 
 jobs:
