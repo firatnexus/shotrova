@@ -112,7 +112,7 @@ Screenshots show the English UI. Turkish is the default language and can be swit
 ### Search and privacy
 
 - **Text-based search** (not semantic) over OCR text, title, note, tags, category and file name. Phrases like "last month" and category names become filters; a small TR↔EN synonym table helps across languages.
-- **Privacy:** no server, no account, no analytics. Everything stays in IndexedDB on the device. ZIP (with images) or JSON backup and validated restore.
+- **Privacy:** no server, no account, no analytics. Your images, OCR text and everything you do stay in IndexedDB on the device; backups (ZIP with images, or JSON) are files you export yourself. The single exception is the **optional** AI feature you enable with your own key: with image vision off, only the OCR text (≤2000 chars) and category names are sent to your chosen provider; with vision on (explicit opt-in), the image is sent too. ZIP (with images) or JSON backup and validated restore.
 - **Languages:** Turkish (default) and English.
 - **Accessibility:** full keyboard use, visible focus ring, reduced-motion support, WCAG AA contrast, skeleton loading, empty states, toasts and confirmation dialogs.
 
