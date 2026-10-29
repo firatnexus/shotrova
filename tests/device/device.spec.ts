@@ -284,11 +284,19 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
   await page.waitForTimeout(600);
   expect(await hash()).toBe('/');
   // While typing in search, horizontal drags stay in the field
+  // (the vertical drag above scrolled the page, so bring the field back first)
   const search = page.getByTestId('home-search');
+  await page.evaluate(() => document.querySelector('main#main')?.scrollTo(0, 0));
+  await search.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
   await realTap(search);
-  await expect.poll(imeShown, { timeout: 15_000 }).toBe(true);
+  await expect.poll(imeShown, { timeout: 15_000, message: 'real tap on search opens the IME' }).toBe(true);
+  await page.waitForTimeout(800);
   adb('shell', 'input', 'text', 'fatura');
-  adb('shell', 'input', 'swipe', String(RIGHT), String(y), String(LEFT), String(y), '220');
+  // Drag across the part of the WebView that is still visible above the keyboard
+  const wvIme = await webviewBounds();
+  const yIme = Math.round(wvIme.t + (wvIme.b - wvIme.t) * 0.5);
+  adb('shell', 'input', 'swipe', String(RIGHT), String(yIme), String(LEFT), String(yIme), '220');
   await page.waitForTimeout(600);
   expect(await hash()).toBe('/');
   await hideIme();
