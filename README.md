@@ -273,7 +273,8 @@ Every result was actually executed; logs and manual test steps are in [docs/TEST
 
 | Version | Highlights |
 |---|---|
-| **1.12.0** | Animated search hint (25 examples), keyboard-safe sheets on Android 15, 12 UI languages with Arabic RTL, 12 offline OCR languages via verified on-demand packs, swipe between tabs |
+| **1.12.1** | Smoother tab swiping (finger-tracking pages, continuous slide-in, no Images stall), swipes allowed over menus and idle fields |
+| 1.12.0 | Animated search hint (25 examples), keyboard-safe sheets on Android 15, 12 UI languages with Arabic RTL, 12 offline OCR languages via verified on-demand packs, swipe between tabs |
 | 1.11.0 | Figma-inspired "white gallery wall" redesign: pure white canvas, ink & mist system, Electric Indigo single CTA, whisper-weight hero, four-tier radii, spark-dot logo |
 | 1.10.0 | Contra-inspired "editorial gallery" redesign: white paper canvas, ink & hairline system, charcoal pill actions, Inter, hero gradient wash, new frame logo |
 | 1.9.1 | English README, release notes and screenshots; "1 result" wording fix |

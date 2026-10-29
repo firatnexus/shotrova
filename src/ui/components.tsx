@@ -241,6 +241,30 @@ export function useDebounced<T>(v: T, ms = 150): T {
   return d;
 }
 
+/**
+ * How many items of a long list to render right now. The first `first`
+ * items render immediately (they fill the screen); the rest follow once the
+ * tab transition has settled, so a tab switch never waits for the whole grid.
+ */
+export function useProgressiveCount(total: number, first = 18, delayMs = 320): number {
+  const [all, setAll] = useState(total <= first);
+  useEffect(() => {
+    if (all || total <= first) return;
+    let idle = 0;
+    const h = setTimeout(() => {
+      const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+      if (ric) idle = ric(() => setAll(true), { timeout: 400 });
+      else setAll(true);
+    }, delayMs);
+    return () => {
+      clearTimeout(h);
+      const cic = (window as unknown as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+      if (idle && cic) cic(idle);
+    };
+  }, [all, total, first, delayMs]);
+  return all ? total : Math.min(total, first);
+}
+
 /** Labelled on/off switch used across Settings. */
 export function Toggle({ label, desc, checked, onChange, testId }: { label: string; desc?: string; checked: boolean; onChange: (v: boolean) => void; testId?: string }) {
   return (

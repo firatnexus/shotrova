@@ -1,14 +1,14 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Latest run: 29 October 2026 (v1.12.0: animated search hint, keyboard fix, 12 UI/OCR languages, swipe navigation); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Latest run: 29 October 2026 (v1.12.1: smoother tab swiping; v1.12.0: animated search hint, keyboard fix, 12 UI/OCR languages, swipe navigation); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
 
 ## Summary
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit tests (19 files) | `npm test` | **126 / 126 passed** on v1.12.0 (new: typewriter, swipe, dropdown placement, OCR packs, settings sanitize, 12-language i18n parity incl. Android strings, CJK/Devanagari/Arabic/Cyrillic search) |
+| Unit tests (19 files) | `npm test` | **129 / 129 passed** on v1.12.1 (adds drag offset / continuous slide-in / settle timing). **126 / 126** on v1.12.0 (new: typewriter, swipe, dropdown placement, OCR packs, settings sanitize, 12-language i18n parity incl. Android strings, CJK/Devanagari/Arabic/Cyrillic search) |
 | Real OCR recognition | `npm run test:ocr` | **13 / 13 passed** on v1.12.0: tesseract.js recognizes rendered text in all 12 languages at 100 % character similarity (confidence 90–96), plus one worker switching jpn+eng → ara+eng → chi_sim+eng → tur+eng. Fixtures: `scripts/make-ocr-fixtures.py` (Noto fonts, HarfBuzz shaping) |
-| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **52 passed, 2 skipped** on v1.12.0 (the 2 skipped are mobile-only checks on the desktop profile). New `tests/e2e/v112.spec.ts`: placeholder animation/stop/resume, category sheet at 520/440/380 px viewport heights (keyboard simulation), 12-option language menu, Arabic RTL after reload, OCR pack download + real Japanese OCR import, failed download keeps Türkçe, CDP touch swipes (order, no wrap, vertical rejection, edge guard, text fields, RTL), dark menu contrast. Previously **38 / 38 passed** on v1.11.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)`) |
+| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **53 passed, 3 skipped** on v1.12.1 (new "swipe feel" test: page tracks the finger 1:1, next tab slides in from beside it, spring-back leaves no styles, rubber band on the first tab, swipe over the date menu switches tabs). **52 passed, 2 skipped** on v1.12.0 (the 2 skipped are mobile-only checks on the desktop profile). New `tests/e2e/v112.spec.ts`: placeholder animation/stop/resume, category sheet at 520/440/380 px viewport heights (keyboard simulation), 12-option language menu, Arabic RTL after reload, OCR pack download + real Japanese OCR import, failed download keeps Türkçe, CDP touch swipes (order, no wrap, vertical rejection, edge guard, text fields, RTL), dark menu contrast. Previously **38 / 38 passed** on v1.11.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)`) |
 | Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **38 / 38 passed** (executed in CI on the v1.3.1 push) ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
 | APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
 | APK web-shell E2E, signed release APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
@@ -126,11 +126,46 @@ node scripts/extract-apk-assets.mjs android/app/build/outputs/apk/debug/app-debu
 npx playwright test -c playwright.android.config.ts
 ```
 
+## Swipe smoothness probe (v1.12.1)
+
+`npx playwright test -c playwright.perf.config.ts` (set `PERF_DIST`, `PERF_IMAGES`, `PERF_LABEL`): Pixel 7 profile, CPU throttled 4×, seeded library, 12 finger-speed swipes through all tabs and back. Same probe on the v1.12.0 build and on v1.12.1, 120 screenshots:
+
+| | v1.12.0 | v1.12.1 |
+|---|---|---|
+| Dropped frames (12 swipes) | 84 | 27 |
+| Worst frame gap | 267 ms | 67 ms |
+| Long tasks | 546 ms | 74 ms |
+| touchmove events delivered | 216 / 216 | 216 / 216 |
+
+Root causes: the Images tab rendered every card on mount (scaled with library size), the page moved only 25 % of the finger (max 40 px) and then jumped, the drag offset was a CSS variable on `main` (style recalculation of the whole subtree per move), and selects / idle fields blocked swipes.
+
+## Real Android WebView (emulator)
+
+`.github/workflows/device-test.yml` installs the debug APK (WebView debugging enabled for this build only) on an API 35 emulator with KVM, attaches Playwright over the WebView DevTools socket and drives input with `adb shell input`: a real tap opens the soft keyboard over the category sheet, the Japanese OCR pack downloads from GitHub Pages and recognizes a screenshot, and real swipes walk the tabs. Screenshots and measurements are uploaded as the `device-test-report` artifact.
+
+Results on 29 October 2026 (Android 15, WebView/Chrome 124, 1080×2400 @ 2.625 dpr, `swiftshader` software GPU):
+
+| Check | Result |
+|---|---|
+| Keyboard | PASS — a real tap on “Ek anahtar kelimeler” opens Gboard; the WebView bottom moves from 2338 to 1519 px, `innerHeight` 842 → 530; the field, Kaydet and Vazgeç stay above the keyboard; text typed through the IME lands in the field and the category saves. |
+| OCR download | PASS — `jpn.traineddata.gz` from GitHub Pages in 1.8–5.7 s, verified and cached; recognition 8–18 s; text “東京タワーの予約 / チケット番号 / ありがとうございます”, language `jpn+eng`. |
+| Swipe | PASS — Home → Images → Categories → Settings and back with real touches, no wrap-around at either end, a vertical drag never switches tabs, a horizontal drag while typing in search stays in the field, no transform left behind. |
+
+Swipe frames, same emulator, empty library, 2 runs × 8 swipes each (700 ms window per swipe; `workflow_dispatch` with `app_ref=v1.12.0` builds the old app with the same test):
+
+| | v1.12.0 | v1.12.1 |
+|---|---|---|
+| `pointercancel` (browser took the gesture) | 16 / 16 swipes | 0 / 8 swipes measured |
+| Dropped frames per swipe (mean) | 51.2 | 34.8 |
+| Worst frame gap (median / max) | 233 / 483 ms | 150 / 467 ms |
+
+The software-rendered emulator drops frames even when nothing moves, so these numbers only compare the two versions; they are not what a phone with a GPU shows. The first visit to a tab still costs one long task (70–200 ms on the emulator) while React builds that screen.
+
 ## Bugs found and fixed during testing
 
 - **v1.12.0 — downloaded OCR languages never loaded.** tesseract.js 7.0.0 builds the language string from `l.data` instead of `l.code` for in-memory languages, so every pack failed with "Tesseract couldn't load any languages!". Found by `npm run test:ocr`; fixed by `scripts/tesseract-fix.mjs`, which patches the shipped worker and is checked by a unit test.
 - **v1.12.0 — swipe hijacked by the browser.** Horizontal overscroll triggered history navigation instead of the tab swipe; fixed with `overscroll-behavior-x: none` on touch devices (E2E swipe tests).
-- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, web fallback in `ui/keyboard.ts`; the web side is tested with shrunken viewports, the native side only compiles in CI (no emulator here).
+- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, web fallback in `ui/keyboard.ts`; the web side is tested with shrunken viewports, the native side is now verified on the API 35 emulator (see above).
 
 - **OCR hung forever.** When a language model could not be downloaded, tesseract.js did not reject `createWorker` and reported the error only through `errorHandler`. The engine now listens to that signal too (`src/ocr/engine.ts`).
 - **Uncaught AbortError.** When an IndexedDB transaction was aborted, sibling requests were left as unhandled rejections. Fixed with the `txAll` helper (`src/db/db.ts`).

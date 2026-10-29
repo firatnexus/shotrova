@@ -1,5 +1,12 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.12.1
+
+- **Smoother tab swiping:** the page now follows your finger one-to-one and the next tab slides in from right beside it, so the motion is continuous instead of a short nudge and a jump. Past the first and last tab the page only stretches a little.
+- **No stall on the Images tab:** opening Images used to draw every screenshot card at once, which froze large libraries during the swipe. The cards that fill the screen appear immediately and the rest follow right after the animation.
+- **Swipes work on more of the screen:** a swipe that starts on the date or sort menu, or on a search field you are not typing in, now switches tabs. Category chips, carousels and fields you are typing in still keep their own gestures.
+- Measured on a 4× slowed-down phone profile with 120 screenshots: dropped frames 84 → 27, longest freeze 267 ms → 67 ms.
+
 ## What's new in 1.12.0
 
 - **Animated search hint:** the Home and Images search fields no longer show a static placeholder. A typewriter animation cycles through 25 example searches in the app language ("Pasta recipe", "Wi-Fi password", "Flight ticket and PNR"…). It stops the moment you tap the field, never touches what you type, resumes only when the field is empty again and pauses while the app is in the background.

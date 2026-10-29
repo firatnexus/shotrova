@@ -9,7 +9,7 @@ import { displayTitle, primaryText, search, type SearchOptions } from '../../sea
 import { toast } from '../../lib/toast';
 import { navigate, useRoute } from '../router';
 import { Tile } from '../Tile';
-import { CategoryPicker, Dot, Empty, confirmDialog, useDebounced } from '../components';
+import { CategoryPicker, Dot, Empty, confirmDialog, useDebounced, useProgressiveCount } from '../components';
 import { forgetThumb } from '../blobs';
 import { openPicker } from '../importer';
 import { IconCheck, IconFolder, IconImage, IconSearch, IconSelect, IconTextCopy, IconTrash, IconX } from '../icons';
@@ -100,6 +100,7 @@ export function ImagesScreen() {
   );
   const terms = useMemo(() => [...parsed.terms, ...Object.values(parsed.synonyms).flat(), ...parsed.tags], [parsed]);
   const visibleIds = hits.map((h) => h.item.id);
+  const shown = useProgressiveCount(hits.length);
 
   const toggle = (id: string, shift: boolean) => {
     setSel((prev) => {
@@ -311,7 +312,7 @@ ${primaryText(r)}`)
         </Empty>
       ) : (
         <div className="grid" data-testid="grid">
-          {hits.map((h) => (
+          {hits.slice(0, shown).map((h) => (
             <Tile key={h.item.id} r={h.item} terms={terms} selecting={selecting} selected={sel.has(h.item.id)} onToggle={toggle} />
           ))}
         </div>

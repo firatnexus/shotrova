@@ -214,9 +214,9 @@ export function CaptureSetupSheet() {
           <strong>{t('cap.setup.ai_title')}</strong>
           <span className="faint">{t('cap.setup.ai_body')}</span>
           {(['off', 'text', 'vision'] as const).map((m) => (
-            <label key={m} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
-              <input type="radio" name="cap-ai-mode" checked={mode === m} onChange={() => setMode(m)} />
-              <span>{t(`cap.setup.ai_option_${m}`)}</span>
+            <label key={m} className="row" style={{ gap: 8, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+              <input type="radio" name="cap-ai-mode" checked={mode === m} onChange={() => setMode(m)} style={{ flex: 'none', marginTop: 3 }} />
+              <span style={{ flex: 1, minWidth: 0 }}>{t(`cap.setup.ai_option_${m}`)}</span>
             </label>
           ))}
           <span className="faint xs">{t('cap.setup.ai_privacy')}</span>

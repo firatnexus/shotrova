@@ -1,0 +1,85 @@
+name: Device test (Android emulator)
+
+# Runs the debug APK on an Android 15 (API 35) emulator with KVM and drives
+# the real WebView: real taps open the real soft keyboard, real swipes go
+# through Android's touch pipeline, OCR packs download from GitHub Pages.
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      app_ref:
+        description: 'Build the app sources (src/) from this ref instead, e.g. v1.12.0 for a before/after comparison'
+        required: false
+        default: ''
+      grep:
+        description: 'Only run tests matching this pattern'
+        required: false
+        default: ''
+
+concurrency:
+  group: device-${{ github.ref }}-${{ inputs.app_ref }}
+  cancel-in-progress: true
+
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-35 build-tools;35.0.0 platform-tools'
+      - run: npm ci --legacy-peer-deps
+      - name: Use app sources from another ref (comparison runs only)
+        if: ${{ inputs.app_ref != '' }}
+        run: |
+          git fetch --depth=1 origin "refs/tags/${{ inputs.app_ref }}:refs/tags/${{ inputs.app_ref }}" || git fetch --depth=1 origin "${{ inputs.app_ref }}"
+          git checkout "${{ inputs.app_ref }}" -- src index.html tests/unit
+
+      - name: Build debug APK with WebView debugging (test build only)
+        run: |
+          node -e "const fs=require('fs');const f='capacitor.config.json';const c=JSON.parse(fs.readFileSync(f,'utf8'));c.android={...(c.android||{}),webContentsDebuggingEnabled:true};fs.writeFileSync(f,JSON.stringify(c,null,2))"
+          npm run build
+          npx cap sync android
+          cd android && ./gradlew --no-daemon assembleDebug
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          disk-size: 6000M
+          # Keep system animations on: WebView maps "animations off" to prefers-reduced-motion.
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -W -n io.github.firatnexus.shotrova.debug/io.github.firatnexus.shotrova.MainActivity
+            sleep 8
+            adb shell cat /proc/net/unix | grep -i devtools || echo "no devtools socket"
+            npx playwright test -c playwright.device.config.ts ${{ inputs.grep != '' && format('-g "{0}"', inputs.grep) || '' }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: device-test-report
+          path: test-reports/device/
+          retention-days: 14
