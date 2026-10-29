@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">截图已保存</string>
+    <string name="capture_notif_channel_desc">当应用保留新屏幕截图的副本时通知您</string>
+    <string name="errors_notif_channel">错误</string>
+    <string name="errors_notif_channel_desc">自动保存和分析的问题</string>
+    <string name="capture_notif_saved_title">截图已保存</string>
+    <string name="capture_notif_saved">在%2$s中另存为“%1$s”</string>
+    <string name="capture_notif_saved_nocat">另存为“%1$s”</string>
+    <string name="capture_notif_pending_title">截图已保存</string>
+    <string name="capture_notif_pending_text">副本已保存 — 等待标题/类别分析</string>
+    <string name="capture_notif_failed_title">分析无法完成</string>
+    <string name="capture_notif_failed_text">截图已保存；标题/类别分析失败。当您打开应用程序时，它将重试。</string>
+    <string name="capture_notif_mixed_title">截图已保存</string>
+    <string name="capture_notif_mixed_text">%1$d 已分析，%2$d 待处理，%3$d 失败</string>
+    <string name="capture_notif_summary_text">%1$d 已保存新屏幕截图</string>
+    <string name="capture_notif_change_cat">更改类别</string>
+    <string name="capture_notif_open">打开</string>
+</resources>

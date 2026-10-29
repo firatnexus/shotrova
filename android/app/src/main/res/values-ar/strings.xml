@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">تم حفظ لقطة الشاشة</string>
+    <string name="capture_notif_channel_desc">يعلمك عندما يحتفظ التطبيق بنسخة من لقطة شاشة جديدة</string>
+    <string name="errors_notif_channel">أخطاء</string>
+    <string name="errors_notif_channel_desc">مشاكل في الحفظ والتحليل التلقائي</string>
+    <string name="capture_notif_saved_title">تم حفظ لقطة الشاشة</string>
+    <string name="capture_notif_saved">تم الحفظ باسم \'%1$s\' في %2$s</string>
+    <string name="capture_notif_saved_nocat">تم الحفظ باسم \'%1$s\'</string>
+    <string name="capture_notif_pending_title">تم حفظ لقطة الشاشة</string>
+    <string name="capture_notif_pending_text">تم حفظ النسخة — في انتظار تحليل العنوان/الفئة</string>
+    <string name="capture_notif_failed_title">تعذّر إكمال التحليل</string>
+    <string name="capture_notif_failed_text">تم حفظ لقطة الشاشة؛ فشل تحليل العنوان/الفئة. ستتم إعادة المحاولة عند فتح التطبيق.</string>
+    <string name="capture_notif_mixed_title">تم حفظ لقطات الشاشة</string>
+    <string name="capture_notif_mixed_text">تم تحليل %1$d، %2$d معلق، %3$d فشل</string>
+    <string name="capture_notif_summary_text">%1$d تم حفظ لقطات شاشة جديدة</string>
+    <string name="capture_notif_change_cat">تغيير الفئة</string>
+    <string name="capture_notif_open">مفتوح</string>
+</resources>

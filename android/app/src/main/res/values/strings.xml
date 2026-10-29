@@ -17,7 +17,7 @@
     <string name="capture_notif_failed_text">Ekran görüntüsü kaydedildi; başlık/kategori analizi başarısız oldu. Uygulamayı açtığında tekrar denenecek.</string>
     <string name="capture_notif_mixed_title">Ekran görüntüleri kaydedildi</string>
     <string name="capture_notif_mixed_text">%1$d analiz edildi, %2$d bekliyor, %3$d başarısız</string>
-    <string name="capture_notif_summary_title">Shotrova</string>
+    <string name="capture_notif_summary_title" translatable="false">Shotrova</string>
     <string name="capture_notif_summary_text">%1$d yeni ekran görüntüsü kaydedildi</string>
     <string name="capture_notif_change_cat">Kategoriyi değiştir</string>
     <string name="capture_notif_open">Aç</string>

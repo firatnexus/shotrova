@@ -19,7 +19,7 @@ export const BRAND = {
   /** Prefix for IndexedDB / Cache Storage names. Changing it starts with empty storage. */
   storagePrefix: 'shotrova',
   /** Must match package.json "version"; Android versionCode is derived from it. */
-  version: '1.11.0',
+  version: '1.12.0',
   description: {
     tr: 'Ekran görüntülerini cihazında tara, otomatik kategorilere ayır ve içindeki yazıyla bul.',
     en: 'Scan your screenshots on-device, sort them into categories and find them by the text inside.',
@@ -36,6 +36,11 @@ export const BRAND = {
     themeDark: '#0a0a0a',
   },
   repoUrl: 'https://github.com/firatnexus/shotrova',
+  /**
+   * Public web build (GitHub Pages). The Android app downloads optional OCR
+   * language packs from `<webUrl>ocr-packs/` — static model files only.
+   */
+  webUrl: 'https://firatnexus.github.io/shotrova/',
 } as const;
 
 export type BrandConfig = typeof BRAND;

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Screenshot gespeichert</string>
+    <string name="capture_notif_channel_desc">Benachrichtigt Sie, wenn die App eine Kopie eines neuen Screenshots speichert</string>
+    <string name="errors_notif_channel">Fehler</string>
+    <string name="errors_notif_channel_desc">Probleme beim automatischen Speichern und Analysieren</string>
+    <string name="capture_notif_saved_title">Screenshot gespeichert</string>
+    <string name="capture_notif_saved">Gespeichert als „%1$s“ in %2$s</string>
+    <string name="capture_notif_saved_nocat">Gespeichert als „%1$s“</string>
+    <string name="capture_notif_pending_title">Screenshot gespeichert</string>
+    <string name="capture_notif_pending_text">Kopie gespeichert – wartet auf Titel-/Kategorieanalyse</string>
+    <string name="capture_notif_failed_title">Die Analyse konnte nicht abgeschlossen werden</string>
+    <string name="capture_notif_failed_text">Screenshot gespeichert; Die Titel-/Kategorieanalyse ist fehlgeschlagen. Es wird erneut versucht, wenn Sie die App öffnen.</string>
+    <string name="capture_notif_mixed_title">Screenshots gespeichert</string>
+    <string name="capture_notif_mixed_text">%1$d analysiert, %2$d ausstehend, %3$d fehlgeschlagen</string>
+    <string name="capture_notif_summary_text">%1$d neue Screenshots gespeichert</string>
+    <string name="capture_notif_change_cat">Kategorie ändern</string>
+    <string name="capture_notif_open">Offen</string>
+</resources>

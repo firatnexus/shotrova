@@ -1,6 +1,16 @@
 export type OcrStatus = 'pending' | 'processing' | 'done' | 'empty' | 'error' | 'skipped';
 export type CategorySource = 'auto' | 'rule' | 'ai' | 'manual' | 'none';
-export type OcrLanguage = 'tur+eng' | 'tur' | 'eng';
+/**
+ * Tesseract language codes Shotrova can recognise. `tur` and `eng` ship with
+ * the app; the others are installed on demand (see src/ocr/packs.ts).
+ */
+export type OcrLangCode = 'eng' | 'tur' | 'spa' | 'fra' | 'deu' | 'por' | 'ita' | 'hin' | 'ara' | 'chi_sim' | 'jpn' | 'rus';
+/**
+ * Tesseract language configuration: one code or a `+`-joined combination
+ * (e.g. 'tur+eng'). Persisted as-is, so existing 'tur+eng' / 'tur' / 'eng'
+ * settings and backups stay valid.
+ */
+export type OcrLanguage = OcrLangCode | `${OcrLangCode}+eng`;
 
 export interface Category {
   id: string;
@@ -98,7 +108,7 @@ export interface LearnedRule {
 }
 
 export type ThemePref = 'system' | 'light' | 'dark';
-export type Lang = 'tr' | 'en';
+export type Lang = 'tr' | 'en' | 'es' | 'fr' | 'de' | 'pt' | 'it' | 'hi' | 'ar' | 'zh' | 'ja' | 'ru';
 
 /** Supported AI providers; credentials are kept per provider. */
 export type ProviderId = 'openai' | 'anthropic' | 'google' | 'openrouter' | 'custom';

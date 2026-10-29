@@ -11,7 +11,8 @@ import { validateBytes, sha256Hex } from '../import/validate';
 import { decodeAndThumb, toVisionDataUrl } from '../import/image';
 import { buildSearchTokens, primaryText } from '../search/search';
 import { recognize, isEffectivelyEmpty, scheduleIdleTerminate } from '../ocr/engine';
-import { categoryName } from '../i18n';
+import { categoryName, ensureLang, isLang, langInfo } from '../i18n';
+import { normalizeOcrLanguage } from '../ocr/packs';
 import { BRAND } from '../config/brand';
 import { getState, setState, upsertImageInState } from './store';
 import { uid } from './id';
@@ -20,17 +21,19 @@ import { uid } from './id';
 
 export async function init(): Promise<void> {
   try {
-    const [settings, categories, images, rules] = await Promise.all([
+    const [loaded, categories, images, rules] = await Promise.all([
       db.loadSettings(),
       db.listCategories(),
       db.listImages(),
       db.listRules(),
     ]);
+    const settings = sanitizeSettings(loaded);
     if (categories.length === 0) {
       await db.resetCategoriesToDefault();
       categories.push(...(await db.listCategories()));
     }
     images.sort((a, b) => b.createdAt - a.createdAt);
+    await ensureLangSafe(settings.lang);
     setState({ settings, categories, images, rules, ready: true });
     applyTheme(settings);
     // Native build: mirror AI settings for background analysis and pull
@@ -55,6 +58,28 @@ export function fallbackCategoryId(): string {
   return getState().categories.find((c) => c.isFallback)?.id ?? FALLBACK_CATEGORY_ID;
 }
 
+/**
+ * Repairs persisted preferences that this build does not understand (e.g. a
+ * language removed in a later version or a hand-edited backup) instead of
+ * letting them break rendering or OCR.
+ */
+export function sanitizeSettings(s: Settings): Settings {
+  const lang = isLang(s.lang) ? s.lang : DEFAULT_LANG;
+  const ocrLanguage = normalizeOcrLanguage(s.ocrLanguage);
+  return lang === s.lang && ocrLanguage === s.ocrLanguage ? s : { ...s, lang, ocrLanguage };
+}
+const DEFAULT_LANG = 'tr' as const;
+
+/** Loads a UI language's strings; a failed chunk load falls back to English text instead of failing startup. */
+async function ensureLangSafe(lang: Settings['lang']): Promise<boolean> {
+  try {
+    await ensureLang(lang);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ------------------------------------------------------------------ theme
 
 export function resolvedTheme(s: Settings): 'light' | 'dark' {
@@ -67,6 +92,9 @@ export function applyTheme(s: Settings = getState().settings): void {
   const theme = resolvedTheme(s);
   document.documentElement.dataset.theme = theme;
   document.documentElement.lang = s.lang;
+  // Arabic is right-to-left; every layout rule uses logical properties so the
+  // whole UI mirrors from this one attribute.
+  document.documentElement.dir = langInfo(s.lang).dir;
   const meta = document.querySelector('meta[name="theme-color"]:not([media])') ?? document.querySelector('meta[name="theme-color"]');
   const bar = theme === 'dark' ? BRAND.colors.themeDark : BRAND.colors.themeLight;
   meta?.setAttribute('content', bar);
@@ -74,6 +102,9 @@ export function applyTheme(s: Settings = getState().settings): void {
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<void> {
+  // Load a new UI language before switching, so the UI never renders a mix of
+  // the old language and raw keys. If the chunk cannot load, keep the old one.
+  if (patch.lang && !(await ensureLangSafe(patch.lang))) throw new Error('i18n.load_failed');
   const cur = getState().settings;
   const ai = { ...cur.ai, ...(patch.ai ?? {}) };
   if (patch.ai?.providers) {
@@ -747,8 +778,10 @@ export async function deleteCategory(id: string): Promise<number> {
 
 /** Re-reads everything from IndexedDB (after a restore). */
 export async function reloadAll(): Promise<void> {
-  const [settings, categories, images, rules] = await Promise.all([db.loadSettings(), db.listCategories(), db.listImages(), db.listRules()]);
+  const [loaded, categories, images, rules] = await Promise.all([db.loadSettings(), db.listCategories(), db.listImages(), db.listRules()]);
+  const settings = sanitizeSettings(loaded);
   images.sort((a, b) => b.createdAt - a.createdAt);
+  await ensureLangSafe(settings.lang);
   setState({ settings, categories, images, rules });
   applyTheme(settings);
 }

@@ -435,7 +435,7 @@ export function installNativeBackHandler(): void {
       document.dispatchEvent(new KeyboardEvent('keydown', ev));
       window.dispatchEvent(new KeyboardEvent('keydown', ev));
     };
-    if (document.querySelector('[aria-modal="true"]') || document.documentElement.dataset.selecting === 'true') {
+    if (document.querySelector('[aria-modal="true"], .dropdown-menu') || document.documentElement.dataset.selecting === 'true') {
       escape();
       return true;
     }

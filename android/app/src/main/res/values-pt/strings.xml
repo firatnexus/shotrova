@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Captura de tela salva</string>
+    <string name="capture_notif_channel_desc">Notifica você quando o aplicativo mantém uma cópia de uma nova captura de tela</string>
+    <string name="errors_notif_channel">Erros</string>
+    <string name="errors_notif_channel_desc">Problemas com salvamento e análise automática</string>
+    <string name="capture_notif_saved_title">Captura de tela salva</string>
+    <string name="capture_notif_saved">Salvo como \'%1$s\' em %2$s</string>
+    <string name="capture_notif_saved_nocat">Salvo como \'%1$s\'</string>
+    <string name="capture_notif_pending_title">Captura de tela salva</string>
+    <string name="capture_notif_pending_text">Cópia salva – aguardando análise de título/categoria</string>
+    <string name="capture_notif_failed_title">A análise não pôde ser concluída</string>
+    <string name="capture_notif_failed_text">Captura de tela salva; a análise do título/categoria falhou. Será tentado novamente quando você abrir o aplicativo.</string>
+    <string name="capture_notif_mixed_title">Capturas de tela salvas</string>
+    <string name="capture_notif_mixed_text">%1$d analisado, %2$d pendente, %3$d falhou</string>
+    <string name="capture_notif_summary_text">%1$d novas capturas de tela salvas</string>
+    <string name="capture_notif_change_cat">Alterar categoria</string>
+    <string name="capture_notif_open">Abrir</string>
+</resources>

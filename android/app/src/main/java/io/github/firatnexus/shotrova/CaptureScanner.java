@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -350,6 +351,24 @@ final class CaptureScanner {
         } catch (Exception ignored) { /* skip */ }
     }
 
+    /** English name of the app's UI language, for the analysis prompt. */
+    static String languageName(String lang) {
+        switch (lang == null ? "" : lang) {
+            case "tr": return "Turkish";
+            case "es": return "Spanish";
+            case "fr": return "French";
+            case "de": return "German";
+            case "pt": return "Portuguese";
+            case "it": return "Italian";
+            case "hi": return "Hindi";
+            case "ar": return "Arabic";
+            case "zh": return "Simplified Chinese";
+            case "ja": return "Japanese";
+            case "ru": return "Russian";
+            default: return "English";
+        }
+    }
+
     private static String analysisPrompt(String lang, String categories) {
         boolean tr = "tr".equals(lang);
         return (tr
@@ -360,7 +379,8 @@ final class CaptureScanner {
             : "You classify phone screenshots. Pick EXACTLY ONE of the user's categories. "
               + "Reply with a short title (max 6 words), the category name and 2-4 tags. "
               + "Return JSON only: {\"title\": \"...\", \"category\": \"...\", \"tags\": [\"...\"]}. "
-              + "Use category \"Other\" if nothing fits. Never put sensitive data in titles.")
+              + "Use category \"Other\" if nothing fits. Never put sensitive data in titles. "
+              + "Write the title and tags in " + languageName(lang) + ".")
             + (categories.isEmpty() ? "" : (tr ? "\nKategoriler:\n" : "\nCategories:\n") + categories);
     }
 
@@ -387,17 +407,34 @@ final class CaptureScanner {
 
     // ------------------------------------------------------------ notifications
 
+    /**
+     * Resources in the app's own UI language (mirrored from the web settings),
+     * so notifications match the app rather than the phone's system language.
+     * values-<lang>/strings.xml exist for all twelve UI languages; Turkish is
+     * the default resource set.
+     */
+    static Context localized(Context ctx, String lang) {
+        if (lang == null || lang.isEmpty()) return ctx;
+        Configuration conf = new Configuration(ctx.getResources().getConfiguration());
+        conf.setLocale(Locale.forLanguageTag("zh".equals(lang) ? "zh-CN" : lang));
+        return ctx.createConfigurationContext(conf);
+    }
+
     static void ensureChannels(Context ctx) {
+        ensureChannels(ctx, ctx);
+    }
+
+    static void ensureChannels(Context ctx, Context res) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager nm = ctx.getSystemService(NotificationManager.class);
         if (nm == null) return;
         NotificationChannel capture = new NotificationChannel(CHANNEL_CAPTURE,
-            ctx.getString(R.string.capture_notif_channel), NotificationManager.IMPORTANCE_DEFAULT);
-        capture.setDescription(ctx.getString(R.string.capture_notif_channel_desc));
+            res.getString(R.string.capture_notif_channel), NotificationManager.IMPORTANCE_DEFAULT);
+        capture.setDescription(res.getString(R.string.capture_notif_channel_desc));
         nm.createNotificationChannel(capture);
         NotificationChannel errors = new NotificationChannel(CHANNEL_ERRORS,
-            ctx.getString(R.string.errors_notif_channel), NotificationManager.IMPORTANCE_LOW);
-        errors.setDescription(ctx.getString(R.string.errors_notif_channel_desc));
+            res.getString(R.string.errors_notif_channel), NotificationManager.IMPORTANCE_LOW);
+        errors.setDescription(res.getString(R.string.errors_notif_channel_desc));
         nm.createNotificationChannel(errors);
     }
 
@@ -408,7 +445,8 @@ final class CaptureScanner {
                 != PackageManager.PERMISSION_GRANTED) {
             return; // honest: no permission, no notification
         }
-        ensureChannels(ctx);
+        Context res = localized(ctx, store.ai().optString("lang", "tr"));
+        ensureChannels(ctx, res);
         com.getcapacitor.JSArray q = store.queueSnapshot();
         int pending = 0, analyzed = 0, failed = 0, total = 0;
         String lastTitle = null, lastCategory = null;
@@ -444,8 +482,8 @@ final class CaptureScanner {
         if (total > 1) {
             NotificationCompat.Builder sum = new NotificationCompat.Builder(ctx, CHANNEL_CAPTURE)
                 .setSmallIcon(R.drawable.ic_stat_shotrova)
-                .setContentTitle(ctx.getString(R.string.capture_notif_summary_title))
-                .setContentText(ctx.getString(R.string.capture_notif_summary_text, total))
+                .setContentTitle(res.getString(R.string.capture_notif_summary_title))
+                .setContentText(res.getString(R.string.capture_notif_summary_text, total))
                 .setGroup(GROUP)
                 .setGroupSummary(true)
                 .setAutoCancel(true)
@@ -456,19 +494,19 @@ final class CaptureScanner {
         // Latest item detail notification (id-stable so a later analysis updates it).
         String title, text;
         if (analyzed > 0 && lastTitle != null) {
-            title = ctx.getString(R.string.capture_notif_saved_title);
+            title = res.getString(R.string.capture_notif_saved_title);
             text = lastCategory == null || lastCategory.isEmpty()
-                ? ctx.getString(R.string.capture_notif_saved_nocat, lastTitle)
-                : ctx.getString(R.string.capture_notif_saved, lastTitle, lastCategory);
+                ? res.getString(R.string.capture_notif_saved_nocat, lastTitle)
+                : res.getString(R.string.capture_notif_saved, lastTitle, lastCategory);
         } else if (failed > 0 && pending == 0) {
-            title = ctx.getString(R.string.capture_notif_failed_title);
-            text = ctx.getString(R.string.capture_notif_failed_text);
+            title = res.getString(R.string.capture_notif_failed_title);
+            text = res.getString(R.string.capture_notif_failed_text);
         } else if (pending > 0 && analyzed == 0 && failed == 0) {
-            title = ctx.getString(R.string.capture_notif_pending_title);
-            text = ctx.getString(R.string.capture_notif_pending_text);
+            title = res.getString(R.string.capture_notif_pending_title);
+            text = res.getString(R.string.capture_notif_pending_text);
         } else {
-            title = ctx.getString(R.string.capture_notif_mixed_title);
-            text = ctx.getString(R.string.capture_notif_mixed_text, analyzed, pending, failed);
+            title = res.getString(R.string.capture_notif_mixed_title);
+            text = res.getString(R.string.capture_notif_mixed_text, analyzed, pending, failed);
         }
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL_CAPTURE)
             .setSmallIcon(R.drawable.ic_stat_shotrova)
@@ -484,8 +522,8 @@ final class CaptureScanner {
         }
         // Actions: both open the app; "Kategoriyi değiştir" targets the item so the
         // web layer can jump straight to its category editor after import.
-        b.addAction(0, ctx.getString(R.string.capture_notif_change_cat), openApp(ctx, lastId, true));
-        b.addAction(0, ctx.getString(R.string.capture_notif_open), openApp(ctx, lastId));
+        b.addAction(0, res.getString(R.string.capture_notif_change_cat), openApp(ctx, lastId, true));
+        b.addAction(0, res.getString(R.string.capture_notif_open), openApp(ctx, lastId));
         try { nm.notify(NOTIF_ID_BASE + 1, b.build()); } catch (SecurityException ignored) { /* skip */ }
     }
 

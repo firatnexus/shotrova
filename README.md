@@ -99,7 +99,7 @@ Screenshots show the English UI. Turkish is the default language and can be swit
 
 ### Reading and organizing
 
-- **On-device OCR:** Turkish + English. Every image shows its status (queued, processing, done, no text, error), failures can be retried and unchanged images are never processed twice. The recognized text is editable; the original image is never modified. Background analysis of automatic captures on Android uses on-device ML Kit text recognition.
+- **On-device OCR in 12 languages:** English, Turkish, Spanish, French, German, Portuguese, Italian, Hindi, Arabic, Chinese (Simplified), Japanese and Russian, optionally combined with English. Turkish and English are built in; the other 10 language files are downloaded once on demand (SHA-256 verified) and stay on the device — images are never uploaded. Every image shows its status (queued, processing, done, no text, error), failures can be retried and unchanged images are never processed twice. The recognized text is editable; the original image is never modified. Background analysis of automatic captures on Android uses on-device ML Kit text recognition.
 - **Categories:** 11 defaults (Recipes, Shopping, Places and Addresses, Travel, Documents and Receipts, Conversations, Technology, Learning, Entertainment, Games, Uncategorized). Create, rename, recolor, reorder and delete.
 - **Automatic categorization:** keyword-based with a confidence score. Suggestions below the threshold go to a review queue; your corrections become **visible, deletable** "word → category" rules.
 - **Entities:** links, e-mails, phone numbers and dates found in the text become one-tap chips: copy, open, call. On the Images screen, "Copy text" copies the text of every selected image at once.
@@ -116,7 +116,9 @@ Screenshots show the English UI. Turkish is the default language and can be swit
 
 - **Text-based search** (not semantic) over OCR text, title, note, tags, category and file name. Phrases like "last month" and category names become filters; a small TR↔EN synonym table helps across languages.
 - **Privacy:** no server, no account, no analytics. Your images, OCR text and everything you do stay in IndexedDB on the device; backups (ZIP with images, or JSON) are files you export yourself. The single exception is the **optional** AI feature you enable with your own key: with image vision off, only the OCR text (≤2000 chars) and category names are sent to your chosen provider; with vision on (explicit opt-in), the image is sent too. ZIP (with images) or JSON backup and validated restore.
-- **Languages:** Turkish (default) and English.
+- **12 interface languages** with a custom language menu; Arabic uses a full right-to-left layout. Turkish and English are reviewed; the other 10 were machine-assisted.
+- **Swipe navigation:** swipe between Home, Images, Categories and Settings (no wrap-around; chips, carousels, dialogs and text fields keep their own gestures).
+- **Animated search hint:** 25 example searches typed out in the app language; stops on focus and never touches your input.
 - **Accessibility:** full keyboard use, visible focus ring, reduced-motion support, WCAG AA contrast, skeleton loading, empty states, toasts and confirmation dialogs.
 
 ## How it works
@@ -210,6 +212,7 @@ npm ci --legacy-peer-deps
 npm run dev                         # development server
 npm run build && npm run preview    # production build → http://localhost:4173
 npm test                            # unit tests (Vitest)
+npm run test:ocr                    # real tesseract recognition in all 12 OCR languages
 npm run test:e2e                    # Playwright end-to-end tests (build first)
 npm run icons                       # generate logo, favicon, PWA and Android icons
 npm run apk:debug                   # build + cap sync + gradlew assembleDebug
@@ -227,11 +230,11 @@ src/
   categorize/   keyword categorizer, learned rules, AI
   config/       brand: name, version, colors, logo SVG
   db/           IndexedDB schema (idb)
-  i18n/         tr.json, en.json
+  i18n/         12 language files (tr, en, es, fr, de, pt, it, hi, ar, zh, ja, ru)
   import/       file validation and image processing
   lib/          actions, entity extraction, state, toasts
   native/       Capacitor bridge
-  ocr/          tesseract.js job queue
+  ocr/          tesseract.js engine, job queue and on-demand language packs
   search/       text-based search and query parsing
   ui/           React screens, styles.css, stickers
 android/        Capacitor Android project (Java: capture, sharing, SAF)
@@ -245,8 +248,9 @@ docs/           architecture, testing, deployment, name research, screenshots
 
 | Suite | Result |
 |---|---|
-| Unit tests (Vitest) | 83 / 83 |
-| Web E2E, root path (Playwright, Pixel 7 + desktop Chromium) | 38 / 38 |
+| Unit tests (Vitest) | 126 / 126 |
+| Real OCR recognition, 12 languages + combined (`npm run test:ocr`) | 13 / 13 |
+| Web E2E, root path (Playwright, Pixel 7 + desktop Chromium) | 52 passed, 2 skipped (mobile-only on desktop) |
 | Web E2E, `/shotrova/` subpath (GitHub Pages layout) | runs in CI on every push |
 | APK web-shell E2E (simulated Android bridge) | runs against the real built APK in the Android workflow |
 | TypeScript (`tsc -b`) and subpath build | clean |
@@ -258,7 +262,8 @@ Every result was actually executed; logs and manual test steps are in [docs/TEST
 - **Not tested on a physical Android device or emulator.** The build environment has no KVM/emulator. The APK is built, signed and its bundled web files are tested in Chromium with a simulated Android bridge, but the Java side (sharing, Save as, background capture timing, especially on Xiaomi/HyperOS with the screen off) can only be verified on a real device.
 - **Background timing is not guaranteed:** force-stop, reboot and OEM battery savers can delay detection.
 - **Storage is not permanent:** uninstalling the app or clearing its data (browser data for the web version) deletes everything. Make regular backups.
-- **OCR accuracy** depends on image quality; handwriting and very small or decorative text may be misread. The web version downloads about 17 MB of OCR files on first use; the APK bundles them.
+- **OCR accuracy** depends on image quality; handwriting and very small or decorative text may be misread. The web version downloads about 17 MB of OCR files on first use; the APK bundles Turkish and English. The other 10 OCR languages need a one-time download (0.7–2.7 MB each). Vertical Japanese and Traditional Chinese are not supported, and background analysis of automatic captures (ML Kit) reads Latin script only.
+- **Translations:** languages other than Turkish and English were machine-assisted and need native review. Date phrases in search ("last month") and the keyword categorizer understand Turkish and English only.
 - **Visual understanding is optional:** without AI, categorization relies only on recognized text; photos without text go to "Uncategorized" for review.
 - **Search is text-based,** not semantic.
 - **Android only:** there is no iOS build. On the web, the share target works only after installing the PWA in a Chromium-based Android browser.
@@ -268,7 +273,8 @@ Every result was actually executed; logs and manual test steps are in [docs/TEST
 
 | Version | Highlights |
 |---|---|
-| **1.11.0** | Figma-inspired "white gallery wall" redesign: pure white canvas, ink & mist system, Electric Indigo single CTA, whisper-weight hero, four-tier radii, spark-dot logo |
+| **1.12.0** | Animated search hint (25 examples), keyboard-safe sheets on Android 15, 12 UI languages with Arabic RTL, 12 offline OCR languages via verified on-demand packs, swipe between tabs |
+| 1.11.0 | Figma-inspired "white gallery wall" redesign: pure white canvas, ink & mist system, Electric Indigo single CTA, whisper-weight hero, four-tier radii, spark-dot logo |
 | 1.10.0 | Contra-inspired "editorial gallery" redesign: white paper canvas, ink & hairline system, charcoal pill actions, Inter, hero gradient wash, new frame logo |
 | 1.9.1 | English README, release notes and screenshots; "1 result" wording fix |
 | 1.9.0 | Superr-inspired "school notebook" design, orange polaroid logo, bundled Fraunces + Geist |

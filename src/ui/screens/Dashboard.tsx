@@ -1,3 +1,4 @@
+import { SearchInput } from '../SearchInput';
 import { useMemo, useEffect, useState } from 'react';
 import { useAppState } from '../../lib/store';
 import { updateSettings } from '../../lib/actions';
@@ -7,7 +8,7 @@ import { href, navigate } from '../router';
 import { Tile } from '../Tile';
 import { Dot } from '../components';
 import { openPicker, readClipboardImages, runImport } from '../importer';
-import { IconClipboard, IconPhone, IconSearch, IconShield, IconUpload, IconX } from '../icons';
+import { IconClipboard, IconPhone, IconShield, IconUpload } from '../icons';
 import { isNativeApp } from '../../native/bridge';
 import { CaptureSetupSheet, CaptureStatusCard, openSetup } from '../CaptureCard';
 import { refreshCaptureStatus } from '../../auto/capture';
@@ -67,13 +68,7 @@ export function Dashboard() {
               submit(q);
             }}
           >
-            <IconSearch />
-            <input className="input" type="search" enterKeyHint="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search.placeholder')} aria-label={t('search.label')} />
-            {q && (
-              <button type="button" className="btn ghost icon clear" aria-label={t('search.clear')} onClick={() => setQ('')}>
-                <IconX />
-              </button>
-            )}
+            <SearchInput value={q} onChange={setQ} testId="home-search" />
           </form>
           <div className="chips" aria-label={t('dash.examples')}>
             {EXAMPLES.map((k) => (

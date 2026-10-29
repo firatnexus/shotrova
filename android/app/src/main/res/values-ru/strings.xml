@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="capture_notif_channel">Скриншот сохранен.</string>
+    <string name="capture_notif_channel_desc">Уведомляет вас, когда приложение сохраняет копию нового снимка экрана.</string>
+    <string name="errors_notif_channel">Ошибки</string>
+    <string name="errors_notif_channel_desc">Проблемы с автоматическим сохранением и анализом</string>
+    <string name="capture_notif_saved_title">Скриншот сохранен.</string>
+    <string name="capture_notif_saved">Сохранено как \'%1$s\' в %2$s</string>
+    <string name="capture_notif_saved_nocat">Сохранено как \'%1$s\'</string>
+    <string name="capture_notif_pending_title">Скриншот сохранен.</string>
+    <string name="capture_notif_pending_text">Копия сохранена — ожидание анализа названия/категории</string>
+    <string name="capture_notif_failed_title">Анализ не удалось завершить</string>
+    <string name="capture_notif_failed_text">Скриншот сохранен; анализ названия/категории не удался. Он будет повторен, когда вы откроете приложение.</string>
+    <string name="capture_notif_mixed_title">Скриншоты сохранены.</string>
+    <string name="capture_notif_mixed_text">%1$d проанализировано, %2$d в ожидании, %3$d не удалось</string>
+    <string name="capture_notif_summary_text">%1$d сохранено новых скриншотов</string>
+    <string name="capture_notif_change_cat">Изменить категорию</string>
+    <string name="capture_notif_open">Открыть</string>
+</resources>

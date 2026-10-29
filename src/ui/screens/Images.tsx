@@ -1,7 +1,8 @@
+import { SearchInput } from '../SearchInput';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAppState } from '../../lib/store';
 import { confirmCategory, deleteImages, setCategory } from '../../lib/actions';
-import { categoryAllNames, categoryName, translate, useT } from '../../i18n';
+import { categoryAllNames, categoryName, locale, translate, useT } from '../../i18n';
 import { fold } from '../../search/normalize';
 import { parseQuery } from '../../search/query';
 import { displayTitle, primaryText, search, type SearchOptions } from '../../search/search';
@@ -92,9 +93,10 @@ export function ImagesScreen() {
         ...(range.to !== undefined ? { dateTo: range.to } : {}),
         sort: sort === 'relevance' && !parsed.terms.length && !parsed.tags.length ? 'newest' : sort,
         categoryLabel: catLabel,
+        locale: locale(lang),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [images, parsed, cat, review, range.from, range.to, sort, catLabel],
+    [images, parsed, cat, review, range.from, range.to, sort, catLabel, lang],
   );
   const terms = useMemo(() => [...parsed.terms, ...Object.values(parsed.synonyms).flat(), ...parsed.tags], [parsed]);
   const visibleIds = hits.map((h) => h.item.id);
@@ -183,7 +185,7 @@ ${primaryText(r)}`)
 
   const dateLabel = parsed.date
     ? parsed.date.label.key === 'date.month'
-      ? new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-GB', { month: 'long', year: 'numeric' }).format(new Date(Number(parsed.date.label.params?.year), Number(parsed.date.label.params?.month), 1))
+      ? new Intl.DateTimeFormat(locale(lang), { month: 'long', year: 'numeric' }).format(new Date(Number(parsed.date.label.params?.year), Number(parsed.date.label.params?.month), 1))
       : translate(lang, parsed.date.label.key, parsed.date.label.params)
     : null;
   const hintedCats = [...new Set(Object.values(parsed.categoryHints))];
@@ -200,23 +202,7 @@ ${primaryText(r)}`)
         )}
       </div>
       <form className="searchbox" role="search" onSubmit={(e) => e.preventDefault()}>
-        <IconSearch />
-        <input
-          ref={searchRef}
-          className="input"
-          type="search"
-          enterKeyHint="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t('search.placeholder')}
-          aria-label={t('search.label')}
-          data-testid="search"
-        />
-        {q && (
-          <button type="button" className="btn ghost icon clear" aria-label={t('search.clear')} onClick={() => setQ('')}>
-            <IconX />
-          </button>
-        )}
+        <SearchInput value={q} onChange={setQ} inputRef={searchRef} testId="search" />
       </form>
 
       <div className="chips" role="group" aria-label={t('filter.categories')}>
