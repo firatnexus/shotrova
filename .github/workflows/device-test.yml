@@ -43,7 +43,7 @@ jobs:
         if: ${{ inputs.app_ref != '' }}
         run: |
           git fetch --depth=1 origin "refs/tags/${{ inputs.app_ref }}:refs/tags/${{ inputs.app_ref }}" || git fetch --depth=1 origin "${{ inputs.app_ref }}"
-          git checkout "${{ inputs.app_ref }}" -- src index.html
+          git checkout "${{ inputs.app_ref }}" -- src index.html tests/unit
 
       - name: Build debug APK with WebView debugging (test build only)
         run: |
