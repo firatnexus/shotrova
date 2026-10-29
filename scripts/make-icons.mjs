@@ -54,6 +54,9 @@ if (existsSync('android/app/src/main/res')) {
     // Adaptive icon layers are 108dp; the mark (pad 0.2) stays inside the 66dp safe zone.
     await draw(logoSvg(512, { foreground: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_foreground.png`);
     await draw(logoSvg(512, { monochrome: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_monochrome.png`);
+    // Dark launch-splash mark: white frame + lighter indigo spark (matches the
+    // web launch screen and the dark values-night theme that references it).
+    await draw(logoSvg(512, { foreground: true, pad: 0.2, inkColor: '#ffffff', sparkColor: '#8f8cff' }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_splash.png`);
     console.log('✓ android', d);
   }
   await b2.close();

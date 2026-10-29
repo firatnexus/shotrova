@@ -23,6 +23,9 @@ export async function openApp(page: Page, hash = '/'): Promise<void> {
   await page.goto(`./#${hash}`);
   await expect(page.locator('main')).toBeVisible();
   await page.waitForFunction(() => !document.querySelector('main [aria-busy="true"]'));
+  // The launch screen (#boot) fades out after the first screen paints; wait
+  // for it so it can never intercept the first clicks of a test.
+  await page.waitForFunction(() => !document.querySelector('#boot'));
 }
 
 export async function importFixtures(page: Page, names: string[]): Promise<void> {

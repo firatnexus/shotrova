@@ -8,6 +8,7 @@ import { parseQuery } from '../../search/query';
 import { displayTitle, primaryText, search, type SearchOptions } from '../../search/search';
 import { toast } from '../../lib/toast';
 import { navigate, useRoute } from '../router';
+import { Dropdown } from '../Dropdown';
 import { Tile } from '../Tile';
 import { CategoryPicker, Dot, Empty, confirmDialog, useDebounced, useProgressiveCount } from '../components';
 import { forgetThumb } from '../blobs';
@@ -219,23 +220,39 @@ ${primaryText(r)}`)
       </div>
 
       <div className="row" style={{ gap: 8 }}>
-        <label className="sr-only" htmlFor="f-date">{t('filter.date')}</label>
-        <select id="f-date" className="input" style={{ width: 'auto', minWidth: 150 }} value={preset} onChange={(e) => setPreset(e.target.value as DatePreset)} data-testid="date-filter">
-          <option value="">{t('filter.any_date')}</option>
-          <option value="7d">{t('filter.7d')}</option>
-          <option value="30d">{t('filter.30d')}</option>
-          <option value="this_month">{t('date.this_month')}</option>
-          <option value="last_month">{t('date.last_month')}</option>
-          <option value="this_year">{t('date.this_year')}</option>
-          <option value="custom">{t('filter.custom')}</option>
-        </select>
-        <label className="sr-only" htmlFor="f-sort">{t('sort.label')}</label>
-        <select id="f-sort" className="input" style={{ width: 'auto', minWidth: 140 }} value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} data-testid="sort">
-          <option value="relevance">{t('sort.relevance')}</option>
-          <option value="newest">{t('sort.newest')}</option>
-          <option value="oldest">{t('sort.oldest')}</option>
-          <option value="title">{t('sort.title')}</option>
-        </select>
+        <span className="sr-only" id="date-l">{t('filter.date')}</span>
+        <Dropdown
+          value={preset}
+          labelledBy="date-l"
+          testId="date-filter"
+          placement="below"
+          triggerStyle={{ width: 'auto', minWidth: 150 }}
+          onChange={(v) => setPreset(v)}
+          options={[
+            { value: '' as DatePreset, label: t('filter.any_date') },
+            { value: '7d', label: t('filter.7d') },
+            { value: '30d', label: t('filter.30d') },
+            { value: 'this_month', label: t('date.this_month') },
+            { value: 'last_month', label: t('date.last_month') },
+            { value: 'this_year', label: t('date.this_year') },
+            { value: 'custom', label: t('filter.custom') },
+          ]}
+        />
+        <span className="sr-only" id="sort-l">{t('sort.label')}</span>
+        <Dropdown
+          value={sort}
+          labelledBy="sort-l"
+          testId="sort"
+          placement="below"
+          triggerStyle={{ width: 'auto', minWidth: 140 }}
+          onChange={(v) => setSort(v)}
+          options={[
+            { value: 'relevance', label: t('sort.relevance') },
+            { value: 'newest', label: t('sort.newest') },
+            { value: 'oldest', label: t('sort.oldest') },
+            { value: 'title', label: t('sort.title') },
+          ]}
+        />
         <button type="button" className="chip" aria-pressed={review} onClick={() => setReview(!review)}>
           {t('filter.review')}
         </button>

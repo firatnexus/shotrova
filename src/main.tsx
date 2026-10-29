@@ -17,12 +17,11 @@ if (isNativeApp()) {
 
 void init();
 
-// Remove the boot splash once the app is ready (or failed — never leave it up).
-// On Android the native launch splash owns startup and the web layer signals
-// its first painted frame separately (see App) — one splash per platform.
-const removeBoot = () => document.getElementById('boot')?.remove();
-if (getState().ready) removeBoot();
-else subscribe(() => { if (getState().ready || getState().fatal) { removeBoot(); } });
+// The launch screen (#boot in index.html) is dismissed by the App component:
+// it fades out only after the ready screen has committed and painted, and on
+// Android the native launch splash hands off to it at the first painted frame
+// (see App). main.tsx no longer touches it, so the screen is never removed
+// before the app beneath is ready to show.
 
 // Follow the OS theme while the preference is "system".
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

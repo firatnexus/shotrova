@@ -30,17 +30,29 @@ export function App() {
   const ready = useAppState((s) => s.ready);
   const fatal = useAppState((s) => s.fatal);
 
-  // Hand the native Android launch splash off only after the ready/fatal
-  // screen has actually committed and painted (one frame after commit) —
-  // one-shot, so later store updates never re-signal readiness.
-  const splashHanded = useRef(false);
+  // Hand the native Android launch splash off as soon as the app shell has
+  // painted its first frame — the static launch screen (index.html #boot)
+  // is already up behind it, so the handoff never shows a blank frame.
+  // markFirstFrame is idempotent (safe under StrictMode's double effect).
   useEffect(() => {
-    if (!ready && !fatal) return;
-    if (splashHanded.current) return;
-    splashHanded.current = true;
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => markFirstFrame());
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, []);
+
+  // Fade the launch screen out only after the ready (or fatal) screen has
+  // actually committed and painted — one frame after commit, so the app never
+  // reveals stale skeletons underneath. dismissBootScreen is idempotent.
+  useEffect(() => {
+    if (!ready && !fatal) return;
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => dismissBootScreen());
     });
     return () => {
       cancelAnimationFrame(raf1);
@@ -260,6 +272,26 @@ export function App() {
       <ConfirmHost />
     </div>
   );
+}
+
+/**
+ * Fades the static launch screen (index.html #boot) out and removes it.
+ * Called only after the ready screen has committed and painted, so the app
+ * beneath is never stale. Idempotent; honours reduced-motion by skipping
+ * the fade (no transition events fire then).
+ */
+function dismissBootScreen() {
+  const el = document.getElementById('boot');
+  if (!el || el.classList.contains('is-done')) return;
+  const remove = () => el.remove();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    remove();
+    return;
+  }
+  el.classList.add('is-done');
+  el.addEventListener('animationend', remove, { once: true });
+  // Safety: the CSS fade may be disabled or interrupted — never leave it up.
+  setTimeout(remove, 400);
 }
 
 function LoadingScreen() {

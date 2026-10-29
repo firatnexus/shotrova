@@ -296,3 +296,67 @@ test('dark theme renders the new menus with readable contrast', async ({ page })
   await page.keyboard.press('Escape');
   await page.getByTestId('theme-light').click();
 });
+
+test('images date and sort filters use the attached dropdown menus', async ({ page }) => {
+  await openApp(page);
+  await importFixtures(page, ['recipe_tr.png', 'invoice_tr.png', 'address_tr.png']);
+  await openApp(page, '/images');
+  await expect(page.locator('[data-testid=grid] .tile')).toHaveCount(3);
+
+  // Both controls are custom dropdown triggers — no native <select> pop-up.
+  for (const id of ['date-filter', 'sort'])
+    expect(await page.getByTestId(id).evaluate((el) => el.tagName)).toBe('BUTTON');
+
+  // The date menu opens attached below its trigger, inside the viewport.
+  const trig = page.getByTestId('date-filter');
+  await trig.click();
+  const menu = page.getByTestId('date-filter-menu');
+  await expect(menu).toBeVisible();
+  const [t, m, vh] = await Promise.all([
+    trig.boundingBox(),
+    menu.boundingBox(),
+    page.evaluate(() => window.innerHeight),
+  ]);
+  expect(m!.y).toBeGreaterThanOrEqual(t!.y + t!.height - 1);
+  expect(m!.x).toBeGreaterThanOrEqual(t!.x - 1);
+  expect(m!.y + m!.height).toBeLessThanOrEqual(vh + 1);
+  // The current option is highlighted.
+  await expect(menu.locator('[role="option"][aria-selected="true"]')).toHaveText('Her tarih');
+
+  // Escape closes the menu and refocuses the trigger.
+  await page.keyboard.press('Escape');
+  await expect(menu).not.toBeVisible();
+  await expect(trig).toBeFocused();
+
+  // Keyboard: ArrowDown opens the menu, Enter chooses an option.
+  await trig.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(menu).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(menu).not.toBeVisible();
+  await expect(trig).toContainText('Son 7 gün');
+
+  // Tapping outside closes an open menu without changing the value.
+  await trig.click();
+  await expect(menu).toBeVisible();
+  // Neutral spot: the (non-interactive) screen heading.
+  await page.mouse.click(200, 100);
+  await expect(menu).not.toBeVisible();
+  await expect(trig).toContainText('Son 7 gün');
+
+  // The two menus open independently: opening sort shows only sort's options.
+  const sortTrig = page.getByTestId('sort');
+  await sortTrig.click();
+  const sortMenu = page.getByTestId('sort-menu');
+  await expect(sortMenu).toBeVisible();
+  await expect(menu).not.toBeVisible();
+  await expect(sortMenu.locator('[role="option"]')).toHaveCount(4);
+  await expect(sortMenu.locator('[role="option"][aria-selected="true"]')).toHaveText('En alakalı');
+  await sortMenu.getByText('En eski').click();
+  await expect(sortMenu).not.toBeVisible();
+  // The date menu was untouched — both filters can differ at once.
+  await expect(trig).toContainText('Son 7 gün');
+  await expect(sortTrig).toContainText('En eski');
+  await shot(page, 'images-filter-dropdowns');
+});
