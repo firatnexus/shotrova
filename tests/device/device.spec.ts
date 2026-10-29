@@ -7,7 +7,8 @@
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { chromium, expect, test, type Browser, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { _android as android, type AndroidDevice } from 'playwright';
 
 const PKG = process.env.APP_ID ?? 'io.github.firatnexus.shotrova.debug';
 const ACTIVITY = 'io.github.firatnexus.shotrova.MainActivity';
@@ -37,7 +38,7 @@ function screenSize(): { w: number; h: number } {
 }
 const imeShown = () => /mInputShown=true|isInputViewShown=true/.test(adb('shell', 'dumpsys', 'input_method'));
 
-let browser: Browser;
+let device: AndroidDevice;
 let page: Page;
 let dpr = 1;
 
@@ -63,22 +64,12 @@ test.beforeAll(async () => {
   adb('shell', 'settings', 'put', 'secure', 'show_ime_with_hard_keyboard', '1');
   adb('shell', 'am', 'force-stop', PKG);
   adb('shell', 'am', 'start', '-W', '-n', `${PKG}/${ACTIVITY}`);
-  let pid = '';
-  for (let i = 0; i < 30 && !pid; i++) {
-    pid = adb('shell', 'pidof', PKG).trim();
-    if (!pid) await sleep(1000);
-  }
-  const sockets = (): string[] => [...(adb('shell', 'cat', '/proc/net/unix').match(/webview_devtools_remote_\d+/g) ?? [])];
-  for (let i = 0; i < 30 && !sockets().includes(`webview_devtools_remote_${pid}`); i++) await sleep(1000);
-  adb('forward', 'tcp:9222', `localabstract:webview_devtools_remote_${pid}`);
-  for (let i = 0; i < 20; i++) {
-    try { browser = await chromium.connectOverCDP('http://127.0.0.1:9222'); break; } catch { await sleep(1000); }
-  }
-  const ctx = browser.contexts()[0]!;
-  for (let i = 0; i < 20 && !page; i++) {
-    page = ctx.pages().find((p) => /localhost/.test(p.url()))!;
-    if (!page) await sleep(1000);
-  }
+  const [first] = await android.devices();
+  if (!first) throw new Error('no adb device');
+  device = first;
+  // Needs a build with webContentsDebuggingEnabled (see device-test.yml)
+  const webview = await device.webView({ pkg: PKG }, { timeout: 60_000 });
+  page = await webview.page();
   await expect(page.locator('main#main')).toBeVisible();
   dpr = await page.evaluate(() => devicePixelRatio);
   // Deterministic copy for the selectors below
@@ -97,7 +88,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   writeFileSync(`${OUT}/device-results.json`, JSON.stringify(results, null, 2));
-  await browser?.close().catch(() => undefined);
+  await device?.close().catch(() => undefined);
 });
 
 test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazgeç above the real IME', async () => {

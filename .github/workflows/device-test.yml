@@ -58,6 +58,9 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am start -W -n io.github.firatnexus.shotrova.debug/io.github.firatnexus.shotrova.MainActivity
+            sleep 8
+            adb shell cat /proc/net/unix | grep -i devtools || echo "no devtools socket"
             npx playwright test -c playwright.device.config.ts
 
       - uses: actions/upload-artifact@v4
