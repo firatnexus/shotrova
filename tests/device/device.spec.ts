@@ -253,6 +253,30 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
   const RIGHT = Math.round(wv.l + (wv.r - wv.l) * 0.85);
   const LEFT = Math.round(wv.l + (wv.r - wv.l) * 0.15);
   const swipes: unknown[] = [];
+  /**
+   * A row where a horizontal drag is meant to switch tabs: not on a chip/carousel row
+   * (horizontal scroller), a field or a control. Layout depends on the library contents,
+   * so a fixed height would sometimes land on the suggestion chips, which correctly keep the drag.
+   */
+  const swipeY = async () => {
+    const cssY = await page.evaluate(() => {
+      const bad = (el: Element | null): boolean => {
+        for (let e = el; e && e !== document.body; e = e.parentElement) {
+          if (e.matches('input,textarea,select,button,a,[contenteditable],[role=dialog],[data-no-swipe],video,input[type=range]')) return true;
+          const cs = getComputedStyle(e);
+          if (/(auto|scroll)/.test(cs.overflowX) && e.scrollWidth > e.clientWidth + 1) return true;
+        }
+        return false;
+      };
+      const xs = [0.5, 0.15, 0.85].map((f) => innerWidth * f);
+      for (let f = 0.45; f <= 0.85; f += 0.02) {
+        const yy = innerHeight * f;
+        if (xs.every((x) => !bad(document.elementFromPoint(x, yy)))) return yy;
+      }
+      return innerHeight * 0.55;
+    });
+    return Math.round(wv.t + cssY * dpr);
+  };
   const swipe = async (from: number, to: number, dy = 0) => {
     await page.evaluate(() => {
       const w = window as unknown as { __f: number[]; __on: boolean };
@@ -268,7 +292,8 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
       const tick = (t: number) => { if (!w.__on) return; w.__f.push(t); requestAnimationFrame(tick); };
       requestAnimationFrame(tick);
     });
-    adb('shell', 'input', 'swipe', String(from), String(y), String(to), String(y + dy), '220');
+    const sy = await swipeY();
+    adb('shell', 'input', 'swipe', String(from), String(sy), String(to), String(sy + dy), '220');
     await page.waitForTimeout(700);
     const f: number[] = await page.evaluate(() => { const w = window as unknown as { __f: number[]; __on: boolean }; w.__on = false; return w.__f; });
     const gaps = f.slice(1).map((t, i) => t - f[i]!);
