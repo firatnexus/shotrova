@@ -143,11 +143,29 @@ Root causes: the Images tab rendered every card on mount (scaled with library si
 
 `.github/workflows/device-test.yml` installs the debug APK (WebView debugging enabled for this build only) on an API 35 emulator with KVM, attaches Playwright over the WebView DevTools socket and drives input with `adb shell input`: a real tap opens the soft keyboard over the category sheet, the Japanese OCR pack downloads from GitHub Pages and recognizes a screenshot, and real swipes walk the tabs. Screenshots and measurements are uploaded as the `device-test-report` artifact.
 
+Results on 29 October 2026 (Android 15, WebView/Chrome 124, 1080×2400 @ 2.625 dpr, `swiftshader` software GPU):
+
+| Check | Result |
+|---|---|
+| Keyboard | PASS — a real tap on “Ek anahtar kelimeler” opens Gboard; the WebView bottom moves from 2338 to 1519 px, `innerHeight` 842 → 530; the field, Kaydet and Vazgeç stay above the keyboard; text typed through the IME lands in the field and the category saves. |
+| OCR download | PASS — `jpn.traineddata.gz` from GitHub Pages in 1.8–5.7 s, verified and cached; recognition 8–18 s; text “東京タワーの予約 / チケット番号 / ありがとうございます”, language `jpn+eng`. |
+| Swipe | PASS — Home → Images → Categories → Settings and back with real touches, no wrap-around at either end, a vertical drag never switches tabs, a horizontal drag while typing in search stays in the field, no transform left behind. |
+
+Swipe frames, same emulator, empty library, 2 runs × 8 swipes each (700 ms window per swipe; `workflow_dispatch` with `app_ref=v1.12.0` builds the old app with the same test):
+
+| | v1.12.0 | v1.12.1 |
+|---|---|---|
+| `pointercancel` (browser took the gesture) | 16 / 16 swipes | 0 / 8 swipes measured |
+| Dropped frames per swipe (mean) | 51.2 | 34.8 |
+| Worst frame gap (median / max) | 233 / 483 ms | 150 / 467 ms |
+
+The software-rendered emulator drops frames even when nothing moves, so these numbers only compare the two versions; they are not what a phone with a GPU shows. The first visit to a tab still costs one long task (70–200 ms on the emulator) while React builds that screen.
+
 ## Bugs found and fixed during testing
 
 - **v1.12.0 — downloaded OCR languages never loaded.** tesseract.js 7.0.0 builds the language string from `l.data` instead of `l.code` for in-memory languages, so every pack failed with "Tesseract couldn't load any languages!". Found by `npm run test:ocr`; fixed by `scripts/tesseract-fix.mjs`, which patches the shipped worker and is checked by a unit test.
 - **v1.12.0 — swipe hijacked by the browser.** Horizontal overscroll triggered history navigation instead of the tab swipe; fixed with `overscroll-behavior-x: none` on touch devices (E2E swipe tests).
-- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, web fallback in `ui/keyboard.ts`; the web side is tested with shrunken viewports, the native side only compiles in CI (no emulator here).
+- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, web fallback in `ui/keyboard.ts`; the web side is tested with shrunken viewports, the native side is now verified on the API 35 emulator (see above).
 
 - **OCR hung forever.** When a language model could not be downloaded, tesseract.js did not reject `createWorker` and reported the error only through `errorHandler`. The engine now listens to that signal too (`src/ocr/engine.ts`).
 - **Uncaught AbortError.** When an IndexedDB transaction was aborted, sibling requests were left as unhandled rejections. Fixed with the `txAll` helper (`src/db/db.ts`).
