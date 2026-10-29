@@ -15,6 +15,11 @@ const ACTIVITY = 'io.github.firatnexus.shotrova.MainActivity';
 const OUT = 'test-reports/device';
 mkdirSync(OUT, { recursive: true });
 const results: Record<string, unknown> = {};
+/** Each test writes its own file: a failing test restarts the worker and would lose shared state. */
+const record = (name: string, data: unknown) => {
+  results[name] = data;
+  writeFileSync(`${OUT}/${name}.json`, JSON.stringify(data, null, 2));
+};
 
 const adb = (...args: string[]) => execFileSync('adb', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -98,8 +103,20 @@ test.afterAll(async () => {
   await device?.close().catch(() => undefined);
 });
 
+/** First native launch opens the auto-capture setup dialog; it blocks swipes by design, so close it. */
+async function closeDialogs() {
+  for (let i = 0; i < 3; i++) {
+    const later = page.getByRole('button', { name: /Şimdi değil|Not now/ });
+    if (!(await later.isVisible().catch(() => false))) return;
+    await later.click();
+    await page.waitForTimeout(500);
+  }
+}
+
 test.beforeEach(async () => {
-  if (page) await hideIme().catch(() => undefined);
+  if (!page) return;
+  await hideIme().catch(() => undefined);
+  await closeDialogs();
 });
 
 test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazgeç above the real IME', async () => {
@@ -109,12 +126,16 @@ test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazge
   await realTap(page.getByTestId('new-category'));
   const kw = page.locator('#c-kw');
   await expect(kw).toBeVisible();
-  // The name field autofocuses and may already have opened the keyboard: let the layout settle first
-  await page.waitForTimeout(1500);
-  results.imeOpenedByAutofocus = imeShown();
+  // The name field autofocuses and may open the keyboard; close it so the tap below is
+  // computed on a settled layout and really opens the keyboard for the keyword field.
+  await page.waitForTimeout(1200);
+  const imeOpenedByAutofocus = imeShown();
+  await hideIme();
   await kw.scrollIntoViewIfNeeded();
   await page.waitForTimeout(400);
-  await realTap(kw);
+  const tapAt = await toScreen(kw);
+  const vvBefore = await page.evaluate(() => ({ h: visualViewport?.height, top: visualViewport?.offsetTop, inner: innerHeight }));
+  adb('shell', 'input', 'tap', String(tapAt.x), String(tapAt.y));
   await expect.poll(imeShown, { timeout: 15_000, message: 'soft keyboard opened by a real tap' }).toBe(true);
   await page.waitForTimeout(1200);
   const after = webviewBounds();
@@ -125,7 +146,7 @@ test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazge
   const kwBox = (await kw.boundingBox())!;
   const save = (await page.getByTestId('save-category').boundingBox())!;
   const cancel = (await page.locator('.sheet').getByRole('button', { name: 'Vazgeç' }).boundingBox())!;
-  results.keyboard = { webviewBefore: before, webviewWithIme: after, innerHeightBefore: h0, innerHeightWithIme: h1, visualViewport: vv, keywords: kwBox, save, cancel, focused };
+  record('keyboard', { imeOpenedByAutofocus, tapAt, vvBefore, webviewBefore: before, webviewWithIme: after, innerHeightBefore: h0, innerHeightWithIme: h1, visualViewport: vv, keywords: kwBox, save, cancel, focused, active: await page.evaluate(() => document.activeElement?.id) });
   expect(focused).toBe(true);
   // The WebView itself is resized above the keyboard (native inset fix) …
   expect(after.b, 'WebView bottom moves up when the IME opens').toBeLessThan(before.b - 300);
@@ -184,7 +205,7 @@ test('OCR: Japanese pack downloads from GitHub Pages, is verified, and recognize
     );
   await expect.poll(async () => (await read())?.ocrStatus, { timeout: 240_000 }).toBe('done');
   const img = (await read())!;
-  results.ocr = { downloadMs, fetched, recognitionMs: Date.now() - t1, ocrLanguage: img.ocrLanguage, text: img.ocrText };
+  record('ocr', { downloadMs, fetched, recognitionMs: Date.now() - t1, ocrLanguage: img.ocrLanguage, text: img.ocrText });
   expect(img.ocrLanguage).toBe('jpn+eng');
   expect(img.ocrText).toContain('東京タワー');
   expect(img.ocrText).toContain('チケット番号');
@@ -217,6 +238,7 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
     const gaps = f.slice(1).map((t, i) => t - f[i]!);
     const s = { landedOn: await hash(), frames: f.length, worstGapMs: Math.round(Math.max(0, ...gaps)), dropped: gaps.reduce((a, g) => a + Math.max(0, Math.round(g / 16.7) - 1), 0) };
     swipes.push(s);
+    record('swipe', swipes);
     return s.landedOn;
   };
   expect(await swipe(RIGHT, LEFT)).toBe('/images');
@@ -243,5 +265,5 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
   await hideIme();
   // No leftover transforms once everything settled
   expect(await page.locator('main#main').evaluate((m) => getComputedStyle(m.firstElementChild!).transform)).toMatch(/none|matrix\(1, 0, 0, 1, 0, 0\)/);
-  results.swipe = swipes;
+  record('swipe', swipes);
 });
