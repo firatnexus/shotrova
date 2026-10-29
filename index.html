@@ -59,7 +59,12 @@
       #boot svg.logo { width: 84px; height: 84px; }
       #boot .boot-name { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 1.6rem; line-height: 1.05; letter-spacing: -0.015em; }
       #boot.is-done { animation: boot-out 240ms ease-in both; }
-      @keyframes boot-in { from { opacity: 0; transform: scale(0.94) translateY(6px); } }
+      /* The entrance starts partly visible, not from opacity 0: the native
+         Android splash is released as soon as this frame is submitted to the
+         compositor (first contentful paint), so the very first painted
+         launch frame must already show the mark — otherwise slow renderers
+         hand the splash off into an empty frame while the fade catches up. */
+      @keyframes boot-in { from { opacity: 0.3; transform: scale(0.94) translateY(6px); } }
       @keyframes boot-out { to { opacity: 0; } }
       @media (prefers-reduced-motion: reduce) {
         #boot .boot-mark, #boot.is-done { animation: none; }
