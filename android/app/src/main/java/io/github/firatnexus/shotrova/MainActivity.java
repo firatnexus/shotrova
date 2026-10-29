@@ -20,9 +20,11 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Branded launch screen (background + icon, see AppTheme.NoActionBarLaunch).
         // Must run before super.onCreate; swaps to AppTheme.NoActionBar afterwards.
-        // Kept on screen until the web layer has painted its first frame (or a
-        // 3s safety timeout), so the hand-off is seamless — the PWA boot screen
-        // never stacks on top of the native splash.
+        // Kept on screen until the web layer has actually composited its launch
+        // frame (or a safety timeout), so the hand-off is seamless — the PWA
+        // boot screen never stacks on top of the native splash. FCP alone is
+        // not proof the frame is visible, so the actual signal is
+        // WebView.postVisualStateCallback (see requestWebViewVisualState).
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         splashScreen.setKeepOnScreenCondition(() -> !ShotrovaBridgePlugin.isFirstFrameReady());
         registerPlugin(ShotrovaBridgePlugin.class);
@@ -30,6 +32,7 @@ public class MainActivity extends BridgeActivity {
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());
         ShotrovaBridgePlugin.handleLaunchIntent(getIntent());
         matchWebViewBackgroundToLaunch();
+        requestWebViewVisualState();
         installKeyboardAwareInsets();
 
         // Back button: let the web app close dialogs and walk its own history
@@ -51,6 +54,27 @@ public class MainActivity extends BridgeActivity {
                 setEnabled(false);
                 getOnBackPressedDispatcher().onBackPressed();
                 setEnabled(true);
+            }
+        });
+    }
+
+    /**
+     * Requests an explicit visual-state callback from the WebView so the native
+     * splash is released only once the page's launch frame has actually been
+     * composited on screen — not merely committed by the renderer. Without this,
+     * FCP-based signals can fire before the WebView has produced its first
+     * visible frame, which leaves a blank window between the native splash and
+     * the web launch screen. postVisualStateCallback is not guaranteed to fire
+     * (it can be dropped if the request is made before the first layout), so
+     * the safety timeout in ShotrovaBridgePlugin still bounds the wait.
+     */
+    private void requestWebViewVisualState() {
+        WebView wv = getBridge() == null ? null : getBridge().getWebView();
+        if (wv == null) return;
+        wv.postVisualStateCallback(-1, new WebView.VisualStateCallback() {
+            @Override
+            public void onComplete(long requestId) {
+                ShotrovaBridgePlugin.notifyWebFrameComposited();
             }
         });
     }

@@ -77,15 +77,28 @@ public class ShotrovaBridgePlugin extends Plugin {
      *  WebViews) can legitimately take several seconds. */
     private static final long MAX_SPLASH_MS = 8000;
 
+    /**
+     * Notifies the web layer that its launch frame has actually been composited.
+     * Only called from {@link MainActivity#requestWebViewVisualState()} once
+     * WebView.postVisualStateCallback confirms the frame is on screen.
+     */
+    static void notifyWebFrameComposited() {
+        firstFrameReady = true;
+    }
+
     /** True while the native launch splash should stay on screen (first frame + timeout guard). */
     static boolean isFirstFrameReady() {
         return firstFrameReady || (android.os.SystemClock.uptimeMillis() - LAUNCHED_AT) >= MAX_SPLASH_MS;
     }
 
-    /** Called by the web layer once its first frame is painted. */
+    /**
+     * Called by the web layer once its first contentful paint has committed.
+     * FCP alone is not proof that Android has composited the frame into the
+     * window, so this alone does NOT release the splash — MainActivity gates
+     * the hand-off on WebView.postVisualStateCallback for the actual signal.
+     */
     @PluginMethod
     public void markFirstFrame(PluginCall call) {
-        firstFrameReady = true;
         call.resolve();
     }
 
