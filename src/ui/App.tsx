@@ -1,7 +1,6 @@
 import { isNativeApp, markFirstFrame, nativeSplashRemoved, onNativeShare, onNativeSplashRemoved, takeNativeSharedFiles } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
 import { useAppState, setState } from '../lib/store';
-import { consumeShareInbox } from '../lib/actions';
 import { toast } from '../lib/toast';
 import { useT } from '../i18n';
 import { BRAND, logoSvg } from '../config/brand';
@@ -203,21 +202,6 @@ export function App() {
 
   // Android app: capture sync + notification-tap navigation are owned by
   // installCaptureSync (see lib/actions init) — a single owner avoids double pulls.
-
-  // Installed PWA share target: the service worker parks shared files in Cache Storage.
-  useEffect(() => {
-    if (!ready || fatal) return;
-    if (route.path === '/import' && route.query.has('shared')) {
-      void consumeShareInbox()
-        .then((files) => {
-          navigate('/import', true);
-          if (files.length) return runImport(files, 'share');
-          toast(t('share.nothing'), 'warning');
-          return null;
-        })
-        .catch(() => toast(t('share.failed'), 'error'));
-    }
-  }, [ready, fatal, route.path, route.query, t]);
 
   useEffect(() => {
     window.scrollTo(0, 0);

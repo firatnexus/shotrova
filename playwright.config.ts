@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = Number(process.env.PORT ?? 4173);
-// Set E2E_BASE=/shotrova/ and E2E_DIST=<dir> to test a sub-path build (GitHub Pages layout).
-const BASE = process.env.E2E_BASE ?? '/';
+// Set E2E_DIST=<dir> to test another build directory.
+const BASE = '/';
 const DIST = process.env.E2E_DIST ?? 'dist';
 
 export default defineConfig({

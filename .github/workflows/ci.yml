@@ -1,5 +1,8 @@
-name: CI and GitHub Pages
+name: CI
 
+# Unit tests, real OCR in all 12 languages and the UI tests (Playwright on
+# the production build that the APK ships). The APK itself is built and
+# tested in android.yml and device-test.yml.
 on:
   push:
     branches: [main]
@@ -8,11 +11,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,10 +32,6 @@ jobs:
         run: npm run test:ocr
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - name: Subpath build (GitHub Pages)
-        run: VITE_BASE=/${{ github.event.repository.name }}/ npx vite build --outDir pages-dist
-      - name: Subpath E2E
-        run: PORT=4174 E2E_BASE=/${{ github.event.repository.name }}/ E2E_DIST=pages-dist E2E_JSON=test-reports/e2e-subpath.json npx playwright test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -43,22 +40,3 @@ jobs:
             test-reports/
             test-results/
           if-no-files-found: ignore
-      # WEB SUSPENDED (see WEB-SUSPENSION.md): publishing to GitHub Pages runs
-      # only when the repository variable WEB_DEPLOY_ENABLED is 'true'. The
-      # build and all tests above still run — the Android app ships this code.
-      - uses: actions/upload-pages-artifact@v3
-        if: vars.WEB_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        with:
-          path: pages-dist
-
-  deploy:
-    # WEB SUSPENDED: skipped unless WEB_DEPLOY_ENABLED == 'true' (WEB-SUSPENSION.md).
-    if: vars.WEB_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: test
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4

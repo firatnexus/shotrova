@@ -3,7 +3,6 @@ import { useAppState } from '../../lib/store';
 import { deleteAllData, deleteRules, recategorizeAll, reloadAll, updateSettings } from '../../lib/actions';
 import { exportJson, exportZip, restoreBackup, RestoreError } from '../../backup/backup';
 import { decodeAndThumb } from '../../import/image';
-import { ocrAssetUrls } from '../../ocr/engine';
 import { BRAND } from '../../config/brand';
 import { LANGS, categoryName, formatBytes, formatDate, useT } from '../../i18n';
 import { toast } from '../../lib/toast';
@@ -38,8 +37,6 @@ export function SettingsScreen() {
   const rules = useAppState((x) => x.rules);
   const categories = useAppState((x) => x.categories);
   const [est, setEst] = useState<{ usage?: number; quota?: number; persisted?: boolean } | null>(null);
-  const [ocrCached, setOcrCached] = useState<number | null>(null);
-  const [preparing, setPreparing] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const restoreRef = useRef<HTMLInputElement>(null);
@@ -70,47 +67,14 @@ export function SettingsScreen() {
       setEst({});
     }
   };
-  const refreshOcrCache = async () => {
-    if (typeof caches === 'undefined') return setOcrCached(null);
-    try {
-      const c = await caches.open(`${BRAND.storagePrefix}-ocr-v1`);
-      const urls = ocrAssetUrls(s.ocrLanguage);
-      let n = 0;
-      for (const u of urls) if (await c.match(u)) n++;
-      setOcrCached(n === urls.length ? 1 : n / urls.length);
-    } catch {
-      setOcrCached(null);
-    }
-  };
   useEffect(() => {
     void refreshStorage();
-    void refreshOcrCache();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images.length, s.ocrLanguage]);
+  }, [images.length]);
   useEffect(() => {
     const target = route.query.get('s');
     if (target) setTimeout(() => document.getElementById(target)?.scrollIntoView({ block: 'start' }), 50);
   }, [route.query]);
-
-  const prepareOcr = async () => {
-    setPreparing(true);
-    try {
-      const urls = ocrAssetUrls(s.ocrLanguage);
-      const c = typeof caches !== 'undefined' ? await caches.open(`${BRAND.storagePrefix}-ocr-v1`) : null;
-      for (const u of urls) {
-        const res = await fetch(u, { cache: 'no-cache' });
-        if (!res.ok) throw new Error(`${res.status} ${u}`);
-        if (c) await c.put(u, res.clone());
-        await res.arrayBuffer();
-      }
-      await refreshOcrCache();
-      toast(t('set.ocr_prepared'), 'success');
-    } catch (e) {
-      toast(`${t('set.ocr_prepare_failed')} (${(e as Error).message})`, 'error');
-    } finally {
-      setPreparing(false);
-    }
-  };
 
   const doExport = async (kind: 'zip' | 'json') => {
     setBusy(kind);
@@ -243,18 +207,7 @@ export function SettingsScreen() {
       <Section id="ocr" title={t('set.ocr')}>
         <Toggle label={t('set.ocr_enabled')} desc={t('set.ocr_enabled_d')} checked={s.ocrEnabled} onChange={(v) => void updateSettings({ ocrEnabled: v })} />
         <OcrLanguageField />
-        {native ? (
-          <p className="small">{t('set.ocr_bundled')}</p>
-        ) : (
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <span className="small">
-            {ocrCached === 1 ? t('set.ocr_ready_offline') : ocrCached === null ? t('set.ocr_cache_unknown') : t('set.ocr_not_cached')}
-          </span>
-          <button type="button" className="btn sm" onClick={() => void prepareOcr()} disabled={preparing}>
-            <IconDownload /> {preparing ? t('set.ocr_preparing') : t('set.ocr_prepare')}
-          </button>
-        </div>
-        )}
+        <p className="small">{t('set.ocr_bundled')}</p>
         <p className="faint xs">{t('set.ocr_note')}</p>
       </Section>
 
@@ -439,21 +392,8 @@ export function SettingsScreen() {
         </div>
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <span className="small">{est?.persisted ? t('set.persisted') : t('set.not_persisted')}</span>
-          {!native && !est?.persisted && navigator.storage?.persist && (
-            <button
-              type="button"
-              className="btn sm"
-              onClick={async () => {
-                const ok = await navigator.storage.persist();
-                toast(ok ? t('set.persist_ok') : t('set.persist_denied'), ok ? 'success' : 'warning');
-                void refreshStorage();
-              }}
-            >
-              {t('set.persist')}
-            </button>
-          )}
         </div>
-        <p className="faint xs">{native ? t('set.storage_note_app') : t('set.storage_note')}</p>
+        <p className="faint xs">{t('set.storage_note_app')}</p>
       </Section>
 
       <Section id="backup" title={t('set.backup')}>
@@ -500,25 +440,7 @@ export function SettingsScreen() {
       </Section>
 
       <Section id="install" title={t('set.install')}>
-        {native ? (
-          <p className="small">{t('set.install_app')}</p>
-        ) : (
-        <>
-        <ol className="small" style={{ margin: 0, paddingLeft: 18 }}>
-          <li>{t('set.install_1')}</li>
-          <li>{t('set.install_2')}</li>
-          <li>{t('set.install_3')}</li>
-          <li>{t('set.install_4')}</li>
-        </ol>
-        <p className="faint xs">{t('set.install_note')}</p>
-        <p className="faint xs">
-          {t('set.install_apk')}{' '}
-          <a href={`${BRAND.repoUrl}/releases/latest`} target="_blank" rel="noopener noreferrer">
-            {t('set.install_apk_link')}
-          </a>
-        </p>
-        </>
-        )}
+        <p className="small">{t('set.install_app')}</p>
       </Section>
 
       <Section id="about" title={t('set.about')}>

@@ -2,7 +2,7 @@ name: Device test (Android emulator)
 
 # Runs the debug APK on an Android 15 (API 35) emulator with KVM and drives
 # the real WebView: real taps open the real soft keyboard, real swipes go
-# through Android's touch pipeline, OCR packs download from GitHub Pages.
+# through Android's touch pipeline, and OCR runs from the packs inside the APK.
 on:
   pull_request:
   workflow_dispatch:
