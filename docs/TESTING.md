@@ -1,6 +1,6 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Latest run: 29 October 2026 (v1.12.1: smoother tab swiping; v1.12.0: animated search hint, keyboard fix, 12 UI/OCR languages, swipe navigation); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Latest run: 30 October 2026 (v1.12.2: attached Images date/sort menus and launch screen — 130/130 unit, 58 passed + 3 skipped web E2E, 13/13 OCR, emulator device test and launch recordings in CI; v1.12.1: smoother tab swiping; v1.12.0: animated search hint, keyboard fix, 12 UI/OCR languages, swipe navigation); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
 
 ## Summary
 
