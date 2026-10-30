@@ -63,20 +63,24 @@ public class MainActivity extends BridgeActivity {
 
     /**
      * The WebView draws its own (white) background before the page has
-     * painted anything. Match it to the launch background so the frames
-     * between the native splash handing off and the web launch screen
-     * painting are the same color — no white flash in the dark theme, and
-     * in light mode only the mark is briefly absent instead of the whole
-     * screen flashing. (The page itself paints over this immediately.)
+     * painted anything. During launch it is transparent instead, so the
+     * window background (drawable/splash: launch colour + the mark at the
+     * native icon's size and position) shows through until the web launch
+     * screen paints — the frames around the system's splash hand-off then
+     * look exactly like the splash. Once the retained splash is removed,
+     * ShotrovaBridgePlugin restores the opaque launch colour.
      */
     private void matchWebViewBackgroundToLaunch() {
         WebView wv = getBridge() == null ? null : getBridge().getWebView();
         if (wv == null) return;
-        int mask = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        wv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+    }
+
+    /** The launch background colour for the current day/night mode. */
+    static int launchBackgroundColor(android.content.Context ctx) {
+        int mask = ctx.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
         boolean night = mask == android.content.res.Configuration.UI_MODE_NIGHT_YES;
-        wv.setBackgroundColor(night
-            ? androidx.core.content.ContextCompat.getColor(this, R.color.splash_background_dark)
-            : androidx.core.content.ContextCompat.getColor(this, R.color.splash_background));
+        return androidx.core.content.ContextCompat.getColor(ctx, night ? R.color.splash_background_dark : R.color.splash_background);
     }
 
     /**

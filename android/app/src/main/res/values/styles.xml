@@ -11,6 +11,8 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Launch colour + mark until setSystemBars recolours the decor. -->
+        <item name="android:windowBackground">@drawable/splash</item>
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">

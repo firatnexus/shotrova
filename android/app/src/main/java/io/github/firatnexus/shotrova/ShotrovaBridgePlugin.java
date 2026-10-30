@@ -125,18 +125,22 @@ public class ShotrovaBridgePlugin extends Plugin {
             + " frameComposited=" + frameComposited + " elapsedMs=" + elapsedMs());
         MAIN.removeCallbacks(SPLASH_TIMEOUT);
         ShotrovaBridgePlugin plugin = instance;
-        if (provider != null) {
-            MAIN.post(() -> {
+        MAIN.post(() -> {
+            if (provider != null) {
                 try {
                     provider.remove();
                 } catch (RuntimeException e) {
                     android.util.Log.w(LAUNCH_TAG, "splash view removal failed: " + e);
                 }
-                if (plugin != null) plugin.notifyListeners("splashRemoved", new JSObject());
-            });
-        } else if (plugin != null) {
-            plugin.notifyListeners("splashRemoved", new JSObject());
-        }
+            }
+            if (plugin != null) {
+                // The WebView was transparent during launch (MainActivity);
+                // make it opaque again in the launch colour.
+                android.webkit.WebView wv = plugin.getBridge() == null ? null : plugin.getBridge().getWebView();
+                if (wv != null) wv.setBackgroundColor(MainActivity.launchBackgroundColor(wv.getContext()));
+                plugin.notifyListeners("splashRemoved", new JSObject());
+            }
+        });
     }
 
     /** Offset (CSS px) from the WebView centre to the window centre, where
