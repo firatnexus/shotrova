@@ -1,4 +1,3 @@
-import { isNativeApp } from '../../native/bridge';
 import { useState } from 'react';
 import { useAppState } from '../../lib/store';
 import { useT } from '../../i18n';
@@ -55,7 +54,7 @@ export function ImportScreen() {
 
       <div className="notice">
         <IconShare />
-        <span>{t(isNativeApp() ? 'import.share_hint_app' : 'import.share_hint')}</span>
+        <span>{t('import.share_hint_app')}</span>
       </div>
       <p className="faint small">{t('import.no_gallery')}</p>
 

@@ -48,7 +48,7 @@ test('A1b APK assets: every OCR language is built in — Japanese recognizes off
 });
 
 test('A2 Share -> Shotrova: images staged by Android are imported (cold start and while running)', async ({ page }) => {
-  // Cold start: a share intent was already staged before the web app loaded.
+  // Cold start: a share intent was already staged before the app UI loaded.
   await openNative(page, '/', [{ path: '/data/cache/inbox/1-invoice_tr.png', name: 'Screenshot_fatura.png', mime: 'image/png', lastModified: Date.now() }]);
   await expect(page).toHaveURL(/#\/import/);
   await expect(page.getByTestId('import-summary')).toContainText('1 eklendi');

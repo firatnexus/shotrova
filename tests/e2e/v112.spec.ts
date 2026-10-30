@@ -116,18 +116,16 @@ test('app language dropdown: 12 languages, persists, Arabic switches to RTL', as
   await expect(page.locator('html')).toHaveAttribute('lang', 'tr');
 });
 
-test('OCR language: download + verify a pack, then real Japanese OCR on an imported screenshot', async ({ page }) => {
+test('OCR language: every language is built in — Japanese applies at once and recognizes an imported screenshot', async ({ page }) => {
   await openApp(page, '/settings');
   await page.getByTestId('ocr-lang').click();
   await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(12);
   await shot(page, 'ocr-menu');
   await page.getByTestId('ocr-lang-opt-jpn').click();
-  await expect(page.getByTestId('ocr-pack-progress')).toBeHidden({ timeout: 60_000 });
   await expect(page.getByTestId('ocr-lang')).toContainText('日本語');
-  await expect(page.getByTestId('ocr-pack-missing')).toHaveCount(0);
   await expect(page.getByTestId('ocr-with-english')).toBeVisible();
   const stored = await page.evaluate(async () => (await caches.keys()).filter((k) => k.includes('ocrpacks')));
-  expect(stored.length).toBe(1);
+  expect(stored).toEqual([]);
   await openApp(page, '/');
   await importFixtures(page, ['ocr/jpn.png']);
   await expect.poll(async () => (await dbImages(page))[0]?.ocrStatus, { timeout: 90_000 }).toBe('done');
@@ -135,17 +133,8 @@ test('OCR language: download + verify a pack, then real Japanese OCR on an impor
   expect((img as unknown as { ocrLanguage: string }).ocrLanguage).toBe('jpn+eng');
   expect(img!.ocrText).toContain('東京タワー');
   expect(img!.ocrText).toContain('チケット番号');
-});
-
-test('OCR language: a failed download is reported and the previous language stays active', async ({ page }) => {
-  await page.route('**/ocr-packs/**', (r) => r.abort('internetdisconnected'));
-  await openApp(page, '/settings');
-  await page.getByTestId('ocr-lang').click();
-  await page.getByTestId('ocr-lang-opt-ara').click();
-  await expect(page.getByRole('status').or(page.getByRole('alert')).filter({ hasText: /العربية/ }).first()).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTestId('ocr-lang')).toContainText('Türkçe');
-  const settings = await page.evaluate(() => localStorage.length);
-  expect(settings).toBeGreaterThanOrEqual(0);
+  const fetched = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => e.name).filter((n) => !n.startsWith(location.origin)));
+  expect(fetched).toEqual([]);
 });
 
 /** Swipes across the screen title (non-interactive) unless a y is given — fields and chips are excluded by design. */

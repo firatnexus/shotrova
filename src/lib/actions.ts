@@ -343,25 +343,6 @@ export async function importCapturedFile(
   return { ok: true };
 }
 
-/** Reads files that the service worker stored from an Android share. */
-export async function consumeShareInbox(): Promise<File[]> {
-  if (typeof caches === 'undefined') return [];
-  const cache = await caches.open(`${BRAND.storagePrefix}-share-inbox`);
-  const keys = await cache.keys();
-  const files: File[] = [];
-  for (const req of keys) {
-    const res = await cache.match(req);
-    if (res) {
-      const blob = await res.blob();
-      const name = decodeURIComponent(res.headers.get('X-File-Name') ?? 'shared-image');
-      const lm = Number(res.headers.get('X-Last-Modified')) || Date.now();
-      files.push(new File([blob], name, { type: blob.type, lastModified: lm }));
-    }
-    await cache.delete(req);
-  }
-  return files;
-}
-
 // ------------------------------------------------------------------ OCR queue
 
 const queue: string[] = [];

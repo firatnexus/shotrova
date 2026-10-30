@@ -1,130 +1,87 @@
 # Test results
 
-Only tests that were **actually executed** are listed as passing. Latest run: 30 October 2026 (v1.12.2: attached Images date/sort menus and launch screen — 130/130 unit, 58 passed + 3 skipped web E2E, 13/13 OCR, emulator device test and launch recordings in CI; v1.12.1: smoother tab swiping; v1.12.0: animated search hint, keyboard fix, 12 UI/OCR languages, swipe navigation); older rows keep their original evidence dates. Environment: Linux, Node 20, Playwright 1.59.1 (Chromium), JDK 21, Android SDK 35 (build-tools 35.0.0). No KVM, so no Android emulator.
+Only tests that were **actually executed** are listed as passing. Latest run: 30 October 2026, v1.13.0 (Android-only release). Environment: Linux, Node 20, Playwright 1.59.1 (Chromium) locally; GitHub Actions with JDK 21, Android SDK 35 and a KVM-accelerated Android 15 emulator in CI.
 
 ## Summary
 
-| Suite | Command | Result |
+| Suite | Command / workflow | Result (v1.13.0) |
 |---|---|---|
-| Unit tests (19 files) | `npm test` | **129 / 129 passed** on v1.12.1 (adds drag offset / continuous slide-in / settle timing). **126 / 126** on v1.12.0 (new: typewriter, swipe, dropdown placement, OCR packs, settings sanitize, 12-language i18n parity incl. Android strings, CJK/Devanagari/Arabic/Cyrillic search) |
-| Real OCR recognition | `npm run test:ocr` | **13 / 13 passed** on v1.12.0: tesseract.js recognizes rendered text in all 12 languages at 100 % character similarity (confidence 90–96), plus one worker switching jpn+eng → ara+eng → chi_sim+eng → tur+eng. Fixtures: `scripts/make-ocr-fixtures.py` (Noto fonts, HarfBuzz shaping) |
-| Web E2E, root (`/`) | `npm run build && npm run test:e2e` | **53 passed, 3 skipped** on v1.12.1 (new "swipe feel" test: page tracks the finger 1:1, next tab slides in from beside it, spring-back leaves no styles, rubber band on the first tab, swipe over the date menu switches tabs). **52 passed, 2 skipped** on v1.12.0 (the 2 skipped are mobile-only checks on the desktop profile). New `tests/e2e/v112.spec.ts`: placeholder animation/stop/resume, category sheet at 520/440/380 px viewport heights (keyboard simulation), 12-option language menu, Arabic RTL after reload, OCR pack download + real Japanese OCR import, failed download keeps Türkçe, CDP touch swipes (order, no wrap, vertical rejection, edge guard, text fields, RTL), dark menu contrast. Previously **38 / 38 passed** on v1.11.0 (19 scenarios × 2 device profiles; theme check now paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)`) |
-| Web E2E, subpath (`/shotrova/`, GitHub Pages layout) | see below | **38 / 38 passed** (executed in CI on the v1.3.1 push) ([JSON](test-results/e2e-subpath.json), [log](test-results/e2e-subpath.log)) |
-| APK web-shell E2E, debug APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell.json), [log](test-results/e2e-apk-shell.log)) |
-| APK web-shell E2E, signed release APK (v1.1.0 evidence) | see below | **8 / 8 passed** ([JSON](test-results/e2e-apk-shell-release.json), [log](test-results/e2e-apk-shell-release.log)) |
-| APK web-shell E2E against `dist` with simulated bridge (v1.12.0, local) | `APK_PUBLIC=dist npx playwright test -c playwright.android.config.ts` | **10 / 11 passed** (A4 assertion updated to the new OCR copy); A1 needs the bundled OCR files of a real APK build and runs in the Android workflow. A8 now expects `#0a0a0a` system bars |
-| APK web-shell E2E against the real built APK (v1.9.0, CI) | Android workflow on PR #7 and tag `v1.9.0` | **Passed** (job "Build and test APK") |
-| APK build and inspection | `./gradlew assembleDebug` / `assembleRelease`, `aapt2 dump badging`, `apksigner verify` | **Built and verified** (see below) |
+| Unit tests (19 files) | `npm test` | **126 / 126 passed** — brand and version consistency, categorizer, search and query parsing (incl. CJK, Devanagari, Arabic, Cyrillic), backup, AI providers and vision, i18n parity for 12 languages incl. Android strings, OCR language catalogue, release notes, swipe, typewriter, dropdown placement |
+| Real OCR recognition | `npm run test:ocr` | **13 / 13 passed** — tesseract.js recognizes rendered text in all 12 languages at 100 % character similarity, plus one worker switching jpn+eng → ara+eng → chi_sim+eng → tur+eng. Fixtures: `scripts/make-ocr-fixtures.py` (Noto fonts, HarfBuzz shaping) |
+| UI tests on the production build | `npm run build && npm run test:e2e` | **53 passed, 3 skipped** (the 3 are mobile-only checks on the wide-screen profile) |
+| APK WebView tests, files from the built APK + simulated bridge | Android workflow (job "Build and test APK") | **Passed** on every APK build; locally against `dist` with gunzipped language files: **12 / 12** |
+| Device test on the Android 15 emulator | Device test workflow | **5 / 5 passed** — keyboard, built-in Japanese OCR, swipe, dropdowns, README screenshots |
+| APK build, signing and contents | Android workflow | **Passed** — signed release APK, certificate matches the previous release, all 12 `assets/public/ocr/lang/*.traineddata` files present |
+| TypeScript | `tsc -b` (part of `npm run build`) | clean |
 
-Device profiles for web E2E:
-- `android-pixel7`: Playwright's Pixel 7 profile (412×915, touch, Android Chrome user agent). This is emulation in Chromium, not a real Android device.
-- `desktop-chromium`: 1280×860.
+UI test profiles:
+- `android-pixel7`: Playwright's Pixel 7 profile (412×915, touch). This is emulation in Chromium; the real Android WebView is covered by the device test.
+- `desktop-chromium`: 1280×860, a wide-screen layout check (tablets, foldables, Chromebooks).
 
-Any uncaught page error (`pageerror`) fails the test.
+Any uncaught page error (`pageerror`) fails a test. OCR tests never use fake data: test images (`scripts/make-fixtures.mjs`) are PNG, JPEG and WebP files with real text, and tesseract.js really runs.
 
-OCR tests never use fake data. Test images (`scripts/make-fixtures.mjs`) are PNG, JPEG and WebP files with real text, and tesseract.js really runs.
-
-## Web scenarios (the 15 workflows from the spec, plus v1.2.0 AI vision)
+## UI scenarios (`tests/e2e/workflows.spec.ts`, `tests/e2e/v112.spec.ts`)
 
 | # | Scenario | Verified |
 |---|---|---|
 | 01 | First launch | Title, empty state, 11 default categories, Turkish default, TR↔EN switch |
 | 02 | Category management | Create, reject duplicate names, rename (including defaults), color, reorder, persistence across reload, delete with confirmation; "Uncategorized" cannot be deleted |
-| 03–05 | Multi-import + OCR + auto category | 9 images (PNG/JPEG/WebP); Turkish ("Fırın Makarna Tarifi", "rendelenmiş kaşar") and English text recognized; category and confidence assigned; image without text marked "no text" + needs review; SHA-256 of the original unchanged |
-| 06 | Learning from corrections | Manual fix sets source "manual" and clears review; creates rules visible in Settings; rules can be deleted; "not enough text" warning for images without text |
-| 07 | Search | The spec's sample queries ("Makarna tarifi", "Geçen ay kaydettiğim adres", "Telefon ayarları", "Alışveriş ürünleri", "Faturalar", "İngilizce kelimeler"), case, Turkish character folding, file name, highlighting, no results |
+| 03–05 | Multi-import + OCR + auto category | 9 images (PNG/JPEG/WebP); Turkish and English text recognized; category and confidence assigned; image without text marked "no text" + needs review; SHA-256 of the original unchanged |
+| 06 | Learning from corrections | Manual fix sets source "manual" and clears review; creates rules visible in Settings; rules can be deleted |
+| 07 | Search | Sample queries ("Makarna tarifi", "Geçen ay kaydettiğim adres", "Telefon ayarları", "Faturalar", "İngilizce kelimeler"), case, Turkish character folding, file name, highlighting, no results |
 | 08 | Filters and bulk actions | Category and date filters, sorting, multi-select, bulk category, bulk delete with confirmation |
 | 09 | Detail editing | Title, note, tags and OCR text; changes survive reload |
 | 10 | Duplicate detection | Same content skipped in the same batch and in later imports; "open existing" link |
-| 11 | Backup and restore | ZIP (with images) and JSON export, restore with merge and replace, images byte-identical (SHA-256), duplicates skipped on second merge, API key not in backup, invalid backup rejected |
-| 12 | Persistence | Data present after reload and in a new tab |
-| 13 | PWA | Manifest fields, icons, service worker control, `share_target`: a real multipart POST navigation is handled by the service worker and the image is imported |
-| 14 | Offline | After downloading OCR files, the app opens with the network off, shows the "Offline" badge, runs OCR and assigns a category |
+| 11 | Backup and restore | ZIP and JSON export, merge and replace restore, images byte-identical (SHA-256), API key not in backup, invalid backup rejected |
+| 12 | Persistence | Data present after reload |
 | 15 | Invalid files | Text file named .png, PDF, corrupt PNG, empty file: a clear error for each |
-| 15b | OCR engine failure | If the language model cannot be downloaded the status becomes "error" and "Retry" recovers |
+| 15b | OCR engine failure | If a language model cannot be loaded the status becomes "error" and "Retry" recovers |
 | 15c | Quota error | `QuotaExceededError` is reported, no half-written record remains, the next import works |
 | + | Paste and drag and drop | Import via clipboard and drop events |
-| + | Theme | Light and dark theme colors (Apple-style parchment/near-black palette, Action Blue accent) |
-| + | AI vision consent and merge (v1.2.0) | With vision off, the AI request contains OCR text only and no `image_url`; with vision on, the request contains a downscaled JPEG data URL; the result merges title/category/text conservatively (manual edits never overwritten); raw OCR stays visible behind a disclosure; entities (URL/e-mail/phone/date) render from the extracted text; the AI text editor works over text only with preview + Apply |
+| + | Theme | Light paper `rgb(255, 255, 255)` / ink `rgb(0, 0, 0)`; dark canvas `rgb(10, 10, 10)` |
+| + | AI vision consent | With vision off the request contains OCR text only; with vision on a downscaled JPEG; results merge conservatively; the AI text editor works with preview + Apply |
+| + | v1.12 features | Animated search hint (stop/resume), category sheet at 520/440/380 px heights (keyboard simulation), 12-option language menu, Arabic RTL after reload, built-in Japanese OCR on a real image, CDP touch swipes (order, no wrap, vertical rejection, edge guard, text fields, RTL), dark menu contrast |
 
-## Android APK
+## APK WebView tests (`tests/e2e-android/native.spec.ts`)
 
-> The APK-specific rows below (gradle builds, `aapt2` inspection, APK web-shell E2E logs) are **v1.1.0 evidence** kept for reference. The v1.2.0 APK is built by the same workflow in CI; its web-shell E2E (A1–A8) runs there on every build. Native splash screen and gesture/zoom behavior could not be verified on a real device or emulator (no KVM) — see the honest note in the release.
-
-### What was verified on the built APK (v1.1.0 evidence)
-
-- `./gradlew assembleDebug` and `./gradlew assembleRelease`: **BUILD SUCCESSFUL**.
-- `aapt2 dump badging` on the release APK: package `io.github.firatnexus.shotrova`, versionName `1.1.0`, versionCode `10100`, compileSdk/targetSdk 35, minSdk 26, launchable activity `io.github.firatnexus.shotrova.MainActivity`, label `Shotrova`.
-- `apksigner verify --print-certs`: signed with the release key (`CN=Shotrova, O=firatnexus, C=TR`).
-- Asset packaging: Android's build tools decompress `*.gz` assets and drop the extension, so `assets/public/ocr/lang/tur.traineddata` is stored uncompressed (4.68 MB). The OCR engine therefore loads models with `gzip: false` inside the app. This was found while inspecting the first APK and is covered by test A1.
-- Unit test `brand.test.ts`: brand name, package id and version match across `brand.ts`, `package.json`, `capacitor.config.json`, `build.gradle`, `strings.xml` and the manifest; the manifest requests no media permissions and only accepts shared images.
-
-### APK web-shell E2E (`tests/e2e-android/native.spec.ts`)
-
-`scripts/extract-apk-assets.mjs` extracts `assets/public/` from the built APK, and Playwright serves exactly those files (Pixel 7 profile). A fake `window.Capacitor` object replaces the Java plugin and records every call, so these tests check the web side of the native integration with the real packaged files:
+`scripts/extract-apk-assets.mjs` extracts `assets/public/` from the built APK and Playwright serves exactly those files (Pixel 7 profile). A fake `window.Capacitor` object replaces the Java plugin and records every call:
 
 | # | Scenario | Verified |
 |---|---|---|
-| A1 | Packaged assets | No service worker registered inside the app; real OCR runs from the bundled, decompressed language files |
-| A2 | Share → Shotrova | Images staged by Android are imported both on cold start and while the app is running; bytes are stored unchanged (SHA-256); temporary inbox files are released |
+| A1 | Packaged assets | No service worker inside the app; real OCR runs from the bundled, decompressed language files |
+| A2 | Share → Shotrova | Images staged by Android are imported on cold start and while running; bytes unchanged (SHA-256); inbox files released |
 | A3 | Partial share failure | A file that cannot be read is reported; the rest is imported |
-| A4 | Save as | "Save original" and "Export backup" go through the Android Save as dialog in chunks; the saved original is byte-identical (SHA-256) and the backup is a ZIP; native-only Settings texts are shown and "Download for offline use" is hidden |
+| A4 | Save as | "Save original" and "Export backup" go through the Android Save as dialog in chunks; byte-identical original, ZIP backup |
 | A5 | Share from the app | The Android share sheet receives the original file |
 | A6 | Clipboard | "Paste from clipboard" reads an image from the Android clipboard |
 | A7 | Back button | Closes dialogs first, then walks back in app history, then lets Android leave the app |
-| A8 | System bars | Status/navigation bar colors follow the light and dark theme |
+| A8 | System bars | Status/navigation bar colors follow the light and dark theme (`#0a0a0a` dark) |
 
-### What could NOT be tested here (honest note)
+## Real Android WebView (emulator)
 
-- **v1.12.0 on a real keyboard.** The keyboard was simulated by shrinking the viewport; the native inset handling in `MainActivity` was not run on a device. Translations other than TR/EN were not reviewed by native speakers.
+`.github/workflows/device-test.yml` installs the debug APK (WebView debugging enabled for this build only) on a Pixel 6 / API 35 emulator with KVM, attaches Playwright over the WebView DevTools socket and drives input with `adb shell input`. It runs on every pull request and on `main`; results, screenshots and launch recordings are uploaded as the `device-test-report` artifact.
 
-- **Real Android device or emulator.** There is no KVM or emulator in this environment. The Java plugin (`ShotrovaBridgePlugin.java`) and `MainActivity.java` compile, but intent handling, the Save as dialog, FileProvider sharing, clipboard reading, the back button and the WebView itself were **not run on Android**.
-- **Web install flow on a device.** "Install app", the home screen icon and Shotrova appearing in the share sheet for the PWA were not tried on a real device. The web share target was tested by sending the same POST to the service worker.
-- **Safari / iOS and Firefox.** Only Chromium was run. iOS Safari does not support Web Share Target.
-- **Real quota exhaustion.** Tested by injecting the error.
-- **AI provider.** Not tested end to end because there is no real API key; it is off by default.
-- **Accessibility audit.** Keyboard navigation, focus trapping and ARIA labels exist and tests use role/label selectors, but no automated a11y audit (axe) or screen reader test was run.
+Results on 30 October 2026 (v1.13.0, Android 15, 1080×2400, `swiftshader` software GPU):
 
-## Manual test steps on a real device
+| Check | Result |
+|---|---|
+| Keyboard | PASS — a real tap on "Ek anahtar kelimeler" opens Gboard; the field, Kaydet and Vazgeç stay above the keyboard; text typed through the IME lands in the field and the category saves. |
+| OCR | PASS — Japanese is selected with no network request (`fetched: []`); recognition of a real screenshot in 5.3 s; text "東京タワーの予約 / チケット番号 / ありがとうございます", language `jpn+eng`. |
+| Swipe | PASS — Home → Images → Categories → Settings and back with real touches, no wrap-around, a vertical drag never switches tabs, a drag while typing in search stays in the field. |
+| Dropdowns | PASS — the Images date and sort menus open attached to their fields and Android Back closes them. |
+| Screenshots | PASS — `tests/device/screenshots.spec.ts` clears the app, imports the demo images from `scripts/make-showcase.mjs`, waits for real OCR and captures the nine README screenshots in light and dark (`docs/screenshots/`). |
 
-### APK
+### Swipe frames (v1.12.0 vs v1.12.1)
 
-1. Install `shotrova-<version>.apk` from the [latest release](https://github.com/firatnexus/shotrova/releases/latest).
-2. Open Shotrova: no address bar, the theme color fills the status bar, the first-run screen appears.
-3. Gallery → select 2–3 screenshots → **Share → Shotrova**. The app opens on the import screen and imports them; OCR runs without a network connection.
-4. Share again while the app is open in the background: the new images are imported.
-5. Open an image → **Save original**: the Android Save as dialog opens; check the saved file in Files.
-6. **Share**: the share sheet opens with the image attached.
-7. Copy an image in another app, then tap **Paste from clipboard** on the dashboard.
-8. Settings → **Export backup**: Save as dialog; then restore from that file.
-9. Back button: closes an open dialog, then goes back a screen, then leaves the app from the dashboard.
-10. Switch the theme in Settings: status and navigation bar colors follow.
+Same emulator, empty library, 2 runs × 8 swipes each (700 ms window per swipe; `workflow_dispatch` with `app_ref=v1.12.0` builds the old app with the same test):
 
-### Web (PWA)
+| | v1.12.0 | v1.12.1 |
+|---|---|---|
+| `pointercancel` (browser took the gesture) | 16 / 16 swipes | 0 / 8 swipes measured |
+| Dropped frames per swipe (mean) | 51.2 | 34.8 |
+| Worst frame gap (median / max) | 233 / 483 ms | 150 / 467 ms |
 
-1. Open the app over HTTPS (see [DEPLOY.md](DEPLOY.md)).
-2. Chrome menu → **Add to Home screen** or **Install app**.
-3. Open Shotrova from the home screen icon; it should open without an address bar.
-4. Gallery or Files → screenshot → **Share** → **Shotrova**. The app should open on the import screen.
-5. Settings → **Download for offline use**, then airplane mode: the app should open and read the text of a new image.
-
-## Running the tests again
-
-```bash
-npm ci --legacy-peer-deps
-npx playwright install chromium
-npm test
-npm run build && npm run test:e2e
-
-# Subpath (GitHub Pages) layout
-VITE_BASE=/shotrova/ npx vite build --outDir /tmp/dist_base
-PORT=4174 E2E_BASE=/shotrova/ E2E_DIST=/tmp/dist_base npx playwright test
-
-# APK web shell (needs JDK 21 + Android SDK 35)
-npm run apk:debug
-node scripts/extract-apk-assets.mjs android/app/build/outputs/apk/debug/app-debug.apk test-reports/apk-public
-npx playwright test -c playwright.android.config.ts
-```
+The software-rendered emulator drops frames even when nothing moves, so these numbers only compare the two versions; they are not what a phone with a GPU shows. The first visit to a tab still costs one long task (70–200 ms on the emulator) while React builds that screen.
 
 ## Swipe smoothness probe (v1.12.1)
 
@@ -139,39 +96,49 @@ npx playwright test -c playwright.android.config.ts
 
 Root causes: the Images tab rendered every card on mount (scaled with library size), the page moved only 25 % of the finger (max 40 px) and then jumped, the drag offset was a CSS variable on `main` (style recalculation of the whole subtree per move), and selects / idle fields blocked swipes.
 
-## Real Android WebView (emulator)
-
-`.github/workflows/device-test.yml` installs the debug APK (WebView debugging enabled for this build only) on an API 35 emulator with KVM, attaches Playwright over the WebView DevTools socket and drives input with `adb shell input`: a real tap opens the soft keyboard over the category sheet, the Japanese OCR pack downloads from GitHub Pages and recognizes a screenshot, and real swipes walk the tabs. Screenshots and measurements are uploaded as the `device-test-report` artifact.
-
-Results on 29 October 2026 (Android 15, WebView/Chrome 124, 1080×2400 @ 2.625 dpr, `swiftshader` software GPU):
-
-| Check | Result |
-|---|---|
-| Keyboard | PASS — a real tap on “Ek anahtar kelimeler” opens Gboard; the WebView bottom moves from 2338 to 1519 px, `innerHeight` 842 → 530; the field, Kaydet and Vazgeç stay above the keyboard; text typed through the IME lands in the field and the category saves. |
-| OCR download | PASS — `jpn.traineddata.gz` from GitHub Pages in 1.8–5.7 s, verified and cached; recognition 8–18 s; text “東京タワーの予約 / チケット番号 / ありがとうございます”, language `jpn+eng`. |
-| Swipe | PASS — Home → Images → Categories → Settings and back with real touches, no wrap-around at either end, a vertical drag never switches tabs, a horizontal drag while typing in search stays in the field, no transform left behind. |
-
-Swipe frames, same emulator, empty library, 2 runs × 8 swipes each (700 ms window per swipe; `workflow_dispatch` with `app_ref=v1.12.0` builds the old app with the same test):
-
-| | v1.12.0 | v1.12.1 |
-|---|---|---|
-| `pointercancel` (browser took the gesture) | 16 / 16 swipes | 0 / 8 swipes measured |
-| Dropped frames per swipe (mean) | 51.2 | 34.8 |
-| Worst frame gap (median / max) | 233 / 483 ms | 150 / 467 ms |
-
-The software-rendered emulator drops frames even when nothing moves, so these numbers only compare the two versions; they are not what a phone with a GPU shows. The first visit to a tab still costs one long task (70–200 ms on the emulator) while React builds that screen.
-
 ## Bugs found and fixed during testing
 
-- **v1.12.0 — downloaded OCR languages never loaded.** tesseract.js 7.0.0 builds the language string from `l.data` instead of `l.code` for in-memory languages, so every pack failed with "Tesseract couldn't load any languages!". Found by `npm run test:ocr`; fixed by `scripts/tesseract-fix.mjs`, which patches the shipped worker and is checked by a unit test.
-- **v1.12.0 — swipe hijacked by the browser.** Horizontal overscroll triggered history navigation instead of the tab swipe; fixed with `overscroll-behavior-x: none` on touch devices (E2E swipe tests).
-- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, web fallback in `ui/keyboard.ts`; the web side is tested with shrunken viewports, the native side is now verified on the API 35 emulator (see above).
-
-- **OCR hung forever.** When a language model could not be downloaded, tesseract.js did not reject `createWorker` and reported the error only through `errorHandler`. The engine now listens to that signal too (`src/ocr/engine.ts`).
+- **v1.12.0 — OCR languages passed in memory never loaded.** tesseract.js 7.0.0 builds the language string from `l.data` instead of `l.code` for in-memory languages, so loading failed with "Tesseract couldn't load any languages!". Found by `npm run test:ocr`; fixed by `scripts/tesseract-fix.mjs`, which patches the shipped worker and is checked by a unit test.
+- **v1.12.0 — swipe hijacked by the WebView.** Horizontal overscroll triggered history navigation instead of the tab swipe; fixed with `overscroll-behavior-x: none` on touch devices (E2E swipe tests).
+- **v1.12.0 — keyboard covered the category sheet on Android 15.** Edge-to-edge is forced with targetSdk 35 and the IME inset was ignored. Native fix in `MainActivity`, JavaScript fallback in `ui/keyboard.ts`; the JavaScript side is tested with shrunken viewports, the native side is now verified on the API 35 emulator (see above).
+- **OCR hung forever.** When a language model could not be loaded, tesseract.js did not reject `createWorker` and reported the error only through `errorHandler`. The engine now listens to that signal too (`src/ocr/engine.ts`).
 - **Uncaught AbortError.** When an IndexedDB transaction was aborted, sibling requests were left as unhandled rejections. Fixed with the `txAll` helper (`src/db/db.ts`).
 - **"Recently added" row on the dashboard.** `scroll-snap` made the first card start clipped; snapping was removed.
 - **OCR models in the APK.** Android packaging decompresses `.gz` assets, so loading them as gzip would fail inside the app. The engine uses `gzip: false` in the native app (test A1).
 
-## Visual review
+## Not covered
 
-Mobile (390 px) and desktop views were reviewed by hand in light and dark themes ([screenshots](screenshots/)): dashboard, images, detail, categories, settings, import, search.
+- **Physical devices and OEM power management.** The emulator runs stock Android; background capture timing on Xiaomi/HyperOS and other aggressive battery savers with the screen off can only be checked on a real phone.
+- **AI providers end to end.** Not run with a real API key; requests are verified with mocked endpoints. AI is off by default.
+- **Translations** other than Turkish and English were not reviewed by native speakers.
+- **Accessibility audit.** Tests use role/label selectors and focus handling exists, but no automated audit (axe) or screen reader test was run.
+
+## Manual test steps on a phone
+
+1. Install `shotrova-<version>.apk` from the [latest release](https://github.com/firatnexus/shotrova/releases/latest).
+2. Open Shotrova: one seamless launch screen, the theme color fills the status bar, the welcome screen appears.
+3. Gallery → select 2–3 screenshots → **Share → Shotrova**. The app imports them; OCR runs without a network connection.
+4. Share again while the app is in the background: the new images are imported.
+5. Turn on automatic capture, take a screenshot: a notification says where it was saved.
+6. Open an image → **Save original**: the Android Save as dialog opens; check the file in Files. **Share** opens the share sheet.
+7. Copy an image in another app, then tap **Paste from clipboard**.
+8. Settings → **Export backup**, then restore from that file.
+9. Settings → OCR language → pick Japanese or Arabic in airplane mode: it is marked "Built in" and recognizes text.
+10. Back button: closes a dialog, then goes back a screen, then leaves the app from Home.
+
+## Running the tests again
+
+```bash
+npm ci --legacy-peer-deps
+npx playwright install chromium
+npm test
+npm run test:ocr
+npm run build && npm run test:e2e
+
+# APK WebView tests (needs JDK 21 + Android SDK 35)
+npm run apk:debug
+node scripts/extract-apk-assets.mjs android/app/build/outputs/apk/debug/app-debug.apk test-reports/apk-public
+npx playwright test -c playwright.android.config.ts
+```
+
+The device test needs an emulator with KVM; run it from the Actions tab ("Device test", optional `grep`) or locally with `npx playwright test -c playwright.device.config.ts` while an emulator with the debug APK is attached.

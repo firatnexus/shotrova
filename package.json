@@ -1,9 +1,9 @@
 {
   "name": "shotrova",
   "private": true,
-  "version": "1.12.3",
+  "version": "1.13.0",
   "type": "module",
-  "description": "Shotrova — local-first screenshot organizer PWA with on-device OCR (Turkish & English)",
+  "description": "Shotrova — Android app that organizes your screenshots with on-device OCR in 12 languages",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

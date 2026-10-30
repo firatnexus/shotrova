@@ -1,28 +1,18 @@
 /**
  * Runs the real OCR engine (tesseract.js + the exact model files the app
- * ships/downloads) on one rendered screenshot per language. Optional packs go
- * through the app's own install → verify → resolve path, so a broken pack,
- * manifest or loader fails here. Fixtures: scripts/make-ocr-fixtures.py.
+ * ships in public/ocr/lang) on one rendered screenshot per language, loaded
+ * through the app's own resolve path. Fixtures: scripts/make-ocr-fixtures.py.
  */
 import { afterAll, describe, expect, it } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createWorker, OEM } from 'tesseract.js';
-import { OCR_LANGS, installPack, ocrParameters, resolveTesseractLangs, setPackStore, type PackStore } from '../../src/ocr/packs';
+import { OCR_LANGS, ocrParameters, resolveTesseractLangs } from '../../src/ocr/packs';
 import { cleanOcrText } from '../../src/ocr/engine';
 import type { OcrLangCode, OcrLanguage } from '../../src/db/types';
 import { patchedNodeWorker } from '../../scripts/tesseract-fix.mjs';
 
 // Same one-expression fix the shipped browser worker gets (scripts/tesseract-fix.mjs).
 const workerPath = patchedNodeWorker();
-
-const mem = new Map<string, Uint8Array>();
-const store: PackStore = {
-  get: async (c) => mem.get(c) ?? null,
-  put: async (c, d) => void mem.set(c, d),
-  remove: async (c) => void mem.delete(c),
-  has: async (c) => mem.has(c),
-};
-setPackStore(store);
 
 const expected = JSON.parse(readFileSync('tests/fixtures/ocr/expected.json', 'utf8')) as Record<string, string[]>;
 
@@ -43,13 +33,9 @@ describe('real OCR per language', () => {
   for (const info of OCR_LANGS) {
     it(`${info.code} (${info.label})`, async () => {
       const code = info.code as OcrLangCode;
-      if (!info.bundled) {
-        const bytes = new Uint8Array(readFileSync(`public/ocr-packs/${code}.traineddata.gz`));
-        await installPack(code, undefined, (async () => new Response(bytes.slice().buffer as ArrayBuffer)) as typeof fetch);
-      }
       const lang = code as OcrLanguage;
       const langs = await resolveTesseractLangs(lang);
-      // tesseract.js reports language-load failures only via errorHandler; race it so a broken pack fails fast.
+      // tesseract.js reports language-load failures only via errorHandler; race it so a broken model fails fast.
       const w = await new Promise<Awaited<ReturnType<typeof createWorker>>>((resolve, reject) => {
         createWorker(langs as unknown as string[], OEM.LSTM_ONLY, {
           workerPath,

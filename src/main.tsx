@@ -10,7 +10,6 @@ if (isNativeApp()) {
   document.documentElement.classList.add('native-app', 'native');
   installNativeBackHandler();
   // Inside the APK the app behaves like a native app: no pinch/double-tap zoom.
-  // (The public website keeps the browser's zoom and accessibility intact.)
   const vp = document.querySelector('meta[name="viewport"]');
   vp?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
   // The launch mark holds still through the native splash hand-off; the
@@ -45,26 +44,6 @@ subscribe(() => {
     document.documentElement.lang = l;
   }
 });
-
-// The Android app ships every file inside the APK, so it needs no service worker.
-if ('serviceWorker' in navigator && import.meta.env.PROD && !isNativeApp()) {
-  const hadController = Boolean(navigator.serviceWorker.controller);
-  let reloaded = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    // A new version took over; reload once so the page and the cache agree.
-    if (hadController && !reloaded) {
-      reloaded = true;
-      location.reload();
-    }
-  });
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL }).then((reg) => {
-      const check = () => void reg.update().catch(() => undefined);
-      document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && check());
-      window.addEventListener('online', check);
-    }, () => undefined);
-  });
-}
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
