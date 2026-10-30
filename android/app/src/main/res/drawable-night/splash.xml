@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dark launch screen: ink canvas with the white frame mark centred. -->
+<!-- Dark launch window background: see drawable/splash.xml. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background_dark" />
-    <item android:width="96dp" android:height="96dp" android:gravity="center" android:drawable="@mipmap/ic_launcher_monochrome" />
+    <item android:width="288dp" android:height="288dp" android:gravity="center" android:drawable="@mipmap/ic_launcher_splash" />
 </layer-list>

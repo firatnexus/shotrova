@@ -20,15 +20,22 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Branded launch screen (background + icon, see AppTheme.NoActionBarLaunch).
         // Must run before super.onCreate; swaps to AppTheme.NoActionBar afterwards.
-        // Kept on screen until the web layer has painted its first frame (or a
-        // 3s safety timeout), so the hand-off is seamless — the PWA boot screen
-        // never stacks on top of the native splash.
+        // The exit listener keeps the splash VIEW alive after the app starts
+        // drawing (unlike setKeepOnScreenCondition, which blocks every app
+        // pre-draw — the WebView could not even begin presenting until the
+        // splash let go). The web layer draws and presents underneath, and
+        // ShotrovaBridgePlugin removes the retained view once the launch
+        // frame is painted and submitted to the compositor (or a safety
+        // timeout), then notifies the web layer so the boot screen's exit
+        // starts only after the reveal.
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-        splashScreen.setKeepOnScreenCondition(() -> !ShotrovaBridgePlugin.isFirstFrameReady());
+        splashScreen.setOnExitAnimationListener(viewProvider ->
+            ShotrovaBridgePlugin.handleSplashExit(viewProvider));
         registerPlugin(ShotrovaBridgePlugin.class);
         super.onCreate(savedInstanceState);
         if (savedInstanceState == null) ShotrovaBridgePlugin.handleIntent(this, getIntent());
         ShotrovaBridgePlugin.handleLaunchIntent(getIntent());
+        matchWebViewBackgroundToLaunch();
         installKeyboardAwareInsets();
 
         // Back button: let the web app close dialogs and walk its own history
@@ -52,6 +59,28 @@ public class MainActivity extends BridgeActivity {
                 setEnabled(true);
             }
         });
+    }
+
+    /**
+     * The WebView draws its own (white) background before the page has
+     * painted anything. During launch it is transparent instead, so the
+     * window background (drawable/splash: launch colour + the mark at the
+     * native icon's size and position) shows through until the web launch
+     * screen paints — the frames around the system's splash hand-off then
+     * look exactly like the splash. Once the retained splash is removed,
+     * ShotrovaBridgePlugin restores the opaque launch colour.
+     */
+    private void matchWebViewBackgroundToLaunch() {
+        WebView wv = getBridge() == null ? null : getBridge().getWebView();
+        if (wv == null) return;
+        wv.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+    }
+
+    /** The launch background colour for the current day/night mode. */
+    static int launchBackgroundColor(android.content.Context ctx) {
+        int mask = ctx.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        boolean night = mask == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        return androidx.core.content.ContextCompat.getColor(ctx, night ? R.color.splash_background_dark : R.color.splash_background);
     }
 
     /**

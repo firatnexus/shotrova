@@ -4,7 +4,7 @@ import { App } from './ui/App';
 import { applyTheme, init } from './lib/actions';
 import { getState, subscribe } from './lib/store';
 import './ui/styles.css';
-import { installNativeBackHandler, isNativeApp } from './native/bridge';
+import { installNativeBackHandler, isNativeApp, nativeSplashRemoved, onNativeSplashRemoved } from './native/bridge';
 
 if (isNativeApp()) {
   document.documentElement.classList.add('native-app', 'native');
@@ -13,16 +13,23 @@ if (isNativeApp()) {
   // (The public website keeps the browser's zoom and accessibility intact.)
   const vp = document.querySelector('meta[name="viewport"]');
   vp?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+  // The launch mark holds still through the native splash hand-off; the
+  // wordmark rises in beneath it once the splash has actually been removed.
+  const reveal = () => document.getElementById('boot')?.classList.add('is-revealed');
+  const stopReveal = onNativeSplashRemoved(() => {
+    reveal();
+    stopReveal();
+  });
+  void nativeSplashRemoved().then((r) => r && reveal());
 }
 
 void init();
 
-// Remove the boot splash once the app is ready (or failed — never leave it up).
-// On Android the native launch splash owns startup and the web layer signals
-// its first painted frame separately (see App) — one splash per platform.
-const removeBoot = () => document.getElementById('boot')?.remove();
-if (getState().ready) removeBoot();
-else subscribe(() => { if (getState().ready || getState().fatal) { removeBoot(); } });
+// The launch screen (#boot in index.html) is dismissed by the App component:
+// it fades out only after the ready screen has committed and painted, and on
+// Android the native launch splash hands off to it at the first painted frame
+// (see App). main.tsx no longer touches it, so the screen is never removed
+// before the app beneath is ready to show.
 
 // Follow the OS theme while the preference is "system".
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

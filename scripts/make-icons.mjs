@@ -46,6 +46,19 @@ if (existsSync('android/app/src/main/res')) {
     await pg.setContent(`<html><body style="margin:0;background:transparent">${svg.replace(/width="\d+" height="\d+"/, `width="${size}" height="${size}"`)}</body></html>`);
     await pg.locator('svg').screenshot({ path: out, omitBackground: true });
   };
+  // The Android 12+ splash (and core-splashscreen below 31) scales the icon
+  // drawable to a 288dp square without an icon background. The web launch
+  // screen draws logoSvg() (default padding) in an 84px box (index.html,
+  // #boot svg.logo), so nesting that same SVG at 84/288 of the canvas gives a
+  // native mark identical in size and proportions to the web mark.
+  const SPLASH_VIEW_DP = 288;
+  const WEB_LOGO_PX = 84;
+  const splashMark = (opts) => {
+    const box = (512 * WEB_LOGO_PX) / SPLASH_VIEW_DP;
+    const o = (512 - box) / 2;
+    const body = logoSvg(512, opts).replace(/^<svg [^>]*>/, '').replace(/<\/svg>\s*$/, '');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><g transform="translate(${o} ${o}) scale(${box / 512})">${body}</g></svg>`;
+  };
   const dens = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
   for (const [d, f] of Object.entries(dens)) {
     mkdirSync(`${RES}/mipmap-${d}`, { recursive: true });
@@ -54,6 +67,11 @@ if (existsSync('android/app/src/main/res')) {
     // Adaptive icon layers are 108dp; the mark (pad 0.2) stays inside the 66dp safe zone.
     await draw(logoSvg(512, { foreground: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_foreground.png`);
     await draw(logoSvg(512, { monochrome: true, pad: 0.2 }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_monochrome.png`);
+    // Launch-splash marks (light: ink + indigo spark, dark: white + lighter
+    // spark). Drawn with the web launch screen's exact geometry and size, so
+    // the native splash hands off to #boot without the mark changing size.
+    await draw(splashMark({ inkColor: '#000000', sparkColor: '#4d49fc' }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_splash_light.png`);
+    await draw(splashMark({ inkColor: '#ffffff', sparkColor: '#8f8cff' }), 108 * f, `${RES}/mipmap-${d}/ic_launcher_splash.png`);
     console.log('✓ android', d);
   }
   await b2.close();

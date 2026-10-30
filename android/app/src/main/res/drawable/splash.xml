@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launch screen: paper with the ink frame mark centred. -->
+<!-- Launch window background (AppTheme.NoActionBar): paper with the launch
+     mark at the native splash icon's exact size and position (the icon is
+     scaled to a 288dp square centred in the window). Shown for the frames
+     between the system handing the splash over and the retained splash view /
+     web launch screen drawing, so that hand-off never flashes the theme's
+     default background without the mark. setSystemBars replaces it later. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background" />
-    <item android:width="96dp" android:height="96dp" android:gravity="center" android:drawable="@mipmap/ic_launcher" />
+    <item android:width="288dp" android:height="288dp" android:gravity="center" android:drawable="@mipmap/ic_launcher_splash_light" />
 </layer-list>

@@ -1,4 +1,4 @@
-import { isNativeApp, markFirstFrame, onNativeShare, takeNativeSharedFiles } from '../native/bridge';
+import { isNativeApp, markFirstFrame, nativeSplashRemoved, onNativeShare, onNativeSplashRemoved, takeNativeSharedFiles } from '../native/bridge';
 import { useEffect, useRef, useState } from 'react';
 import { useAppState, setState } from '../lib/store';
 import { consumeShareInbox } from '../lib/actions';
@@ -30,21 +30,90 @@ export function App() {
   const ready = useAppState((s) => s.ready);
   const fatal = useAppState((s) => s.fatal);
 
-  // Hand the native Android launch splash off only after the ready/fatal
-  // screen has actually committed and painted (one frame after commit) —
-  // one-shot, so later store updates never re-signal readiness.
-  const splashHanded = useRef(false);
+  // Hand the native Android launch splash off only once the launch screen
+  // has painted AND that painted state has been submitted to the compositor.
+  // The page's first contentful paint IS the launch screen (static HTML in
+  // index.html), so waiting for it keeps the native splash up until a real
+  // frame exists — but FCP alone is not proof the frame reached the
+  // compositor, so markFirstFrame also asks the native side for a
+  // WebView.postVisualStateCallback confirmation (submitted-to-compositor;
+  // per the Android docs this still does not prove presentation on the
+  // display — no WebView API does). Falls back to the double-rAF signal
+  // where the paint timing API is unavailable. markFirstFrame is idempotent.
+  // The native trace (ShotrovaLaunch logcat tag) records the timing of
+  // these events; see scripts/record-launch.sh.
   useEffect(() => {
-    if (!ready && !fatal) return;
-    if (splashHanded.current) return;
-    splashHanded.current = true;
+    let cancelled = false;
+    let raf1 = 0;
     let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => markFirstFrame());
+    const signal = () => {
+      if (cancelled) return;
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => markFirstFrame());
+      });
+    };
+    const painted = performance.getEntriesByType('paint').some((e) => e.name === 'first-contentful-paint');
+    if (painted || typeof PerformanceObserver === 'undefined') {
+      signal();
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    const po = new PerformanceObserver((list) => {
+      if (list.getEntries().some((e) => e.name === 'first-contentful-paint')) {
+        po.disconnect();
+        signal();
+      }
     });
+    po.observe({ type: 'paint', buffered: true });
     return () => {
+      cancelled = true;
+      po.disconnect();
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+    };
+  }, []);
+
+  // Fade the launch screen out only after the ready (or fatal) screen has
+  // actually committed and painted — one frame after commit, so the app never
+  // reveals stale skeletons underneath. Inside the Android app the exit also
+  // waits for the native splash's splashRemoved event: the retained splash
+  // view covers the composition until the launch frame has been submitted,
+  // and starting the boot screen's own fade before that reveal would fade the
+  // composition away while it is still hidden. A safety timeout (longer than
+  // the native one) keeps a lost event from pinning the boot screen forever.
+  // dismissBootScreen is idempotent.
+  useEffect(() => {
+    if (!ready && !fatal) return;
+    let dismissed = false;
+    const stop: Array<() => void> = [];
+    const go = () => {
+      if (dismissed) return;
+      dismissed = true;
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => dismissBootScreen());
+      });
+      stop.push(() => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      });
+    };
+    if (isNativeApp()) {
+      const timer = window.setTimeout(go, 10000);
+      stop.push(() => window.clearTimeout(timer));
+      stop.push(onNativeSplashRemoved(go));
+      // The event may have fired before this listener registered.
+      void nativeSplashRemoved().then((r) => {
+        if (r) go();
+      });
+    } else {
+      go();
+    }
+    return () => {
+      stop.forEach((fn) => fn());
     };
   }, [ready, fatal]);
   const online = useAppState((s) => s.online);
@@ -260,6 +329,31 @@ export function App() {
       <ConfirmHost />
     </div>
   );
+}
+
+/**
+ * Fades the static launch screen (index.html #boot) out and removes it.
+ * Called only after the ready screen has committed and painted, so the app
+ * beneath is never stale. Idempotent; honours reduced-motion by skipping
+ * the fade (no transition events fire then).
+ */
+function dismissBootScreen() {
+  const el = document.getElementById('boot');
+  if (!el || el.classList.contains('is-done')) return;
+  console.info('[boot] dismissed');
+  const remove = () => el.remove();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    remove();
+    return;
+  }
+  el.classList.add('is-done');
+  // animationend bubbles from the child entrance animation — only the
+  // overlay's own exit fade may remove it.
+  el.addEventListener('animationend', (e) => {
+    if (e.target === el && e.animationName === 'boot-out') remove();
+  });
+  // Safety: the CSS fade may be disabled or interrupted — never leave it up.
+  setTimeout(remove, 400);
 }
 
 function LoadingScreen() {

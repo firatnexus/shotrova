@@ -69,21 +69,178 @@ public class ShotrovaBridgePlugin extends Plugin {
     private static ShotrovaBridgePlugin instance;
 
     /** Set when the web layer has painted its first usable frame (splash hand-off). */
-    private static volatile boolean firstFrameReady = false;
+    private static volatile boolean webPainted = false;
+    /** Set when WebView.postVisualStateCallback reports the painted state was
+     *  submitted to the compositor. Per the Android docs this does NOT prove
+     *  the frame was presented to the display — it is the strongest signal the
+     *  WebView API offers. */
+    private static volatile boolean frameComposited = false;
     private static long LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
-    /** Safety cap: never hold the launch splash longer than this, even if JS fails. */
-    private static final long MAX_SPLASH_MS = 3000;
+    /** Safety cap: never hold the retained splash view longer than this, even
+     *  if JS fails. Generous because the web layer now waits for its first real
+     *  contentful paint, which on slow renderers (software GPUs, cold
+     *  WebViews) can legitimately take several seconds. */
+    private static final long MAX_SPLASH_MS = 8000;
+    /** Launch hand-off trace tag; see also scripts/record-launch.sh which
+     *  captures these lines into the device-test artifact. */
+    static final String LAUNCH_TAG = "ShotrovaLaunch";
+    /** The retained splash view, handed over by the exit listener; removed once
+     *  the launch frame is painted and submitted (or the timeout fires). */
+    private static volatile androidx.core.splashscreen.SplashScreenViewProvider splashProvider;
+    private static final java.util.concurrent.atomic.AtomicBoolean SPLASH_REMOVED =
+        new java.util.concurrent.atomic.AtomicBoolean(false);
+    private static final android.os.Handler MAIN = new android.os.Handler(android.os.Looper.getMainLooper());
+    private static final Runnable SPLASH_TIMEOUT = () -> removeRetainedSplash("timeout");
 
-    /** True while the native launch splash should stay on screen (first frame + timeout guard). */
-    static boolean isFirstFrameReady() {
-        return firstFrameReady || (android.os.SystemClock.uptimeMillis() - LAUNCHED_AT) >= MAX_SPLASH_MS;
+    /** Elapsed ms since the plugin class loaded (process start, roughly). */
+    private static long elapsedMs() {
+        return android.os.SystemClock.uptimeMillis() - LAUNCHED_AT;
     }
 
-    /** Called by the web layer once its first frame is painted. */
+    /**
+     * Called from MainActivity's splash exit listener. The system has handed the
+     * splash VIEW over to the app: unlike setKeepOnScreenCondition (which
+     * blocked every app pre-draw), the app now draws and the WebView presents
+     * its content underneath the retained view. We keep the view on screen
+     * until the web layer's launch frame is painted and submitted to the
+     * compositor, so removing it reveals an already-presented composition
+     * instead of a blank WebView background.
+     */
+    static void handleSplashExit(androidx.core.splashscreen.SplashScreenViewProvider provider) {
+        android.util.Log.i(LAUNCH_TAG, "splash view retained by exit listener elapsedMs=" + elapsedMs());
+        splashProvider = provider;
+        // The gate may already have opened before the listener fired.
+        if (webPainted && frameComposited) removeRetainedSplash("signals-late-listener");
+    }
+
+    /**
+     * Removes the retained splash view (once) and notifies the web layer via the
+     * splashRemoved event, so the boot screen's exit animation starts only
+     * after the reveal instead of racing it.
+     */
+    private static void removeRetainedSplash(String reason) {
+        if (!SPLASH_REMOVED.compareAndSet(false, true)) return;
+        androidx.core.splashscreen.SplashScreenViewProvider provider = splashProvider;
+        android.util.Log.i(LAUNCH_TAG, "splash removed: reason=" + reason + " webPainted=" + webPainted
+            + " frameComposited=" + frameComposited + " elapsedMs=" + elapsedMs());
+        MAIN.removeCallbacks(SPLASH_TIMEOUT);
+        ShotrovaBridgePlugin plugin = instance;
+        MAIN.post(() -> {
+            if (provider != null) {
+                try {
+                    provider.remove();
+                } catch (RuntimeException e) {
+                    android.util.Log.w(LAUNCH_TAG, "splash view removal failed: " + e);
+                }
+            }
+            if (plugin != null) {
+                // The WebView was transparent during launch (MainActivity);
+                // make it opaque again in the launch colour.
+                android.webkit.WebView wv = plugin.getBridge() == null ? null : plugin.getBridge().getWebView();
+                if (wv != null) wv.setBackgroundColor(MainActivity.launchBackgroundColor(wv.getContext()));
+                plugin.notifyListeners("splashRemoved", new JSObject());
+            }
+        });
+    }
+
+    /** Offset (CSS px) from the WebView centre to the window centre, where
+     *  the native splash draws its icon; NaN until the WebView is laid out. */
+    private static volatile float launchDx = Float.NaN;
+    private static volatile float launchDy = Float.NaN;
+
+    /**
+     * Synchronous JS interface read by index.html's inline script before the
+     * launch screen first paints. The native splash centres its icon in the
+     * whole window, but the WebView sits inside the system-bar margins
+     * (MainActivity.installKeyboardAwareInsets), so its centre is a few dp
+     * lower. The web launch screen shifts its mark by this offset so the mark
+     * stays exactly where the native icon was when the splash is removed.
+     */
+    static final class LaunchGeometry {
+        @android.webkit.JavascriptInterface
+        public String markOffset() {
+            float dx = launchDx;
+            float dy = launchDy;
+            return Float.isNaN(dx) || Float.isNaN(dy) ? "" : dx + "," + dy;
+        }
+    }
+
+    private void installLaunchGeometry() {
+        launchDx = Float.NaN;
+        launchDy = Float.NaN;
+        android.app.Activity activity = getActivity();
+        android.webkit.WebView wv = getBridge() == null ? null : getBridge().getWebView();
+        if (activity == null || wv == null) return;
+        // Must be added before the bridge loads the page (load() runs first).
+        wv.addJavascriptInterface(new LaunchGeometry(), "ShotrovaLaunch");
+        View root = activity.getWindow().getDecorView();
+        View.OnLayoutChangeListener l = (v, a, b, c, d, e, f, g, h) -> updateLaunchGeometry(activity, wv, root);
+        wv.addOnLayoutChangeListener(l);
+        root.addOnLayoutChangeListener(l);
+        updateLaunchGeometry(activity, wv, root);
+    }
+
+    private static void updateLaunchGeometry(android.app.Activity activity, android.webkit.WebView wv, View root) {
+        if (wv.getWidth() == 0 || wv.getHeight() == 0 || root.getWidth() == 0 || root.getHeight() == 0) return;
+        int[] w = new int[2];
+        int[] r = new int[2];
+        wv.getLocationOnScreen(w);
+        root.getLocationOnScreen(r);
+        float density = activity.getResources().getDisplayMetrics().density;
+        float dx = ((r[0] + root.getWidth() / 2f) - (w[0] + wv.getWidth() / 2f)) / density;
+        float dy = ((r[1] + root.getHeight() / 2f) - (w[1] + wv.getHeight() / 2f)) / density;
+        if (dx != launchDx || dy != launchDy) {
+            launchDx = dx;
+            launchDy = dy;
+            android.util.Log.i(LAUNCH_TAG, "launch mark offset dx=" + dx + " dy=" + dy + " elapsedMs=" + elapsedMs());
+        }
+    }
+
+    /**
+     * Whether the retained splash view has already been removed. The web layer
+     * checks this when it starts listening for the splashRemoved event, so a
+     * removal that happened before the listener registered is not missed.
+     */
+    @PluginMethod
+    public void isSplashRemoved(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("removed", SPLASH_REMOVED.get());
+        call.resolve(r);
+    }
+
+    /**
+     * Called by the web layer once its first contentful paint has committed.
+     * Arms the WebView visual-state callback so the retained splash view is
+     * removed only after that painted state has been submitted to the
+     * compositor.
+     */
     @PluginMethod
     public void markFirstFrame(PluginCall call) {
-        firstFrameReady = true;
+        webPainted = true;
+        android.util.Log.i(LAUNCH_TAG, "markFirstFrame: webPainted=true elapsedMs=" + elapsedMs());
+        armVisualStateCallback();
         call.resolve();
+    }
+
+    /** Requests the compositor-submission confirmation from the WebView (UI thread). */
+    private void armVisualStateCallback() {
+        android.app.Activity activity = getActivity();
+        android.webkit.WebView wv = getBridge() == null ? null : getBridge().getWebView();
+        if (activity == null || wv == null) {
+            android.util.Log.w(LAUNCH_TAG, "visual-state callback not armed: no activity/webview");
+            return;
+        }
+        activity.runOnUiThread(() -> {
+            android.util.Log.i(LAUNCH_TAG, "arming visual-state callback elapsedMs=" + elapsedMs());
+            wv.postVisualStateCallback(-1, new android.webkit.WebView.VisualStateCallback() {
+                @Override
+                public void onComplete(long requestId) {
+                    frameComposited = true;
+                    android.util.Log.i(LAUNCH_TAG, "visual-state callback: frameComposited=true elapsedMs=" + elapsedMs());
+                    removeRetainedSplash("signals");
+                }
+            });
+        });
     }
 
     @Override
@@ -434,8 +591,15 @@ public class ShotrovaBridgePlugin extends Plugin {
         // New WebView/Activity startup: reset the splash hand-off gate so a
         // recreated Activity never inherits a stale "ready" flag or an
         // expired launch deadline from the previous instance.
-        firstFrameReady = false;
+        webPainted = false;
+        frameComposited = false;
+        splashProvider = null;
+        SPLASH_REMOVED.set(false);
+        android.util.Log.i(LAUNCH_TAG, "plugin load: hand-off gates reset");
         LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
+        MAIN.removeCallbacks(SPLASH_TIMEOUT);
+        MAIN.postDelayed(SPLASH_TIMEOUT, MAX_SPLASH_MS);
+        installLaunchGeometry();
         try {
             deleteLauncher = getBridge().registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),

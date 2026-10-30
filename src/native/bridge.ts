@@ -63,6 +63,7 @@ export interface ShotrovaBridgePlugin {
   shareText(o: { text: string; title?: string }): Promise<void>;
   readClipboardImage(): Promise<{ files: StagedFile[] }>;
   markFirstFrame(): Promise<void>;
+  isSplashRemoved(): Promise<{ removed: boolean }>;
   setSystemBars(o: { dark: boolean; color?: string }): Promise<void>;
   getCaptureState(): Promise<CaptureStatus>;
   requestCapturePermissions(): Promise<CaptureStatus>;
@@ -92,6 +93,7 @@ export interface ShotrovaBridgePlugin {
   openBatterySettings(): Promise<void>;
   addListener(event: 'share', cb: (e: { count: number }) => void): Promise<PluginListenerHandle> | PluginListenerHandle;
   addListener(event: 'autocapture', cb: (e: { count: number }) => void): Promise<PluginListenerHandle> | PluginListenerHandle;
+  addListener(event: 'splashRemoved', cb: () => void): Promise<PluginListenerHandle> | PluginListenerHandle;
 }
 
 /** The subset of Capacitor's injected native bridge (native-bridge.js) we use. */
@@ -110,11 +112,14 @@ function cap(): CapacitorGlobal | undefined {
 
 /**
  * Tell the native side that the web layer has painted its first usable frame.
- * The Android launch splash stays on screen until this fires (or a 3s safety
- * timeout), so startup shows a single splash — no PWA boot screen on top of
- * the native one. No-op on the web.
+ * The Android launch splash stays on screen until this fires AND the native
+ * side's WebView visual-state callback confirms the painted state was
+ * submitted to the compositor (or a safety timeout), so startup shows a
+ * single splash — no PWA boot screen on top of the native one. No-op on the
+ * web.
  */
 export function markFirstFrame(): void {
+  console.info('[boot] first frame signal');
   bridge()?.markFirstFrame().catch(() => undefined);
 }
 
@@ -160,7 +165,8 @@ function bridge(): ShotrovaBridgePlugin | null {
     openNotificationSettings: call('openNotificationSettings'),
     openBatterySettings: call('openBatterySettings'),
     markFirstFrame: call('markFirstFrame'),
-    addListener: (event: 'share' | 'autocapture', cb: (e: { count: number }) => void) => (c.addListener as NonNullable<CapacitorGlobal['addListener']>)(PLUGIN, event, cb as (data: unknown) => void),
+    isSplashRemoved: call<{ removed: boolean }>('isSplashRemoved'),
+    addListener: (event: 'share' | 'autocapture' | 'splashRemoved', cb: (e: never) => void) => (c.addListener as NonNullable<CapacitorGlobal['addListener']>)(PLUGIN, event, cb as (data: unknown) => void),
   };
   return cached;
 }
@@ -229,6 +235,44 @@ export function onNativeShare(cb: () => void): () => void {
   let handle: PluginListenerHandle | null = null;
   let removed = false;
   void Promise.resolve(p.addListener('share', () => cb())).then((h) => {
+    if (removed) void h.remove();
+    else handle = h;
+  });
+  return () => {
+    removed = true;
+    if (handle) void handle.remove();
+  };
+}
+
+/**
+ * True once the native launch splash has been removed. Polled alongside the
+ * splashRemoved listener so a removal that happened before the listener was
+ * registered is not missed. Null outside the Android app.
+ */
+export async function nativeSplashRemoved(): Promise<boolean | null> {
+  const p = bridge();
+  if (!p) return null;
+  try {
+    const r = (await p.isSplashRemoved()) as { removed: boolean } | undefined;
+    return Boolean(r?.removed);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Calls `cb` once the native launch splash has actually been removed from the
+ * window. The boot screen's exit must not start before this reveal — on a
+ * fast launch the app can be ready while the splash still covers the
+ * composition, and two simultaneous fades would hide it entirely.
+ * Returns a no-op remover outside the Android app.
+ */
+export function onNativeSplashRemoved(cb: () => void): () => void {
+  const p = bridge();
+  if (!p) return () => undefined;
+  let handle: PluginListenerHandle | null = null;
+  let removed = false;
+  void Promise.resolve(p.addListener('splashRemoved', () => cb())).then((h) => {
     if (removed) void h.remove();
     else handle = h;
   });

@@ -28,6 +28,16 @@ describe('placeMenu', () => {
     expect(p.top).toBeGreaterThanOrEqual(small.top);
   });
 
+  it('forceBelow pins the menu under the trigger and scrolls it internally', () => {
+    // Even where auto-placement would flip above (little room below), the
+    // pinned mode stays below the trigger and caps the height to the space.
+    const p = placeMenu(trig(600), bounds, 400, false, true);
+    expect(p.placement).toBe('below');
+    expect(p.top).toBeGreaterThanOrEqual(648);
+    expect(p.maxHeight).toBeLessThanOrEqual(700 - 648);
+    expect(p.maxHeight).toBeLessThanOrEqual(360); // list scrolls inside
+  });
+
   it('keeps the menu horizontally on screen, aligned to the end edge in RTL', () => {
     const ltr = placeMenu(trig(100, 300, 80), bounds, 200);
     expect(ltr.width).toBe(220);

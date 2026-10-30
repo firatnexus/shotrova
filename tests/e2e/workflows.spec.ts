@@ -232,18 +232,23 @@ test('08 filter by category and date, sort, bulk categorize and bulk delete', as
   }, inv.id);
   await page.reload();
   await openApp(page, '/images');
-  await page.getByTestId('date-filter').selectOption('this_year');
+  await page.getByTestId('date-filter').click();
+  await page.getByTestId('date-filter-opt-this_year').click();
   await expect(page.locator('[data-testid=grid] .tile')).toHaveCount(5);
-  await page.getByTestId('date-filter').selectOption('custom');
+  await page.getByTestId('date-filter').click();
+  await page.getByTestId('date-filter-opt-custom').click();
   await page.getByLabel('Başlangıç').fill('2024-05-01');
   await page.getByLabel('Bitiş').fill('2024-05-31');
   await expect(page.locator('[data-testid=grid] .tile')).toHaveCount(1);
   await expect(page.locator('[data-testid=grid] .tile .title')).toHaveText('invoice_tr');
-  await page.getByTestId('date-filter').selectOption('');
+  await page.getByTestId('date-filter').click();
+  await page.getByTestId('date-filter-opt-').click();
   // Sort
-  await page.getByTestId('sort').selectOption('oldest');
+  await page.getByTestId('sort').click();
+  await page.getByTestId('sort-opt-oldest').click();
   await expect(page.locator('[data-testid=grid] .tile .title').first()).toHaveText('invoice_tr');
-  await page.getByTestId('sort').selectOption('title');
+  await page.getByTestId('sort').click();
+  await page.getByTestId('sort-opt-title').click();
   const titles = await page.locator('[data-testid=grid] .tile .title').allTextContents();
   expect(titles).toEqual([...titles].sort((a, b) => a.localeCompare(b, 'tr')));
   // Bulk categorize

@@ -72,9 +72,10 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
-            adb shell am start -W -n io.github.firatnexus.shotrova.debug/io.github.firatnexus.shotrova.MainActivity
-            sleep 8
-            adb shell cat /proc/net/unix | grep -i devtools || echo "no devtools socket"
+            # Record the cold launch (native splash → web launch screen → app)
+            # so the splash hand-off can be inspected frame by frame afterwards.
+            # Best effort: a missing recording must never fail the device tests.
+            bash scripts/record-launch.sh
             npx playwright test -c playwright.device.config.ts ${{ inputs.grep != '' && format('-g "{0}"', inputs.grep) || '' }}
 
       - uses: actions/upload-artifact@v4

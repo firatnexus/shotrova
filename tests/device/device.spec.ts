@@ -368,3 +368,36 @@ test('swipe: real touches move between tabs in order, smoothly, without wrap-aro
   expect(await page.locator('main#main').evaluate((m) => getComputedStyle(m.firstElementChild!).transform)).toMatch(/none|matrix\(1, 0, 0, 1, 0, 0\)/);
   record('swipe', swipes);
 });
+
+test('dropdowns: the images filters open attached menus and Android Back closes them', async () => {
+  await go('/images');
+  const date = page.getByTestId('date-filter');
+  const dateMenu = page.getByTestId('date-filter-menu');
+  const sort = page.getByTestId('sort');
+  const sortMenu = page.getByTestId('sort-menu');
+
+  // A real tap opens the menu attached below its trigger (not a native dialog).
+  await realTap(date);
+  await expect(dateMenu).toBeVisible();
+  const [t, m] = await Promise.all([date.boundingBox(), dateMenu.boundingBox()]);
+  expect(m!.y).toBeGreaterThanOrEqual(t!.y + t!.height - 1);
+  await screencap('dropdown-date-open');
+
+  // The Android Back button dismisses the open menu (through the Escape bridge).
+  adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
+  await expect(dateMenu).not.toBeVisible();
+
+  // The sort menu behaves the same and the two never open together.
+  await realTap(sort);
+  await expect(sortMenu).toBeVisible();
+  await expect(dateMenu).not.toBeVisible();
+  adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
+  await expect(sortMenu).not.toBeVisible();
+
+  // A real tap on an option selects it and closes the menu.
+  await realTap(date);
+  await realTap(page.getByTestId('date-filter-opt-7d'));
+  await expect(dateMenu).not.toBeVisible();
+  await expect(date).toContainText('Son 7 gün');
+  await record('dropdowns', { date: await date.textContent(), back: 'KEYCODE_BACK closes the open menu' });
+});

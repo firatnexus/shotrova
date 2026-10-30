@@ -1,5 +1,11 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.12.2
+
+- **Date and sort menus on the Images screen:** both filters now open the app's own menu right under the control (the same style as the language menu) instead of Android's generic selection dialog. The current choice is marked, long lists scroll inside the menu, and it closes when you pick an option, tap outside it or press Back. All options and their behaviour are unchanged.
+- **New launch screen:** the Shotrova mark with the wordmark beneath it, in the light or dark theme, with a short, subtle entrance (no animation when reduced motion is on). On Android the system splash and the app's launch screen now show the mark at exactly the same size and position, so the hand-off no longer jumps or flashes an empty screen. Startup is not made any longer.
+- Your data, categories and settings stay as they are.
+
 ## What's new in 1.12.1
 
 - **Smoother tab swiping:** the page now follows your finger one-to-one and the next tab slides in from right beside it, so the motion is continuous instead of a short nudge and a jump. Past the first and last tab the page only stretches a little.

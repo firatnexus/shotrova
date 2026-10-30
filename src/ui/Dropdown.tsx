@@ -38,11 +38,12 @@ export function placeMenu(
   bounds: { top: number; bottom: number; left: number; right: number },
   contentHeight: number,
   rtl = false,
+  forceBelow = false,
 ): MenuPlacement {
   const below = bounds.bottom - trigger.bottom - GAP;
   const above = trigger.top - bounds.top - GAP;
   const want = Math.min(contentHeight, MAX_HEIGHT);
-  const placement: 'below' | 'above' = below >= want || below >= Math.min(MIN_COMFORT, want) || below >= above ? 'below' : 'above';
+  const placement: 'below' | 'above' = forceBelow || below >= want || below >= Math.min(MIN_COMFORT, want) || below >= above ? 'below' : 'above';
   const space = Math.max(0, placement === 'below' ? below : above);
   const maxHeight = Math.max(0, Math.min(want, space));
   const avail = bounds.right - bounds.left;
@@ -67,12 +68,17 @@ function usableBounds(): { top: number; bottom: number; left: number; right: num
   return { top, bottom, left, right };
 }
 
+/** How long the closing animation runs (matches the CSS keyframe). */
+const EXIT_MS = 110;
+
 /**
  * Custom single-select dropdown (listbox pattern) in the app's own style —
  * replaces native <select> pop-ups that Android renders as a generic dialog.
  * The menu is portalled to <body> with fixed positioning so cards with
  * overflow/rounded corners never clip it and it sits above the tab bar.
  * Keyboard: ↑/↓/Home/End move, Enter/Space choose, Esc/Tab close, typing jumps.
+ * `placement: 'below'` pins the menu under its trigger (scrolling internally
+ * when the screen is short); the default adapts to the available space.
  */
 export function Dropdown<V extends string>({
   value,
@@ -82,6 +88,8 @@ export function Dropdown<V extends string>({
   testId,
   disabled,
   renderValue,
+  placement = 'auto',
+  triggerStyle,
 }: {
   value: V;
   options: ReadonlyArray<DropdownOption<V>>;
@@ -91,30 +99,56 @@ export function Dropdown<V extends string>({
   testId?: string;
   disabled?: boolean;
   renderValue?: (o: DropdownOption<V> | undefined) => ReactNode;
+  placement?: 'auto' | 'below';
+  /** Inline styles for the trigger (e.g. width in a flex row). */
+  triggerStyle?: React.CSSProperties;
 }) {
   const [open, setOpen] = useState(false);
+  /** The menu stays mounted briefly so it can animate closed. */
+  const [closing, setClosing] = useState(false);
   const [active, setActive] = useState(0);
   const [pos, setPos] = useState<MenuPlacement | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listId = useId();
   const selectedIndex = Math.max(0, options.findIndex((o) => o.value === value));
   const selected = options[selectedIndex];
   const typed = useRef({ text: '', at: 0 });
 
+  useEffect(
+    () => () => {
+      if (exitTimer.current) clearTimeout(exitTimer.current);
+    },
+    [],
+  );
+
   const close = useCallback((refocus: boolean) => {
     setOpen(false);
-    setPos(null);
+    setClosing(true);
     if (refocus) triggerRef.current?.focus({ preventScroll: true });
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+    exitTimer.current = setTimeout(() => setClosing(false), EXIT_MS);
   }, []);
+
+  const openMenu = () => {
+    if (disabled) return;
+    if (exitTimer.current) {
+      clearTimeout(exitTimer.current);
+      exitTimer.current = null;
+    }
+    setClosing(false);
+    setActive(selectedIndex);
+    setOpen(true);
+  };
 
   const place = useCallback(() => {
     const tr = triggerRef.current?.getBoundingClientRect();
     const menu = menuRef.current;
     if (!tr || !menu) return;
     const rtl = getComputedStyle(triggerRef.current as HTMLElement).direction === 'rtl';
-    setPos(placeMenu(tr, usableBounds(), menu.scrollHeight, rtl));
-  }, []);
+    setPos(placeMenu(tr, usableBounds(), menu.scrollHeight, rtl, placement === 'below'));
+  }, [placement]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -161,12 +195,6 @@ export function Dropdown<V extends string>({
       window.visualViewport?.removeEventListener('resize', onViewport);
     };
   }, [open, close, place]);
-
-  const openMenu = () => {
-    if (disabled) return;
-    setActive(selectedIndex);
-    setOpen(true);
-  };
 
   const choose = (i: number) => {
     const o = options[i];
@@ -238,6 +266,7 @@ export function Dropdown<V extends string>({
         aria-activedescendant={open ? `${listId}-${active}` : undefined}
         data-testid={testId}
         disabled={disabled}
+        style={triggerStyle}
         onClick={() => (open ? close(false) : openMenu())}
         onKeyDown={onKeyDown}
       >
@@ -246,13 +275,13 @@ export function Dropdown<V extends string>({
         </span>
         <IconDown className="dropdown-chevron" aria-hidden="true" />
       </button>
-      {open &&
+      {(open || closing) &&
         createPortal(
           <ul
             ref={menuRef}
             id={listId}
             role="listbox"
-            className={`dropdown-menu ${pos ? `is-${pos.placement}` : 'is-measuring'}`}
+            className={`dropdown-menu ${pos ? `is-${pos.placement}` : 'is-measuring'}${closing && !open ? ' is-closing' : ''}`}
             aria-labelledby={labelledBy}
             data-testid={testId ? `${testId}-menu` : undefined}
             style={pos ? { top: pos.top, left: pos.left, width: pos.width, maxHeight: pos.maxHeight } : { top: -9999, left: 0, visibility: 'hidden' }}
