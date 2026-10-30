@@ -1,6 +1,6 @@
 /**
- * On-device checks for 1.12.x: keyboard vs. the category sheet, OCR language
- * pack download + real recognition, and tab swiping with real touches.
+ * On-device checks for 1.12.x: keyboard vs. the category sheet, built-in OCR
+ * languages + real recognition, and tab swiping with real touches.
  *
  *   adb install -r app-debug.apk   # built with webContentsDebuggingEnabled
  *   npx playwright test -c playwright.device.config.ts
@@ -195,21 +195,24 @@ test('keyboard: the category sheet keeps "Ek anahtar kelimeler" and Kaydet/Vazge
   await expect(page.getByTestId('category-list').locator('.item', { hasText: 'Spor' })).toBeVisible();
 });
 
-test('OCR: Japanese pack downloads from GitHub Pages, is verified, and recognizes a real screenshot on the device', async () => {
+test('OCR: Japanese is built into the APK — selected without any download, and recognizes a real screenshot on the device', async () => {
   await go('/settings');
   await page.getByTestId('ocr-lang').click();
   await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(12);
   const t0 = Date.now();
   await page.getByTestId('ocr-lang-opt-jpn').click();
-  await expect(page.getByTestId('ocr-pack-progress')).toBeHidden({ timeout: 180_000 });
   await expect(page.getByTestId('ocr-lang')).toContainText('日本語');
+  await expect(page.getByTestId('ocr-pack-progress')).toHaveCount(0);
   await expect(page.getByTestId('ocr-pack-missing')).toHaveCount(0);
   const downloadMs = Date.now() - t0;
   screencap('ocr-japanese-selected');
-  const fetched = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => e.name).filter((n) => n.includes('ocr-packs')));
+  // Nothing comes from the network: no pack requests, no off-device hosts, no pack store.
+  const fetched = await page.evaluate(() =>
+    performance.getEntriesByType('resource').map((e) => e.name).filter((n) => n.includes('ocr-packs') || !n.startsWith(location.origin)),
+  );
   const stored = await page.evaluate(async () => (await caches.keys()).filter((k) => k.includes('ocrpacks')));
-  expect(fetched.some((u) => u.startsWith('https://firatnexus.github.io/shotrova/ocr-packs/jpn'))).toBe(true);
-  expect(stored.length).toBe(1);
+  expect(fetched).toEqual([]);
+  expect(stored).toEqual([]);
 
   await go('/');
   const b64 = readFileSync('tests/fixtures/ocr/jpn.png').toString('base64');

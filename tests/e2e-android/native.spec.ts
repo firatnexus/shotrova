@@ -26,6 +26,27 @@ test('A1 APK assets: no service worker, real OCR from the bundled (decompressed)
   expect(ocrRequests.some((p) => p.endsWith('.gz'))).toBe(false);
 });
 
+test('A1b APK assets: every OCR language is built in — Japanese recognizes offline from ocr/lang, nothing is downloaded', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', (r) => requests.push(r.url()));
+  await openNative(page, '/', [], true);
+  await page.evaluate(() => (location.hash = '#/settings'));
+  await page.getByTestId('ocr-lang').click();
+  await page.getByTestId('ocr-lang-opt-jpn').click();
+  await expect(page.getByTestId('ocr-lang')).toContainText('日本語');
+  await expect(page.getByTestId('ocr-pack-progress')).toHaveCount(0);
+  await page.evaluate(() => (location.hash = '#/'));
+  await importFixtures(page, ['ocr/jpn.png']);
+  const [img] = await waitForOcr(page, 1);
+  expect(img?.ocrStatus).toBe('done');
+  expect(img?.ocrText).toContain('東京タワー');
+  const paths = requests.map((u) => new URL(u).pathname);
+  expect(paths.some((p) => p.endsWith('/ocr/lang/jpn.traineddata'))).toBe(true);
+  expect(paths.some((p) => p.includes('ocr-packs'))).toBe(false);
+  const origin = new URL(page.url()).origin;
+  expect(requests.filter((u) => /^https?:/.test(u) && !u.startsWith(origin))).toEqual([]);
+});
+
 test('A2 Share -> Shotrova: images staged by Android are imported (cold start and while running)', async ({ page }) => {
   // Cold start: a share intent was already staged before the web app loaded.
   await openNative(page, '/', [{ path: '/data/cache/inbox/1-invoice_tr.png', name: 'Screenshot_fatura.png', mime: 'image/png', lastModified: Date.now() }]);
@@ -80,7 +101,7 @@ test('A4 Save original and export backup through the Android "Save as" dialog', 
   expect(zip.slice(0, 2)).toBe('PK');
   expect(zip.length).toBeGreaterThan(readFileSync(FX('recipe_tr.png')).length);
   // Native-only settings copy
-  await expect(page.getByText(/Türkçe ve İngilizce uygulamanın içinde gelir/)).toBeVisible();
+  await expect(page.getByText(/Tüm yazı tanıma dilleri uygulamanın içinde gelir/)).toBeVisible();
   await expect(page.getByText(/Android uygulaması \(APK\) olarak kullanıyorsun/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Çevrimdışı için indir' })).toHaveCount(0);
 });

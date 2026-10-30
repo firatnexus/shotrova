@@ -28,9 +28,9 @@ android {
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            // `ocr-packs/` holds the ten optional OCR languages (~17 MB). They are
-            // installed on demand inside the app (src/ocr/packs.ts), so the APK
-            // only ships Turkish + English.
+            // `ocr-packs/` (the web build's downloadable packs) is skipped here;
+            // the same files are packaged under `ocr/lang/` instead by the
+            // copyOcrPacks task below, so every OCR language is built into the APK.
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:!<dir>ocr-packs'
         }
     }
@@ -60,6 +60,24 @@ android {
         }
     }
 }
+
+// Every OCR language ships inside the APK, next to Turkish + English in
+// assets/public/ocr/lang, so the app never downloads language data (it used to
+// fetch the ten optional packs from the web version, which is no longer
+// published). The files come from public/ocr-packs, written by
+// scripts/copy-ocr-assets.mjs during `npm run build`.
+def ocrPacksSrc = file('../../public/ocr-packs')
+def ocrPacksAssets = layout.buildDirectory.dir('generated/ocrPackAssets').get().asFile
+def copyOcrPacks = tasks.register('copyOcrPacks', Copy) {
+    from(ocrPacksSrc) { include '*.traineddata.gz' }
+    into(new File(ocrPacksAssets, 'public/ocr/lang'))
+    doFirst {
+        def n = ocrPacksSrc.exists() ? ocrPacksSrc.listFiles().count { it.name.endsWith('.traineddata.gz') } : 0
+        if (n < 10) throw new GradleException("Expected 10 OCR packs in ${ocrPacksSrc}, found ${n}. Run `npm run build` first.")
+    }
+}
+android.sourceSets.main.assets.srcDirs += ocrPacksAssets
+preBuild.dependsOn copyOcrPacks
 
 repositories {
     flatDir{

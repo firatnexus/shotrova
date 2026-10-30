@@ -10,9 +10,11 @@ import manifest from './packs.manifest.json';
  * APK assets). The other ten languages are "packs": the same Tesseract
  * `4.0.0_best_int` models, installed on demand so the APK stays small.
  *
- *  - Source: the app's own static files — same origin on the web,
- *    the project's GitHub Pages site in the Android app. Only the model file is
- *    downloaded; images never leave the device.
+ *  - Android app: every language is built into the APK (assets/public/ocr/lang,
+ *    see android/app/build.gradle copyOcrPacks), so isBundled() is true for all
+ *    of them and nothing is ever downloaded.
+ *  - Web: packs are the app's own same-origin static files. Only the model
+ *    file is downloaded; images never leave the device.
  *  - Integrity: every download is checked against the size + SHA-256 recorded
  *    at build time (packs.manifest.json) before it is stored.
  *  - Storage: Cache Storage (`<prefix>-ocrpacks-v1`), read back as bytes and
@@ -72,8 +74,19 @@ export function ocrLangInfo(code: string): OcrLangInfo | undefined {
   return OCR_LANGS.find((l) => l.code === code);
 }
 
+/** Whether a language ships with this build (no install step). In the Android app, all of them do. */
 export function isBundled(code: string): boolean {
-  return ocrLangInfo(code)?.bundled === true;
+  const info = ocrLangInfo(code);
+  return info !== undefined && (info.bundled || isNativeApp());
+}
+
+/**
+ * Android: language packs downloaded by earlier versions (before every
+ * language was built into the APK) are no longer used — free that space.
+ */
+export async function removeLegacyPackStore(): Promise<void> {
+  if (!isNativeApp() || typeof caches === 'undefined') return;
+  await caches.delete(CACHE_NAME).catch(() => false);
 }
 
 /** Splits a configuration such as 'jpn+eng' into its language codes. */
@@ -177,7 +190,6 @@ export function setPackStore(s: PackStore | null): void {
 
 /** Where a pack is downloaded from (never user data — just the public model file). */
 export function packUrl(code: OcrLangCode): string {
-  if (isNativeApp()) return `${BRAND.webUrl}ocr-packs/${code}.traineddata.gz`;
   const base = typeof location !== 'undefined' ? location.href : 'http://localhost/';
   return new URL(`${import.meta.env.BASE_URL}ocr-packs/${code}.traineddata.gz`, base).href;
 }

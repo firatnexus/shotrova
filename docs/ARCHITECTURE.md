@@ -48,9 +48,12 @@ tests/e2e              Web Playwright tests
 tests/e2e-android      APK web-shell Playwright tests
 ```
 
-## OCR language packs (1.12.0)
+## OCR language packs (1.12.0; Android: all built in since 1.12.3)
 
-Turkish and English models ship inside the app (`public/ocr/lang`). The other 10 models come from the `@tesseract.js-data/*` packages and are copied at build time to `public/ocr-packs/<code>.traineddata.gz`; they are deployed with the web app on GitHub Pages but excluded from the APK (Gradle `ignoreAssetsPattern`) and from the service-worker precache. When the user selects such a language, `ocr/packs.ts` downloads the file once, checks size and SHA-256 against `packs.manifest.json`, and stores it in IndexedDB; the worker then receives it in memory. Only model files are downloaded — images never leave the device. A failed or corrupt download leaves the previous language active.
+Turkish and English models ship inside the app (`public/ocr/lang`). The other 10 models come from the `@tesseract.js-data/*` packages and are copied at build time to `public/ocr-packs/<code>.traineddata.gz`, and the size and SHA-256 of each is recorded in `packs.manifest.json`.
+
+- **Android app (since 1.12.3):** all 12 languages are built into the APK. The Gradle task `copyOcrPacks` (`android/app/build.gradle`) packages the packs under `assets/public/ocr/lang/` next to Turkish and English, and `isBundled()` returns true for every language in the native app. Tesseract then loads them by name from `langPath`, exactly like Turkish and English, so nothing is downloaded and the app does not depend on the web version. Packs stored by older versions are deleted at startup (`removeLegacyPackStore`).
+- **Web build:** when the user selects a non-bundled language, `ocr/packs.ts` downloads the same-origin file once, checks its size and SHA-256, and stores it (Cache Storage); the worker then receives it in memory. Only model files are downloaded and images never leave the device. A failed or corrupt download leaves the previous language active.
 
 tesseract.js 7.0.0 joins `l.data` instead of `l.code` when languages are passed in memory, which breaks every downloaded pack. `scripts/tesseract-fix.mjs` patches the shipped `worker.min.js` (idempotent; the build fails if the pattern is not found exactly once, so an upgrade forces a re-check).
 

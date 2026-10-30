@@ -332,7 +332,7 @@
   "set.wipe_body": "{n} images, textes reconnus, catégories personnalisées et règles apprises seront définitivement supprimés de cet appareil. Les paramètres sont conservés.",
   "set.wiped": "Toutes les données supprimées",
   "detail.save_failed": "Impossible d'enregistrer",
-  "set.ocr_bundled": "Le turc et l'anglais sont intégrés ; les autres langues sont téléchargées une fois lorsque vous les choisissez. La reconnaissance s'exécute hors ligne et vos images ne quittent jamais l'appareil.",
+  "set.ocr_bundled": "Toutes les langues de reconnaissance sont intégrées à l'app : rien n'est téléchargé. La reconnaissance fonctionne hors ligne et vos images ne quittent jamais l'appareil.",
   "set.storage_note_app": "Les données sont conservées dans le stockage privé de cette application sur l'appareil et ne sont pas sauvegardées sur le cloud. La désinstallation de l'application ou « Effacer les données » efface tout, alors sauvegardez régulièrement.",
   "set.install_app": "Vous utilisez Shotrova en tant qu'application Android (APK). Dans votre galerie ou n'importe quelle application, choisissez une image → Partager → Shotrova.",
   "set.install_apk": "Au lieu de la version Web, vous pouvez également installer l'application Android (APK) :",

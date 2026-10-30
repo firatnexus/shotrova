@@ -2,10 +2,10 @@
 // OCR runs fully from our own origin (no CDN requests).
 //
 //  - public/ocr/lang/     Turkish + English: bundled everywhere (web precache-able, APK assets).
-//  - public/ocr-packs/    The ten optional languages. Served by the web build and
-//                         GitHub Pages, excluded from the APK (see
-//                         android/app/build.gradle ignoreAssetsPattern) and
-//                         installed on demand into local storage (src/ocr/packs.ts).
+//  - public/ocr-packs/    The ten optional languages. Downloaded on demand by the
+//                         web build (src/ocr/packs.ts); packaged into the APK
+//                         under ocr/lang/ by the Gradle task copyOcrPacks
+//                         (android/app/build.gradle), so the app has them built in.
 //
 // It also (re)writes src/ocr/packs.manifest.json with the size and SHA-256 of
 // every pack, which the app uses to verify a download before storing it.
