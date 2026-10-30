@@ -15,7 +15,9 @@
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- Ink mark + indigo spark, the same size and geometry as the web launch
+             screen's mark (scripts/make-icons.mjs), so the hand-off keeps it still. -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_splash_light</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
         <item name="android:windowSplashScreenAnimationDuration">250</item>
         <!-- System-bar icons follow the launch background: dark on paper. -->

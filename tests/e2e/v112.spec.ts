@@ -380,7 +380,8 @@ test('every date and sort option applies through the dropdown menus', async ({ p
   // Relevance with a query ranks the strong match first.
   await page.getByTestId('search').fill('fatura');
   await select('sort', 'relevance');
-  expect((await titles())[0]).toBe('invoice_tr');
+  // The search is debounced: wait for the ranked result instead of reading once.
+  await expect.poll(async () => (await titles())[0]).toBe('invoice_tr');
   await page.getByTestId('search').fill('');
 
   // Direct menu switching: tapping the other trigger closes the open menu.

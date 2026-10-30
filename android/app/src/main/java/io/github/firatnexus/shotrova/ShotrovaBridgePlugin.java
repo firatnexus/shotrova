@@ -139,6 +139,59 @@ public class ShotrovaBridgePlugin extends Plugin {
         }
     }
 
+    /** Offset (CSS px) from the WebView centre to the window centre, where
+     *  the native splash draws its icon; NaN until the WebView is laid out. */
+    private static volatile float launchDx = Float.NaN;
+    private static volatile float launchDy = Float.NaN;
+
+    /**
+     * Synchronous JS interface read by index.html's inline script before the
+     * launch screen first paints. The native splash centres its icon in the
+     * whole window, but the WebView sits inside the system-bar margins
+     * (MainActivity.installKeyboardAwareInsets), so its centre is a few dp
+     * lower. The web launch screen shifts its mark by this offset so the mark
+     * stays exactly where the native icon was when the splash is removed.
+     */
+    static final class LaunchGeometry {
+        @android.webkit.JavascriptInterface
+        public String markOffset() {
+            float dx = launchDx;
+            float dy = launchDy;
+            return Float.isNaN(dx) || Float.isNaN(dy) ? "" : dx + "," + dy;
+        }
+    }
+
+    private void installLaunchGeometry() {
+        launchDx = Float.NaN;
+        launchDy = Float.NaN;
+        android.app.Activity activity = getActivity();
+        android.webkit.WebView wv = getBridge() == null ? null : getBridge().getWebView();
+        if (activity == null || wv == null) return;
+        // Must be added before the bridge loads the page (load() runs first).
+        wv.addJavascriptInterface(new LaunchGeometry(), "ShotrovaLaunch");
+        View root = activity.getWindow().getDecorView();
+        View.OnLayoutChangeListener l = (v, a, b, c, d, e, f, g, h) -> updateLaunchGeometry(activity, wv, root);
+        wv.addOnLayoutChangeListener(l);
+        root.addOnLayoutChangeListener(l);
+        updateLaunchGeometry(activity, wv, root);
+    }
+
+    private static void updateLaunchGeometry(android.app.Activity activity, android.webkit.WebView wv, View root) {
+        if (wv.getWidth() == 0 || wv.getHeight() == 0 || root.getWidth() == 0 || root.getHeight() == 0) return;
+        int[] w = new int[2];
+        int[] r = new int[2];
+        wv.getLocationOnScreen(w);
+        root.getLocationOnScreen(r);
+        float density = activity.getResources().getDisplayMetrics().density;
+        float dx = ((r[0] + root.getWidth() / 2f) - (w[0] + wv.getWidth() / 2f)) / density;
+        float dy = ((r[1] + root.getHeight() / 2f) - (w[1] + wv.getHeight() / 2f)) / density;
+        if (dx != launchDx || dy != launchDy) {
+            launchDx = dx;
+            launchDy = dy;
+            android.util.Log.i(LAUNCH_TAG, "launch mark offset dx=" + dx + " dy=" + dy + " elapsedMs=" + elapsedMs());
+        }
+    }
+
     /**
      * Whether the retained splash view has already been removed. The web layer
      * checks this when it starts listening for the splashRemoved event, so a
@@ -542,6 +595,7 @@ public class ShotrovaBridgePlugin extends Plugin {
         LAUNCHED_AT = android.os.SystemClock.uptimeMillis();
         MAIN.removeCallbacks(SPLASH_TIMEOUT);
         MAIN.postDelayed(SPLASH_TIMEOUT, MAX_SPLASH_MS);
+        installLaunchGeometry();
         try {
             deleteLauncher = getBridge().registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),

@@ -4,7 +4,7 @@ import { App } from './ui/App';
 import { applyTheme, init } from './lib/actions';
 import { getState, subscribe } from './lib/store';
 import './ui/styles.css';
-import { installNativeBackHandler, isNativeApp } from './native/bridge';
+import { installNativeBackHandler, isNativeApp, nativeSplashRemoved, onNativeSplashRemoved } from './native/bridge';
 
 if (isNativeApp()) {
   document.documentElement.classList.add('native-app', 'native');
@@ -13,6 +13,14 @@ if (isNativeApp()) {
   // (The public website keeps the browser's zoom and accessibility intact.)
   const vp = document.querySelector('meta[name="viewport"]');
   vp?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+  // The launch mark holds still through the native splash hand-off; the
+  // wordmark rises in beneath it once the splash has actually been removed.
+  const reveal = () => document.getElementById('boot')?.classList.add('is-revealed');
+  const stopReveal = onNativeSplashRemoved(() => {
+    reveal();
+    stopReveal();
+  });
+  void nativeSplashRemoved().then((r) => r && reveal());
 }
 
 void init();
