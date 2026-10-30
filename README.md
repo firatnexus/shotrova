@@ -2,33 +2,40 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="public/icons/logo-dark.svg">
-  <img src="public/icons/logo.svg" width="104" height="104" alt="Shotrova logo">
+  <img src="public/icons/logo.svg" width="96" height="96" alt="Shotrova logo">
 </picture>
 
-# shotrova
+# Shotrova
 
-**Your screenshots, organized. All findable, all yours.**
+### Every screenshot, found in a second.
 
-Shotrova reads the Turkish and English text in your screenshots on your device, sorts them into categories<br>
-and finds them in seconds by what they say. No server, no account, no tracking.
-
-[![Release](https://img.shields.io/github/v/release/firatnexus/shotrova?label=release&color=222834&labelColor=14171f&style=flat-square)](https://github.com/firatnexus/shotrova/releases/latest)
-[![CI](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/ci.yml?branch=main&label=web%20ci&color=373f51&labelColor=14171f&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/ci.yml)
-[![Android](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/android.yml?label=android%20apk&color=222834&labelColor=14171f&style=flat-square)](https://github.com/firatnexus/shotrova/actions/workflows/android.yml)
-[![License](https://img.shields.io/github/license/firatnexus/shotrova?label=license&color=1d7a3a&labelColor=14171f&style=flat-square)](LICENSE)
-![Android 8.0+](https://img.shields.io/badge/android-8.0%2B-677084?labelColor=14171f&style=flat-square)
-![Languages](https://img.shields.io/badge/languages-TR%20%2B%20EN-677084?labelColor=14171f&style=flat-square)
-
-[**Download the Android APK**](https://github.com/firatnexus/shotrova/releases/latest) &nbsp;·&nbsp;
-[**Open the web app**](https://firatnexus.github.io/shotrova/) &nbsp;·&nbsp;
-[Release notes](docs/RELEASE_NOTES.md) &nbsp;·&nbsp;
-[Test results](docs/TESTING.md)
-
-> The web version is temporarily paused: it stays online at v1.12.2 but is not updated. See [WEB-SUSPENSION.md](WEB-SUSPENSION.md).
+**Snap it, forget it, find it.** Shotrova reads the text in your screenshots right on your phone,<br>
+files each one into the right category and brings it back the moment you type what it said.<br>
+Recipes, boarding passes, Wi-Fi passwords, invoices, chats — all searchable, all yours.
 
 <br>
 
-<img src="docs/screenshots/readme-hero.png" alt="Shotrova: desktop home, mobile image detail and dark theme" width="100%">
+[![Latest release](https://img.shields.io/github/v/release/firatnexus/shotrova?label=latest&color=4d49fc&labelColor=1b1a3a&style=for-the-badge&logo=android&logoColor=white)](https://github.com/firatnexus/shotrova/releases/latest)
+[![Android APK](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/android.yml?branch=main&label=apk%20build&color=2f9e44&labelColor=1b1a3a&style=for-the-badge)](https://github.com/firatnexus/shotrova/actions/workflows/android.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/ci.yml?branch=main&label=tests&color=2f9e44&labelColor=1b1a3a&style=for-the-badge)](https://github.com/firatnexus/shotrova/actions/workflows/ci.yml)
+[![On a real Android 15 emulator](https://img.shields.io/github/actions/workflow/status/firatnexus/shotrova/device-test.yml?branch=main&label=android%2015%20device%20test&color=2f9e44&labelColor=1b1a3a&style=for-the-badge)](https://github.com/firatnexus/shotrova/actions/workflows/device-test.yml)
+
+![Android 8.0+](https://img.shields.io/badge/android-8.0%2B-3ddc84?style=flat-square&logo=android&logoColor=white&labelColor=1b1a3a)
+![12 OCR languages](https://img.shields.io/badge/OCR-12%20languages%20built%20in-ff922b?style=flat-square&labelColor=1b1a3a)
+![12 UI languages](https://img.shields.io/badge/UI-12%20languages-e2448f?style=flat-square&labelColor=1b1a3a)
+![100% on-device](https://img.shields.io/badge/100%25-on--device-7a3cf0?style=flat-square&labelColor=1b1a3a)
+![No account](https://img.shields.io/badge/no%20account-no%20tracking-1971c2?style=flat-square&labelColor=1b1a3a)
+[![License: MIT](https://img.shields.io/github/license/firatnexus/shotrova?color=868e96&style=flat-square&labelColor=1b1a3a)](LICENSE)
+
+<br>
+
+<a href="https://github.com/firatnexus/shotrova/releases/latest"><img src="docs/download-apk.svg" width="340" alt="Download the APK"></a>
+
+<sub>Free · signed APK · about 73 MB with all 12 recognition languages inside · <a href="docs/RELEASE_NOTES.md">What's new</a> · <a href="docs/TESTING.md">Test results</a></sub>
+
+<br><br>
+
+<img src="docs/banner.svg" alt="Typing “pasta recipe”, “boarding gate” and “wifi password” instantly finds the matching screenshot" width="100%">
 
 </div>
 
@@ -36,149 +43,133 @@ and finds them in seconds by what they say. No server, no account, no tracking.
 
 ## Contents
 
-- [Why Shotrova](#why-shotrova)
-- [Screenshots](#screenshots)
+- [Why you'll love it](#why-youll-love-it)
+- [See it in action](#see-it-in-action)
+- [What's new in 1.13.0](#whats-new-in-1130)
 - [Features](#features)
 - [How it works](#how-it-works)
-- [Design language](#design-language)
-- [Android app](#android-app)
-- [Installation](#installation)
+- [Install](#install)
+- [Permissions](#permissions)
+- [Design](#design)
 - [Development](#development)
 - [Project structure](#project-structure)
-- [Test status](#test-status)
-- [Limitations](#limitations)
-- [Version history](#version-history)
+- [Quality and tests](#quality-and-tests)
+- [Good to know](#good-to-know)
 - [License](#license)
 
-## Why Shotrova
+## Why you'll love it
 
-Hundreds of screenshots pile up on a phone: a recipe, an invoice, an address, a chat, a settings screen. In the gallery they all look the same, and finding the one you need means scrolling through them one by one. Shotrova turns that pile into a searchable notebook.
+Hundreds of screenshots pile up on a phone: a recipe for the weekend, a boarding pass, the café Wi-Fi, an invoice, a word you wanted to learn. In the gallery they all look alike. Shotrova turns that pile into a notebook that searches itself.
 
 | | |
 |---|---|
-| **Reads on your device** | Real OCR (tesseract.js) runs in the browser or in the app; images are never uploaded to a server. |
-| **Organizes itself** | 11 built-in categories, a confidence score and a review queue for images it is unsure about. It learns rules from your corrections. |
-| **Finds by text** | Searches like "pasta recipe" or "address I saved last month"; tolerant of Turkish characters, with highlighted matches. |
-| **Stays yours** | Data lives in IndexedDB on the device. Backups are ZIP or JSON files you keep. |
-| **Two forms, one codebase** | A native Android app (Capacitor) and an installable web app (PWA). |
+| **It reads for you** | Real text recognition runs on the phone in 12 languages — even offline, even in airplane mode. |
+| **It tidies up by itself** | 11 ready-made categories, a confidence score for every guess and a small review queue. Correct it once and it learns. |
+| **It finds things the way you remember them** | Type "boarding gate", "pasta recipe" or "address I saved last month" and the right screenshot pops up, matches highlighted. |
+| **It stays yours** | No server, no account, no analytics. Everything lives on your phone; backups are files you keep. |
+| **It works quietly in the background** | Turn on automatic capture and every new screenshot is saved, titled and filed — with a friendly notification. |
 
-## Screenshots
+## See it in action
 
-<table>
-  <tr>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-light-welcome.png" alt="First launch"><br><sub><b>First launch</b> · light</sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-light-dashboard.png" alt="Home"><br><sub><b>Home</b> · light</sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-dark-dashboard.png" alt="Home, dark"><br><sub><b>Home</b> · dark</sub></td>
-    <td width="25%" align="center"><img src="docs/screenshots/mobile-dark-search.png" alt="Search"><br><sub><b>Search</b> · dark</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/mobile-light-detail.png" alt="Image detail"><br><sub><b>Image detail</b> · light</sub></td>
-    <td align="center"><img src="docs/screenshots/mobile-dark-categories.png" alt="Categories"><br><sub><b>Categories</b> · dark</sub></td>
-    <td align="center"><img src="docs/screenshots/mobile-light-settings-ai.png" alt="AI settings"><br><sub><b>AI settings</b> · light</sub></td>
-    <td align="center"><img src="docs/img/boot-light.png" alt="Splash screen"><br><sub><b>Splash</b> · light</sub></td>
-  </tr>
-</table>
+<div align="center">
+<img src="docs/screenshots/readme-hero.png" alt="Shotrova on Android: home, search and image detail" width="100%">
+</div>
+
+<br>
 
 <table>
   <tr>
-    <td width="33%" align="center"><img src="docs/screenshots/desktop-light-dashboard.png" alt="Desktop home"><br><sub><b>Desktop</b> · home</sub></td>
-    <td width="33%" align="center"><img src="docs/screenshots/desktop-light-search.png" alt="Desktop search"><br><sub><b>Desktop</b> · search</sub></td>
-    <td width="33%" align="center"><img src="docs/screenshots/desktop-dark-detail.png" alt="Desktop detail, dark"><br><sub><b>Desktop</b> · detail, dark</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/01-welcome-light.png" alt="Welcome screen"><br><sub><b>A warm welcome</b><br>light theme</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/02-home-light.png" alt="Home"><br><sub><b>Your home</b><br>everything at a glance</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/03-images-light.png" alt="Images grid"><br><sub><b>All images</b><br>filters, dates, sorting</sub></td>
+    <td width="25%" align="center"><img src="docs/screenshots/04-detail-light.png" alt="Image detail"><br><sub><b>Detail</b><br>share, save, edit the text</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/05-home-dark.png" alt="Home, dark theme"><br><sub><b>Dark theme</b><br>easy on the eyes</sub></td>
+    <td align="center"><img src="docs/screenshots/06-search-dark.png" alt="Search for boarding gate"><br><sub><b>Search</b><br>"boarding gate" → found</sub></td>
+    <td align="center"><img src="docs/screenshots/07-categories-dark.png" alt="Categories"><br><sub><b>Categories</b><br>rename, recolor, reorder</sub></td>
+    <td align="center"><img src="docs/screenshots/09-ocr-languages-light.png" alt="OCR languages"><br><sub><b>12 languages</b><br>all built in</sub></td>
   </tr>
 </table>
 
-Screenshots show the English UI. Turkish is the default language and can be switched in Settings.
+<sub>Captured automatically on a Pixel 6 emulator running Android 15 by the <a href="tests/device/screenshots.spec.ts">device test</a>, with the real APK and real on-device OCR. The images inside are demo screenshots from <code>scripts/make-showcase.mjs</code>. Turkish is the default app language; the English UI is shown here.</sub>
+
+## What's new in 1.13.0
+
+- **One app, made for Android.** Shotrova is now purely an Android app, so Settings is shorter and shows only what matters on your phone.
+- **All 12 recognition languages ship inside the app.** Pick any of them and it just works — offline, from the first launch, nothing to download.
+- **Old "language pack missing" notes turn into "ready".** Tap Retry and the screenshot is recognised with the built-in language.
+- **Updating keeps everything** — images, categories, rules and settings.
+
+Full notes: [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
 
 ## Features
 
-### Capture and import
+### Capture without thinking about it
 
-- **Automatic screenshot capture (Android, opt-in):** once enabled, the app detects new screenshots by itself (MediaStore + WorkManager background work, no persistent notification), copies them into its own storage so they survive gallery deletion and, with your explicit consent, analyses them with your own AI key to produce a title and category. Each capture posts a notification like "Saved to Shopping as 'Invoice summary'"; tapping it opens the image.
-- **Honest status card:** home shows "Automatic capture: On / Off / Missing permission / Battery restricted" with a one-tap fix for each problem, plus a step-by-step "Background work settings" guide for Xiaomi/HyperOS.
-- **Leaves your history alone:** your existing screenshot archive is never imported on first enable; only new screenshots are captured. Partial media access (Android 14+) is supported.
-- **Import methods:** multi-select from the system photo picker, file picker, drag and drop, clipboard (Ctrl+V or "Paste from clipboard") and the Android share sheet (**Share → Shotrova**).
-- **Safe file handling:** JPEG, PNG and WebP; files are validated by their magic bytes, duplicates are detected with SHA-256, and progress and per-file errors are shown.
+- **Automatic capture (opt-in):** new screenshots are detected in the background (MediaStore + WorkManager, no persistent notification), copied into the app so they survive a gallery clean-up and filed into a category. Each one gets a notification like "Saved to Shopping as 'Invoice summary'"; tap it to open the image.
+- **Honest status card:** Home shows "On / Off / Missing permission / Battery restricted" with a one-tap fix, plus a step-by-step guide for Xiaomi/HyperOS background settings.
+- **Your history stays untouched:** only new screenshots are captured; partial media access (Android 14+) is supported.
+- **Every way in:** **Share → Shotrova** from any app, the system photo picker (multi-select), the file picker, the clipboard and drag and drop.
+- **Safe by default:** JPEG, PNG and WebP are checked by their real file signature, duplicates are caught with SHA-256, and every file reports its progress.
 
-### Reading and organizing
+### Read, sort, remember
 
-- **On-device OCR in 12 languages:** English, Turkish, Spanish, French, German, Portuguese, Italian, Hindi, Arabic, Chinese (Simplified), Japanese and Russian, optionally combined with English. Turkish and English are built in; the other 10 language files are downloaded once on demand (SHA-256 verified) and stay on the device — images are never uploaded. Every image shows its status (queued, processing, done, no text, error), failures can be retried and unchanged images are never processed twice. The recognized text is editable; the original image is never modified. Background analysis of automatic captures on Android uses on-device ML Kit text recognition.
-- **Categories:** 11 defaults (Recipes, Shopping, Places and Addresses, Travel, Documents and Receipts, Conversations, Technology, Learning, Entertainment, Games, Uncategorized). Create, rename, recolor, reorder and delete.
-- **Automatic categorization:** keyword-based with a confidence score. Suggestions below the threshold go to a review queue; your corrections become **visible, deletable** "word → category" rules.
-- **Entities:** links, e-mails, phone numbers and dates found in the text become one-tap chips: copy, open, call. On the Images screen, "Copy text" copies the text of every selected image at once.
+- **On-device OCR in 12 languages:** English, Turkish, Spanish, French, German, Portuguese, Italian, Hindi, Arabic, Chinese (Simplified), Japanese and Russian — optionally combined with English. All are built into the APK. Each image shows its status (queued, reading, done, no text, error); failures can be retried and nothing is processed twice. Background analysis of automatic captures uses on-device ML Kit.
+- **11 categories:** Recipes, Shopping, Places and Addresses, Travel, Documents and Receipts, Conversations, Technology, Learning, Entertainment, Games and Uncategorized. Create, rename, recolor, reorder and delete.
+- **Smart sorting that learns:** keyword-based guesses with a confidence score; unsure ones go to review, and your corrections become visible, deletable "word → category" rules.
+- **One-tap details:** links, e-mails, phone numbers and dates in the text become chips you can copy, open or call. "Copy text" grabs the text of every selected image at once.
 
-### Optional AI
+### Find it again
 
-- **Any provider:** OpenAI, Anthropic (Claude), Google Gemini, OpenRouter or your own OpenAI-compatible endpoint. Each provider keeps its own key, model and base URL; keys never end up in backups.
-- **Vision off (default):** only the on-device OCR text (up to 2000 characters) and category names are sent; the image never leaves the device.
-- **Vision on (explicit opt-in):** the image is sent to the provider and the model extracts a **clean title, category and the full text**. The raw device OCR is stored in a separate field so the two can be compared. You can also ask free-form questions about an image ("what is this?").
-- **AI text editor:** "Fix with AI" repairs OCR garbling and formatting, "Add emojis" adds tasteful emojis. Always applied after a preview; manual edits are never overwritten silently.
-- **Per-image exclusion:** "Don't send to AI" keeps a single image out of AI entirely.
+- **Text search** across recognised text, title, notes, tags, category and file name. Phrases like "last month" and category names become filters, Turkish characters are handled gracefully, and matches are highlighted.
+- **Animated search hints:** 25 example searches type themselves out in your language and step aside the moment you tap.
+- **Swipe between tabs:** Home, Images, Categories and Settings follow your finger.
 
-### Search and privacy
+### Optional AI, your rules
 
-- **Text-based search** (not semantic) over OCR text, title, note, tags, category and file name. Phrases like "last month" and category names become filters; a small TR↔EN synonym table helps across languages.
-- **Privacy:** no server, no account, no analytics. Your images, OCR text and everything you do stay in IndexedDB on the device; backups (ZIP with images, or JSON) are files you export yourself. The single exception is the **optional** AI feature you enable with your own key: with image vision off, only the OCR text (≤2000 chars) and category names are sent to your chosen provider; with vision on (explicit opt-in), the image is sent too. ZIP (with images) or JSON backup and validated restore.
-- **12 interface languages** with a custom language menu; Arabic uses a full right-to-left layout. Turkish and English are reviewed; the other 10 were machine-assisted.
-- **Swipe navigation:** swipe between Home, Images, Categories and Settings (no wrap-around; chips, carousels, dialogs and text fields keep their own gestures).
-- **Animated search hint:** 25 example searches typed out in the app language; stops on focus and never touches your input.
-- **Accessibility:** full keyboard use, visible focus ring, reduced-motion support, WCAG AA contrast, skeleton loading, empty states, toasts and confirmation dialogs.
+- **Bring your own key:** OpenAI, Anthropic (Claude), Google Gemini, OpenRouter or any OpenAI-compatible endpoint. Keys are encrypted with Android Keystore and never end up in backups.
+- **Vision off (default):** only the recognised text (up to 2000 characters) and category names are sent; the image stays on the phone.
+- **Vision on (your choice):** the model writes a clean title, picks a category and extracts the full text; you can also ask questions about an image. The original OCR is kept alongside for comparison.
+- **AI text editor:** "Fix with AI" and "Add emojis", always with a preview — manual edits are never overwritten.
+- **Per-image opt-out:** "Don't send to AI" keeps any single image private.
+
+### Made for everyone
+
+- **12 interface languages** with a full right-to-left Arabic layout.
+- **Accessible:** reduced-motion support, visible focus, WCAG AA contrast, clear empty states and confirmations.
+- **Native feel:** a single seamless launch screen, system bars that follow the theme, no accidental pinch zoom, and a back button that closes dialogs first.
+- **Backups you own:** ZIP (with images) or JSON, saved through Android's **Save as** dialog, and a validated restore with merge or replace.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    A[Screenshot] -->|auto capture, share, pick, paste| B[Validation + SHA-256]
-    B --> C[(IndexedDB)]
-    C --> D[On-device OCR<br/>tesseract.js TR+EN]
-    D --> E{Categorization}
-    E -->|high confidence| F[Category]
-    E -->|low confidence| G[Review queue]
-    D -. optional .-> H[AI provider<br/>text only or vision]
+    A[New screenshot] -->|auto capture, share, pick, paste| B[Check + SHA-256]
+    B --> C[(On-phone storage)]
+    C --> D[On-device OCR<br/>12 languages]
+    D --> E{Categorize}
+    E -->|confident| F[Category]
+    E -->|unsure| G[Review queue]
+    D -. optional .-> H[Your AI provider]
     H -.-> F
-    F --> I[Text-based search]
-    G -->|correction| J[Learned rules]
+    F --> I[Instant text search]
+    G -->|your correction| J[Learned rules]
     J --> E
 ```
 
-Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · User flows: [FLOWS.md](FLOWS.md)
+Under the hood: React + TypeScript in the Android WebView via Capacitor 7, tesseract.js (WASM) with the 12 language models bundled, IndexedDB storage and a Java plugin for capture, sharing, Save as and the clipboard. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · User flows: [FLOWS.md](FLOWS.md)
 
-## Design language
+## Install
 
-Since 1.11.0 Shotrova looks like a **white gallery wall with a single indigo spotlight** (Figma-inspired): a pure white canvas of black text and mist-gray hairlines where the only saturated color is Electric Indigo — reserved for the primary action, links and active states. The interface stays achromatic on purpose; the screenshots are the color.
+1. On your phone, open the [latest release](https://github.com/firatnexus/shotrova/releases/latest) and download `shotrova-<version>.apk` (signed, Android 8.0+ / API 26+).
+2. Optionally check the file against `SHA256SUMS.txt` on the same page.
+3. Open the APK; if Android asks, allow "Install unknown apps" for your browser or file manager.
+4. Say hello to Shotrova — turning on automatic capture is entirely up to you.
 
-| Element | Light theme | Dark theme | Used for |
-|---|---|---|---|
-| Paper | `#ffffff` | `#0a0a0a` | The whole canvas |
-| Ink | `#000000` | `#ffffff` | Text, headings, icon strokes |
-| Hairline | `#e2e2e2` | `#262626` | Card borders, dividers |
-| Mist | `#f0f0f1` | `#141414` | Secondary surfaces, inputs, chips |
-| Electric Indigo | `#4d49fc` | `#8f8cff` (links on dark) | The single primary action, links, focus rings |
-| Floating shadow | `0 24px 70px` @ 10% black | 50% black | The hero card and overlays only |
+Updates install over the previous version and keep all your data. The app is not on Google Play.
 
-- **Typography:** Inter (variable, OFL, bundled offline with full Turkish support) stands in for figmaSans: 16px minimum body size, weight-driven hierarchy — headings at 520, and an ultra-light whisper headline (weight 340, -0.02em tracking) on the home hero.
-- **Radii:** a strict four-tier curvature language — 2px fine UI (badges, dividers), 8px ghost buttons and inputs, 16px cards, 50px pill buttons and chips.
-- **Components:** the default button is a ghost with a 1px black border; the primary CTA is the one indigo pill per screen (the header's "add screenshots" action); inverse actions are solid black pills. Grid cards are flat white with hairlines — no shadows except the single hero/overlay float.
-- **Layout:** left-aligned rhythm; the home hero is a floating white card — the display moment. On desktop a plain text menu centred in the top bar and a 1200px content width; on mobile a labelled bottom tab bar. Home ends with the featured black "add your screenshots" band.
-- **Constraints:** one indigo CTA per screen; no illustrations, no colored shadows or glows; vivid color appears only inside cards (category tints) and the indigo accent.
-- **Logo:** a minimal two-color mark — a rounded screenshot frame holding two text lines, the second ending in a single indigo dot: "the word you searched for, found inside".
-
-<p>
-  <img src="docs/img/boot-light.png" width="160" alt="Splash, light">
-  <img src="docs/img/boot-dark.png" width="160" alt="Splash, dark">
-  <img src="docs/img/boot-after-light.png" width="160" alt="First screen, light">
-  <img src="docs/img/boot-after-dark.png" width="160" alt="First screen, dark">
-</p>
-
-## Android app
-
-- **Automatic capture:** enabled from the first-run consent screen or Settings → Automatic capture. MediaStore + WorkManager content triggers run as soon as the OS allows background work (seconds on stock Android, possibly delayed by OEM power management), plus a periodic catch-up scan (minimum 15 minutes, an OS floor rather than a real-time promise) and a catch-up on every launch for anything missed. Failed analyses are honestly queued as "Analysis pending" and retried.
-- **Share sheet:** **Share → Shotrova** for one or many images from the gallery, Files or any app that shares images.
-- **Save as:** "Download" (the original image) and the backup exports ("Full backup (ZIP)", "Data only (JSON)") open the Android **Save as** dialog (Storage Access Framework).
-- **Also delete from phone:** deleting inside the app removes only the app's copy; once you confirm, the system delete flow also removes the gallery original (Android 11+).
-- **Native feel:** pinch zoom disabled, a real splash screen, status and navigation bars that follow the theme; the back button closes dialogs first, then walks back through the app, then leaves it.
-- **Key security:** the AI key is stored on the device encrypted with Android Keystore.
-
-### Permissions
+## Permissions
 
 | Permission | When | Why |
 |---|---|---|
@@ -186,24 +177,25 @@ Since 1.11.0 Shotrova looks like a **white gallery wall with a single indigo spo
 | `READ_MEDIA_IMAGES` / `READ_MEDIA_VISUAL_USER_SELECTED` (Android 13+, partial access on 14+) | If automatic capture is on | Detecting new screenshots |
 | `READ_EXTERNAL_STORAGE` (Android 8–12, `maxSdkVersion 32`) | If automatic capture is on | Same purpose on older versions |
 | `POST_NOTIFICATIONS` | If automatic capture is on | A notification for each saved screenshot |
-| `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK` | If automatic capture is on | Re-arming the capture work after a reboot (WorkManager) |
+| `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK` | If automatic capture is on | Re-arming capture after a reboot (WorkManager) |
 
-Location, camera, microphone or contacts permissions are never requested. Android cloud backup is disabled (`allowBackup="false"`); use the in-app backup.
+Location, camera, microphone and contacts are never requested. Android cloud backup is off (`allowBackup="false"`); use the in-app backup instead.
 
-## Installation
+## Design
 
-### Android
+A **white gallery wall with a single indigo spotlight**: a calm white canvas of black text and soft hairlines, where the one saturated color is Electric Indigo — saved for the main action, links and active states. The interface stays quiet on purpose, so your screenshots and the category colors can shine.
 
-1. Download `shotrova-<version>.apk` to your phone from the [latest release](https://github.com/firatnexus/shotrova/releases/latest) (signed release build, Android 8.0+ / API 26+).
-2. Optionally verify the file against `SHA256SUMS.txt` on the same page.
-3. Open the APK; if Android asks, allow "Install unknown apps" for your browser or file manager.
-4. On first launch, enabling automatic capture is up to you.
+| Element | Light | Dark | Used for |
+|---|---|---|---|
+| Paper | `#ffffff` | `#0a0a0a` | The canvas |
+| Ink | `#000000` | `#ffffff` | Text and icons |
+| Hairline | `#e2e2e2` | `#262626` | Borders and dividers |
+| Mist | `#f0f0f1` | `#141414` | Inputs, chips, secondary surfaces |
+| Electric Indigo | `#4d49fc` | `#8f8cff` | The primary action, links, focus |
 
-The app is not on Google Play.
-
-### Web
-
-Open [firatnexus.github.io/shotrova](https://firatnexus.github.io/shotrova/) in a modern browser; add it to your home screen from the browser menu to use it like an app.
+- **Type:** Inter (variable, bundled, full Turkish support), 16 px minimum body size.
+- **Shapes:** four radii — 2 px details, 8 px inputs, 16 px cards, 50 px pills.
+- **Logo:** a rounded screenshot frame holding two lines of text, the second ending in an indigo dot — "the word you searched for, found inside".
 
 ## Development
 
@@ -211,95 +203,72 @@ Requirements: Node.js 20+; for the APK, JDK 21 and Android SDK 35.
 
 ```bash
 npm ci --legacy-peer-deps
-npm run dev                         # development server
-npm run build && npm run preview    # production build → http://localhost:4173
-npm test                            # unit tests (Vitest)
-npm run test:ocr                    # real tesseract recognition in all 12 OCR languages
-npm run test:e2e                    # Playwright end-to-end tests (build first)
-npm run icons                       # generate logo, favicon, PWA and Android icons
-npm run apk:debug                   # build + cap sync + gradlew assembleDebug
+npm run dev                 # development server for the UI
+npm test                    # unit tests (Vitest)
+npm run test:ocr            # real tesseract recognition in all 12 languages
+npm run build               # production build into dist/ (what the APK ships)
+npm run test:e2e            # Playwright UI tests on the build
+npm run icons               # logo and Android launcher icons
+npm run apk:debug           # build + cap sync + gradlew assembleDebug
+node scripts/make-banner.mjs        # README banner (docs/banner.svg)
+node scripts/readme-hero.mjs        # README showcase from docs/screenshots/
 ```
 
-Signing, CI and release details: [docs/DEPLOY.md](docs/DEPLOY.md). Pushing a `v*` tag makes the Android workflow build the signed APK and `SHA256SUMS.txt` and publish them on a release page that shows only that version's notes.
+Build, signing, CI and release details: [docs/BUILD.md](docs/BUILD.md). Pushing a `v*` tag makes the Android workflow build the signed APK and `SHA256SUMS.txt` and publish a release with that version's notes.
 
 ## Project structure
 
 ```text
 src/
   ai/           providers (OpenAI, Anthropic, Gemini, OpenRouter, custom) and vision
-  auto/         automatic capture sync
+  auto/         automatic capture sync with the native side
   backup/       ZIP / JSON backup and validated restore
   categorize/   keyword categorizer, learned rules, AI
-  config/       brand: name, version, colors, logo SVG
+  config/       brand: name, version, colors, logo
   db/           IndexedDB schema (idb)
   i18n/         12 language files (tr, en, es, fr, de, pt, it, hi, ar, zh, ja, ru)
   import/       file validation and image processing
   lib/          actions, entity extraction, state, toasts
   native/       Capacitor bridge
-  ocr/          tesseract.js engine, job queue and OCR languages (built into the APK, on-demand on the web)
-  search/       text-based search and query parsing
-  ui/           React screens, styles.css, stickers
-android/        Capacitor Android project (Java: capture, sharing, SAF)
-public/         icons, fonts, OCR language files, manifest
-scripts/        icon, screenshot and README image generators
-tests/          unit, web E2E and APK web-shell E2E tests
-docs/           architecture, testing, deployment, name research, screenshots
+  ocr/          tesseract.js engine, job queue, the 12 built-in OCR languages
+  search/       text search and query parsing
+  ui/           React screens and styles
+android/        Capacitor Android project (Java: capture, sharing, Save as)
+public/         icons, fonts (OCR files are copied in at build time)
+scripts/        OCR asset copy, icons, demo images, README visuals, release notes
+tests/          unit, OCR, UI, APK and Android emulator tests
+docs/           architecture, build, testing, naming, release notes, screenshots
 ```
 
-## Test status
+## Quality and tests
 
-| Suite | Result |
-|---|---|
-| Unit tests (Vitest) | 126 / 126 |
-| Real OCR recognition, 12 languages + combined (`npm run test:ocr`) | 13 / 13 |
-| Web E2E, root path (Playwright, Pixel 7 + desktop Chromium) | 52 passed, 2 skipped (mobile-only on desktop) |
-| Web E2E, `/shotrova/` subpath (GitHub Pages layout) | runs in CI on every push |
-| APK web-shell E2E (simulated Android bridge) | runs against the real built APK in the Android workflow |
-| TypeScript (`tsc -b`) and subpath build | clean |
+| Suite | Where | Result |
+|---|---|---|
+| Unit tests (Vitest) | every push | **126 / 126** |
+| Real OCR in 12 languages + combined (`npm run test:ocr`) | every push | **13 / 13** |
+| UI tests on the production build (Playwright, Pixel 7 + wide screen) | every push | **53 passed**, 3 mobile-only checks skipped on the wide screen |
+| APK tests: files extracted from the built APK, simulated Android bridge | every APK build | **passing** |
+| Device test: real APK on a Pixel 6 emulator, Android 15 | every pull request and `main` | **passing** — launch, swipe, keyboard, OCR and the screenshots above |
+| TypeScript (`tsc -b`) | every push | clean |
 
-Every result was actually executed; logs and manual test steps are in [docs/TESTING.md](docs/TESTING.md).
+Every number was actually executed; details in [docs/TESTING.md](docs/TESTING.md).
 
-## Limitations
+## Good to know
 
-- **Not tested on a physical Android device or emulator.** The build environment has no KVM/emulator. The APK is built, signed and its bundled web files are tested in Chromium with a simulated Android bridge, but the Java side (sharing, Save as, background capture timing, especially on Xiaomi/HyperOS with the screen off) can only be verified on a real device.
-- **Background timing is not guaranteed:** force-stop, reboot and OEM battery savers can delay detection.
-- **Storage is not permanent:** uninstalling the app or clearing its data (browser data for the web version) deletes everything. Make regular backups.
-- **OCR accuracy** depends on image quality; handwriting and very small or decorative text may be misread. The web version downloads about 17 MB of OCR files on first use; the APK bundles Turkish and English. The other 10 OCR languages need a one-time download (0.7–2.7 MB each). Vertical Japanese and Traditional Chinese are not supported, and background analysis of automatic captures (ML Kit) reads Latin script only.
-- **Translations:** languages other than Turkish and English were machine-assisted and need native review. Date phrases in search ("last month") and the keyword categorizer understand Turkish and English only.
-- **Visual understanding is optional:** without AI, categorization relies only on recognized text; photos without text go to "Uncategorized" for review.
-- **Search is text-based,** not semantic.
-- **Android only:** there is no iOS build. On the web, the share target works only after installing the PWA in a Chromium-based Android browser.
-- **No legal guarantee for the name.** See [docs/NAMING.md](docs/NAMING.md).
-
-## Version history
-
-| Version | Highlights |
-|---|---|
-| **1.12.3** | All 12 OCR languages built into the APK, so there are no downloads and no dependency on the web version |
-| 1.12.2 | Attached date and sort menus on the Images screen, redesigned launch screen with a seamless Android splash hand-off |
-| 1.12.1 | Smoother tab swiping (finger-tracking pages, continuous slide-in, no Images stall), swipes allowed over menus and idle fields |
-| 1.12.0 | Animated search hint (25 examples), keyboard-safe sheets on Android 15, 12 UI languages with Arabic RTL, 12 offline OCR languages via verified on-demand packs, swipe between tabs |
-| 1.11.0 | Figma-inspired "white gallery wall" redesign: pure white canvas, ink & mist system, Electric Indigo single CTA, whisper-weight hero, four-tier radii, spark-dot logo |
-| 1.10.0 | Contra-inspired "editorial gallery" redesign: white paper canvas, ink & hairline system, charcoal pill actions, Inter, hero gradient wash, new frame logo |
-| 1.9.1 | English README, release notes and screenshots; "1 result" wording fix |
-| 1.9.0 | Superr-inspired "school notebook" design, orange polaroid logo, bundled Fraunces + Geist |
-| 1.8.0 | Threads-inspired minimal design, black-and-white polaroid logo |
-| 1.7.0 | Portrait-inspired design, new polaroid logo |
-| 1.6.0 | Superhuman-inspired design, double splash fix, dark native splash |
-| 1.5.0 | Apple-inspired visual language |
-| 1.4.0 | Automatic screenshot capture, status card, Also delete from phone, HyperOS guide |
-| 1.3.x | Multi-provider AI, image Q&A, web search for recognized text |
-| 1.2.x | AI vision, text editor, entity chips, splash screen |
-
-Full details: [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md)
+- **Background timing** depends on Android: force-stop, reboot and aggressive battery savers can delay detection. Shotrova catches up on the next launch.
+- **Storage lives on the phone:** uninstalling the app or clearing its data removes everything, so make a backup now and then.
+- **OCR accuracy** depends on the image; handwriting and tiny decorative text can be misread. Vertical Japanese and Traditional Chinese are not supported, and background analysis of automatic captures (ML Kit) reads Latin script.
+- **Translations** other than Turkish and English were machine-assisted and welcome native review. Date phrases in search and the keyword categorizer understand Turkish and English.
+- **Search is text-based,** not semantic; photos without text go to review unless AI vision is on.
+- **Android only** — there is no iOS build. The name check is in [docs/NAMING.md](docs/NAMING.md).
 
 ## License
 
 MIT, see [LICENSE](LICENSE).
 
-Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models `@tesseract.js-data/tur` and `eng` (Apache-2.0 / MIT), [Capacitor](https://capacitorjs.com/) (MIT), [React](https://react.dev/) (MIT), [idb](https://github.com/jakearchibald/idb) (ISC), [fflate](https://github.com/101arrowz/fflate) (MIT), [Google ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/android) (Android only, [ML Kit terms](https://developers.google.com/ml-kit/terms)), [Inter](https://github.com/rsms/inter) (SIL Open Font License 1.1, license text in `public/fonts/OFL-Inter.txt`).
+Third-party components: [tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0), Tesseract language models from `@tesseract.js-data/*` (Apache-2.0), [Capacitor](https://capacitorjs.com/) (MIT), [React](https://react.dev/) (MIT), [idb](https://github.com/jakearchibald/idb) (ISC), [fflate](https://github.com/101arrowz/fflate) (MIT), [Google ML Kit Text Recognition](https://developers.google.com/ml-kit/vision/text-recognition/v2/android) ([ML Kit terms](https://developers.google.com/ml-kit/terms)), [Inter](https://github.com/rsms/inter) (SIL Open Font License 1.1, `public/fonts/OFL-Inter.txt`).
 
 <div align="center">
 <br>
-<sub>shotrova · an editorial wall for your screenshots</sub>
+<sub><b>Shotrova</b> · every screenshot, found in a second · made with care for Android</sub>
 </div>

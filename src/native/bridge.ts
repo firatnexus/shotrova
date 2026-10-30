@@ -2,10 +2,10 @@
  * Thin layer over the Android app's native bridge (Capacitor plugin
  * "ShotrovaBridge", see android/app/src/main/java/.../ShotrovaBridgePlugin.java).
  *
- * The web build never loads Capacitor: we only read the `window.Capacitor`
+ * The app bundle never loads Capacitor: we only read the `window.Capacitor`
  * global that the Android WebView injects. In a normal browser every function
- * here reports "not native" and callers use the web APIs instead, so one
- * codebase serves both the PWA and the APK.
+ * here reports "not native" and callers fall back to standard APIs, so the
+ * UI tests can run the same code in plain Chromium.
  */
 
 export interface StagedFile {
@@ -115,8 +115,7 @@ function cap(): CapacitorGlobal | undefined {
  * The Android launch splash stays on screen until this fires AND the native
  * side's WebView visual-state callback confirms the painted state was
  * submitted to the compositor (or a safety timeout), so startup shows a
- * single splash — no PWA boot screen on top of the native one. No-op on the
- * web.
+ * single continuous launch screen. No-op outside the app.
  */
 export function markFirstFrame(): void {
   console.info('[boot] first frame signal');

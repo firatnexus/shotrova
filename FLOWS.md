@@ -1,11 +1,10 @@
-# Main flows (v1.1.0 → v1.2.0 redesign)
+# Main flows
 
-Checked after every edit. Names are user-visible text of the English UI (Turkish is the default UI language; labels have exact Turkish equivalents).
+The flows the tests and manual checks cover. Names are user-visible text of the English UI (Turkish is the default UI language; labels have exact Turkish equivalents).
 
 ## Launch
-- Start: index.html
-- Expect: branded boot splash (logo + name) while storage loads, then home screen; no uncaught errors.
-- Android: the native launch splash (background + icon) stays on screen until the web layer paints its first usable frame (markFirstFrame, 3s safety cap) — a single splash, the PWA boot screen never stacks on top of it.
+- Start: tap the Shotrova icon.
+- Expect: the Android splash hands off to the in-app launch screen with the mark at exactly the same size and position, then the home screen; no blank frame and no uncaught errors.
 
 ## Home / dashboard
 - Expect: hero dropzone with "Add images" and "Paste from clipboard" buttons, recent strip, category chips, compact stats.
@@ -29,11 +28,11 @@ Checked after every edit. Names are user-visible text of the English UI (Turkish
 - Expect: list management works; fallback category cannot be deleted.
 
 ## Settings
-- Steps: theme switch, language switch, OCR toggle, AI section.
+- Steps: theme switch, app language (12), OCR language (12, all built in), OCR toggle, AI section.
 - Expect: AI vision toggle with privacy warning (image leaves device); key save; export ZIP/JSON; restore merge/replace.
 
 ## Native (APK)
-- Splash: one splash on every platform — Android keeps the native launch splash until the app's first frame (no second web splash); web/PWA shows the boot splash while storage loads.
+- Splash: one continuous launch — the system splash and the in-app launch screen show the same mark in the same place.
 - No pinch zoom in APK; viewer zoom still works.
 - Share from gallery → Shotrova; back button; system bars match theme.
 

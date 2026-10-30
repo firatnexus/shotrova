@@ -38,7 +38,7 @@ public class MainActivity extends BridgeActivity {
         matchWebViewBackgroundToLaunch();
         installKeyboardAwareInsets();
 
-        // Back button: let the web app close dialogs and walk its own history
+        // Back button: let the app UI close dialogs and walk its own history
         // first (window.__shotrovaBack, see src/native/bridge.ts).
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override

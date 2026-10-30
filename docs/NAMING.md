@@ -9,7 +9,7 @@ Checked on **22 October 2026**. Scope: Google Play, App Store, the open web, dom
 - "Shot" (screenshot) + "trove/rova" (treasure, discovery); short, easy to pronounce, English.
 - At the user's request the name is English. Turkish candidates (Ekranot, Taranot, Ekranist, Pikselnot, Klipnot, Notakare, Snapbul, Ekrandex) were considered in the first round and dropped.
 - All brand settings live in one file: [`src/config/brand.ts`](../src/config/brand.ts). The manifest, HTML title, icons, storage prefixes and the "About" section are generated from it. Note: changing `storagePrefix` makes the app start with an empty database; make a backup first.
-- **Android package id:** `io.github.firatnexus.shotrova` (debug builds: `io.github.firatnexus.shotrova.debug`). It is based on the GitHub Pages domain the project controls (`firatnexus.github.io`), so no domain had to be bought. The same id is used in `capacitor.config.json`, `android/app/build.gradle` and the Java package; `tests/unit/brand.test.ts` checks that they match. Changing the id after users have installed the APK makes Android treat it as a different app.
+- **Android package id:** `io.github.firatnexus.shotrova` (debug builds: `io.github.firatnexus.shotrova.debug`). It follows the reverse-domain convention for the GitHub account that owns the project (`firatnexus.github.io`), so no domain had to be bought. The same id is used in `capacitor.config.json`, `android/app/build.gradle` and the Java package; `tests/unit/brand.test.ts` checks that they match. Changing the id after users have installed the APK makes Android treat it as a different app.
 
 ## Method
 

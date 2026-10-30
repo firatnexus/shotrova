@@ -642,7 +642,7 @@ main#main.swiping > * { transition: none; }
 
 /* Tab swipe owns horizontal drags inside the app on touch screens: stop the
    browser's own horizontal overscroll navigation (history back/forward in
-   mobile Chrome/PWA) from racing it. OS edge gestures are unaffected. */
+   the WebView) from racing it. OS edge gestures are unaffected. */
 @media (pointer: coarse) {
   html, body { overscroll-behavior-x: none; }
 }
