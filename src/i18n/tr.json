@@ -332,7 +332,7 @@
   "set.wipe_body": "{n} görsel, okunan yazılar, özel kategoriler ve öğrenilen kurallar bu cihazdan kalıcı olarak silinir. Ayarlar korunur.",
   "set.wiped": "Tüm veriler silindi",
   "detail.save_failed": "Kaydedilemedi",
-  "set.ocr_bundled": "Türkçe ve İngilizce uygulamanın içinde gelir; diğer diller seçildiğinde bir kez indirilir. Yazı tanıma internet olmadan çalışır, görsellerin cihazdan çıkmaz.",
+  "set.ocr_bundled": "Tüm yazı tanıma dilleri uygulamanın içinde gelir, hiçbir şey indirilmez. Yazı tanıma internet olmadan çalışır, görsellerin cihazdan çıkmaz.",
   "set.storage_note_app": "Veriler bu uygulamanın cihazdaki özel alanında tutulur ve buluta yedeklenmez. Uygulamayı kaldırmak veya “Verileri temizle” her şeyi siler; düzenli yedek al.",
   "set.install_app": "Shotrova'yı Android uygulaması (APK) olarak kullanıyorsun. Galeride veya başka bir uygulamada görseli seç → Paylaş → Shotrova.",
   "set.install_apk": "Kurulum gerektirmeyen web sürümü yerine Android uygulamasını (APK) da kurabilirsin:",

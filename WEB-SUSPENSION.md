@@ -17,15 +17,16 @@
 
 - **All web source code, assets and configuration:** `src/`, `public/` (icons, fonts, OCR data, `ocr-packs/`), `index.html`, `vite.config.ts`, `package.json`, `package-lock.json`, `capacitor.config.json`, the PWA manifest and service worker build, `docs/` and `docs/DEPLOY.md`. No files or dependencies were removed or moved.
 - **The web build and every test in CI.** The Android app is the same web code bundled by Capacitor (`webDir: dist`), so `npm run build`, unit tests, OCR tests, Playwright E2E tests and the subpath build check still run on every push and pull request.
-- **The Android workflows** (`android.yml`, `device-test.yml`) are unchanged.
+- **The Android workflows** (`android.yml`, `device-test.yml`) were not changed by the suspension. In 1.12.3 the APK packaging check now requires all 12 OCR languages.
 - **GitHub Pages hosting configuration** (Settings → Pages, source "GitHub Actions"), the `github-pages` environment and all secrets are unchanged.
-- **The live v1.12.2 site stays online on purpose.** The Android app downloads its optional OCR language packs from `https://firatnexus.github.io/shotrova/ocr-packs/` (`BRAND.webUrl` in `src/config/brand.ts`, `packUrl()` in `src/ocr/packs.ts`). Unpublishing the site would break those downloads in installed APKs.
+- **The live v1.12.2 site was left online at first.** APK versions up to 1.12.2 download their optional OCR language packs from `https://firatnexus.github.io/shotrova/ocr-packs/`.
+- **Since 1.12.3 the APK does not depend on the website.** All 12 OCR languages are built into the APK (`copyOcrPacks` in `android/app/build.gradle`), and the app makes no requests to the website.
 
 ## Things to keep in mind while the web version is paused
 
 - The published site is frozen at v1.12.2. It will not pick up new changes, including fixes.
-- **OCR packs:** if an Android release changes `public/ocr-packs/` or the pack list or checksums in `src/ocr/packs.ts`, the frozen site will serve the old files and the app's integrity check will reject them. Before shipping such a change, either publish once (see below) or host the packs somewhere else.
-- **Hosting and billing:** GitHub Pages is free for this public repository, so there is no cost while it is paused. If you later decide to take the site fully offline, first move the OCR packs (see above). Then turn off Pages under Settings → Pages; this cannot be undone from the workflow and removes the published site.
+- **OCR packs:** since 1.12.3 the APK carries every language itself, so changing the packs no longer requires publishing the website. Only users still on 1.12.2 or older download packs from the site; they get every language built in once they update.
+- **Hosting and billing:** GitHub Pages is free for this public repository, so there is no cost while it is paused. To take the site fully offline, turn off Pages under Settings → Pages. This removes the published site; it can be turned on again later with source "GitHub Actions", followed by a publish.
 
 ## How to restore the web version
 

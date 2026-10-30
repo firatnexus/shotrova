@@ -9,6 +9,7 @@ import {
   OcrPackError,
   composeOcrLanguage,
   installPack,
+  isBundled,
   ocrLangInfo,
   packStatus,
   parseOcrLanguage,
@@ -41,7 +42,7 @@ export function OcrLanguageField() {
         value: l.code,
         label: l.label,
         lang: l.bcp47,
-        hint: l.bundled
+        hint: isBundled(l.code)
           ? t('ocr.pack.bundled')
           : installed?.[l.code]
             ? t('ocr.pack.installed')
@@ -72,7 +73,7 @@ export function OcrLanguageField() {
   };
 
   const missing = installed !== null && !installed[primary];
-  const extras = OCR_LANGS.filter((l) => !l.bundled && installed?.[l.code] && l.code !== primary);
+  const extras = OCR_LANGS.filter((l) => !isBundled(l.code) && installed?.[l.code] && l.code !== primary);
   const info = ocrLangInfo(primary);
 
   return (

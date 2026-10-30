@@ -236,7 +236,7 @@ src/
   import/       file validation and image processing
   lib/          actions, entity extraction, state, toasts
   native/       Capacitor bridge
-  ocr/          tesseract.js engine, job queue and on-demand language packs
+  ocr/          tesseract.js engine, job queue and OCR languages (built into the APK, on-demand on the web)
   search/       text-based search and query parsing
   ui/           React screens, styles.css, stickers
 android/        Capacitor Android project (Java: capture, sharing, SAF)
@@ -275,7 +275,8 @@ Every result was actually executed; logs and manual test steps are in [docs/TEST
 
 | Version | Highlights |
 |---|---|
-| **1.12.2** | Attached date and sort menus on the Images screen, redesigned launch screen with a seamless Android splash hand-off |
+| **1.12.3** | All 12 OCR languages built into the APK, so there are no downloads and no dependency on the web version |
+| 1.12.2 | Attached date and sort menus on the Images screen, redesigned launch screen with a seamless Android splash hand-off |
 | 1.12.1 | Smoother tab swiping (finger-tracking pages, continuous slide-in, no Images stall), swipes allowed over menus and idle fields |
 | 1.12.0 | Animated search hint (25 examples), keyboard-safe sheets on Android 15, 12 UI languages with Arabic RTL, 12 offline OCR languages via verified on-demand packs, swipe between tabs |
 | 1.11.0 | Figma-inspired "white gallery wall" redesign: pure white canvas, ink & mist system, Electric Indigo single CTA, whisper-weight hero, four-tier radii, spark-dot logo |

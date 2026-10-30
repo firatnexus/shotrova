@@ -21,6 +21,8 @@ if (isNativeApp()) {
     stopReveal();
   });
   void nativeSplashRemoved().then((r) => r && reveal());
+  // Every OCR language is built into the APK now; drop packs downloaded by older versions.
+  void import('./ocr/packs').then((m) => m.removeLegacyPackStore());
 }
 
 void init();

@@ -1,5 +1,11 @@
 Shotrova for Android: a native APK built from the same code as the web app.
 
+## What's new in 1.12.3
+
+- **Every text-recognition language is now built into the app.** Spanish, French, German, Portuguese, Italian, Hindi, Arabic, Chinese, Japanese and Russian ship inside the APK alongside Turkish and English. Picking one takes effect immediately, nothing is downloaded, and recognition works without an internet connection. The app no longer depends on the web version.
+- Language packs downloaded by earlier versions are removed automatically to free space.
+- Your images, categories and settings stay as they are.
+
 ## What's new in 1.12.2
 
 - **Date and sort menus on the Images screen:** both filters now open the app's own menu right under the control (the same style as the language menu) instead of Android's generic selection dialog. The current choice is marked, long lists scroll inside the menu, and it closes when you pick an option, tap outside it or press Back. All options and their behaviour are unchanged.
