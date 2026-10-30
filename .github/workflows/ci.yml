@@ -43,13 +43,17 @@ jobs:
             test-reports/
             test-results/
           if-no-files-found: ignore
+      # WEB SUSPENDED (see WEB-SUSPENSION.md): publishing to GitHub Pages runs
+      # only when the repository variable WEB_DEPLOY_ENABLED is 'true'. The
+      # build and all tests above still run — the Android app ships this code.
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: vars.WEB_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: pages-dist
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # WEB SUSPENDED: skipped unless WEB_DEPLOY_ENABLED == 'true' (WEB-SUSPENSION.md).
+    if: vars.WEB_DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-latest
     environment:

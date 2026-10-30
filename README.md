@@ -24,6 +24,8 @@ and finds them in seconds by what they say. No server, no account, no tracking.
 [Release notes](docs/RELEASE_NOTES.md) &nbsp;·&nbsp;
 [Test results](docs/TESTING.md)
 
+> The web version is temporarily paused: it stays online at v1.12.2 but is not updated. See [WEB-SUSPENSION.md](WEB-SUSPENSION.md).
+
 <br>
 
 <img src="docs/screenshots/readme-hero.png" alt="Shotrova: desktop home, mobile image detail and dark theme" width="100%">
